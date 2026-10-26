@@ -19,12 +19,14 @@ Todo o app segue **MVVM (Model–View–ViewModel)**, adaptado para React Native
 | **View** | Componente da tela (`.tsx`) | Renderizar a interface a partir do que o ViewModel entrega e repassar eventos | Conter regra de negócio, acessar armazenamento ou serviços, fazer cálculos além do trivial |
 
 ### Fluxo
+
 ```
 View  ──(eventos do usuário)──►  ViewModel  ──►  Model (repositórios / serviços)
 View  ◄──(estado pronto para exibir)──  ViewModel  ◄──  Model
 ```
 
 ### Exemplo de estrutura de uma tela
+
 ```
 src/features/board/
 ├── model/
@@ -39,6 +41,7 @@ src/features/board/
 ```
 
 ### Regras práticas
+
 - **Uma tela = uma View + um ViewModel.** A View chama apenas o seu ViewModel.
 - O ViewModel expõe **dados já prontos para exibir** (ex.: `deadlineLabel: "Amanhã às 14h"`, `progressText: "2 de 5"`), e a View não formata nada.
 - O ViewModel expõe **ações com nomes de intenção**: `moveCard`, `confirmVoiceCard`, `toggleCalendarSync`. Nada de expor `setState` cru.
@@ -86,9 +89,11 @@ export type ColorToken = keyof typeof colors;
 - **Exceção, só em extrema necessidade** (ex.: uma cor exigida por uma API nativa ou biblioteca que não aceita token, como configuração de widget em Swift/Kotlin):
   1. Primeiro tente usar ou criar um token.
   2. Se for mesmo impossível, deixe um comentário logo acima explicando o motivo:
+
      ```ts
      // COR-HARDCODED: o WidgetKit não lê o tema do JS; manter igual a colors.surface
      ```
+
   3. Avise o autor na resposta que uma exceção foi criada.
 - No código nativo (widgets, Live Activities), centralize as cores também em **um único arquivo por plataforma** (ex.: `WidgetColors.swift`, `widget_colors.xml`), espelhando os tokens do JS.
 - **Garantia automática:** ativar a regra de lint `react-native/no-color-literals` (do `eslint-plugin-react-native`) para que o projeto acuse erro ao encontrar cor solta no código.
@@ -113,6 +118,7 @@ export type ColorToken = keyof typeof colors;
 # Parte 2 — Boas práticas adotadas no projeto
 
 ## TypeScript
+
 - `strict: true` no `tsconfig.json`.
 - **Proibido `any`.** Use tipos explícitos, `unknown` com validação ou genéricos.
 - Tipos das entidades (Card, Column, Board, Folder) definidos uma única vez no Model e reutilizados em todo lugar.
@@ -120,6 +126,7 @@ export type ColorToken = keyof typeof colors;
 - Dados que vêm de fora (resposta da IA, armazenamento local) devem ser **validados** antes de usar (ex.: com uma biblioteca de schema como Zod, a confirmar com o autor).
 
 ## Organização e nomes
+
 - **Pastas por feature** (`board`, `card`, `calendar`, `voice`, `automations`, `settings`, `folders`, `templates`), cada uma com `model/`, `viewmodel/` e `view/`.
 - Componentes e telas em **PascalCase** (`BoardScreen.tsx`); hooks começando com `use` (`useBoardViewModel.ts`); funções e variáveis em **camelCase**; constantes globais em **UPPER_SNAKE_CASE**.
 - Código (nomes de variáveis, funções, tipos) em **inglês**; textos exibidos ao usuário em **português do Brasil**.
@@ -127,19 +134,23 @@ export type ColorToken = keyof typeof colors;
 - Arquivos pequenos e focados. Se uma View ou ViewModel passar de ~200 linhas, avalie dividir.
 
 ## Textos centralizados
+
 - Assim como as cores, **todos os textos da interface ficam centralizados** (ex.: `src/i18n/pt-BR.ts`), nunca escritos direto no JSX.
 - Isso facilita revisar o tom amigável em um lugar só e deixa o app pronto para outros idiomas no futuro.
 
 ## Sem números mágicos
+
 - Espaçamentos, tamanhos, durações de animação, limites (ex.: "arquivar após X dias", "prazo próximo = 24h") ficam em **constantes nomeadas** ou nos tokens do tema, nunca soltos no código.
 
 ## Estado e dados
+
 - Estado de tela no ViewModel; estado global só para o que é realmente compartilhado entre telas (quadros, cards, configurações).
 - O app é **local-first**: o acesso a dados passa sempre pelos **repositórios** do Model, nunca direto do ViewModel para o armazenamento.
 - Estado imutável: nunca altere objetos e arrays diretamente; crie novos.
 - Toda ação que altera dados deve ser registrada no **histórico de ações**, para alimentar o "Desfazer" (shake to undo e snackbar).
 
 ## Performance (crucial para o diferencial do app)
+
 - Animações e gestos rodando na **UI thread** (worklets do Reanimated), nunca dependendo de re-render do React a cada frame.
 - Listas de cards **virtualizadas**, com `keyExtractor` estável e itens memoizados.
 - Use `React.memo`, `useCallback` e `useMemo` onde evitam re-renders reais em listas e componentes pesados, sem exagero no resto.
@@ -148,33 +159,39 @@ export type ColorToken = keyof typeof colors;
 - Teste a performance em **build de release** e em um aparelho Android intermediário, não só no simulador.
 
 ## Tratamento de erros
+
 - Toda chamada a serviço externo (IA, calendário, permissões, armazenamento) trata o erro e mostra uma **mensagem amigável** ao usuário, sem travar o app.
 - Falha na IA de voz deve permitir que o usuário **preencha o card manualmente**.
 - Nunca engula erros em silêncio (`catch {}` vazio). Registre ou trate.
 
 ## Acessibilidade em todo componente
+
 - Componentes compartilhados já nascem com `accessibilityLabel`, `accessibilityRole` e área de toque mínima.
 - Todo gesto tem alternativa sem gesto (ver regra 15 da seção 12 do CLAUDE.md).
 - Respeitar "Reduzir movimento" usando o hook compartilhado de movimento reduzido.
 
 ## Testes
+
 - **ViewModels e funções do Model** devem ter testes unitários (Jest). São a parte mais importante a testar, porque concentram a lógica.
 - Componentes compartilhados testados com **React Native Testing Library**, priorizando comportamento e acessibilidade.
 - Serviços externos substituídos por **mocks** nos testes, usando as interfaces do Model.
 - Funções puras críticas com testes obrigatórios: cálculo de estado de prazo, automações de coluna, reordenação de cards e interpretação da resposta da IA.
 
 ## Qualidade automática
+
 - **ESLint + Prettier** configurados e rodando no projeto.
 - Regras de lint que reforçam este arquivo: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any` e `react-hooks/exhaustive-deps`.
 - **Hook de pre-commit** (ex.: Husky + lint-staged) rodando lint, checagem de tipos e testes afetados.
 - Nenhum `console.log` esquecido no código final.
 
 ## Git
+
 - Commits pequenos e com mensagens no padrão **Conventional Commits** (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`).
 - Uma branch por funcionalidade.
 - README do projeto bem escrito, já que é portfólio: objetivo, prints/GIFs, arquitetura (MVVM), tecnologias, como rodar e decisões técnicas.
 
 ## Segurança
+
 - **Nenhuma chave de API no código.** Chaves (ex.: do serviço de IA) ficam fora do repositório, em variáveis de ambiente não versionadas, e o ideal é que a chamada à IA passe por um backend próprio para a chave não ficar exposta no app.
 - `.env` e arquivos de credenciais no `.gitignore`.
 
