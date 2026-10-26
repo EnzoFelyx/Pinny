@@ -1,0 +1,15 @@
+# Regras gerais do monorepo.
+# Regras específicas de cada pacote ficam no .gitignore da própria pasta (ex.: mobile/Pinny/.gitignore).
+
+# dependencies
+node_modules/
+
+# local env files (REGRAS.md: nenhuma chave no repositório)
+.env
+.env*.local
+
+# Claude Code: preferências locais de cada máquina
+.claude/settings.local.json
+
+# macOS
+.DS_Store
