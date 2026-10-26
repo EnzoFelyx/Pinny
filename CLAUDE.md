@@ -455,7 +455,13 @@ O diferencial do app é o arraste de cards, que por natureza **não é acessíve
 - **Prioridade:** em caso de conflito, **`REGRAS.md` e este `CLAUDE.md` vencem as regras do ECC**. Exemplos: o limite de ~200 linhas do REGRAS.md vale em vez do de 400/800; TDD e cobertura de 80% do `common/testing.md` são recomendações, não obrigações; a "tela clara e escura" do `react-native/accessibility.md` não se aplica (v1 só tem tema claro).
 - **Aprendizado contínuo (continuous-learning-v2):** observa as sessões e cria "instincts" a partir das correções do autor. Os dados ficam locais, em `~/.local/share/ecc-homunculus/`. A análise roda com o Haiku via CLI `claude` a cada 5 minutos.
 - Ao atualizar ou reinstalar o ECC, as regras removidas voltam. Repita a limpeza acima.
-- O `npx ecc-universal@2.2.3 doctor` acusa `missing-managed-files` (93) por causa dessas regras removidas e `drifted-managed-files` por causa do `env` no `settings.json`. **É esperado**, não é erro.
+- **Enxugamento (2026-10-26):** o `/context` mediu ~20,5 mil tokens do ECC por mensagem (agents 5,9k, skills/commands ~7,7k, regras ~6,9k), o dobro da estimativa. Foram removidos:
+  - **43 agents** de outras linguagens/áreas (C++, C#, F#, Dart/Flutter, Django, FastAPI, Python, PyTorch, ML, RAG, Go, Java, Rust, PHP, Vue, HarmonyOS, React web, Postgres, rede, homelab, saúde, marketing, SEO, chief-of-staff, opensource-*, gan-*, e2e-runner, agent-evaluator, harness-optimizer, loop-operator, spec-miner).
+  - **44 commands** (cpp/go/rust/flutter/python/fastapi/vue, react-build, epic-*, jira, pm2, setup-pm, marketing, model-route, multi-*, orch-*, gan-*, santa-loop, auto-update, plan-canvas). O `gradle-build` ficou (Android do RN).
+  - **17 skills** (continuous-learning v1, windows-desktop-e2e, browser-qa, e2e-testing, codehealth-mcp, repo-scan, council-multi-model, santa-method, dev-team, eval-harness, loop-design-check, skill-comply, delivery-gate, growth-log, unified-memory, inherit-legacy-style, plankton-code-quality).
+  - **3 regras**: `rules/ecc/README.md` (manual de instalação), `common/performance.md` e `common/hooks.md`.
+  - Ficaram 25 agents, 50 commands e 31 skills. Para restaurar algum: `git checkout dedf05e -- .claude/<caminho>`.
+- O `npx ecc-universal@2.2.3 doctor` acusa `missing-managed-files` por causa das regras e dos itens removidos acima e `drifted-managed-files` por causa do `env` no `settings.json`. **É esperado**, não é erro.
 - **GateGuard desligado** via `env.ECC_DISABLED_HOOKS` no `.claude/settings.json` (gastava tokens exigindo "fatos" antes de cada Bash/edição).
 - O observer chama `claude` pelo PATH. A CLI fica em `~/.local/bin`, que não está no PATH do VS Code, por isso existe o link `/opt/homebrew/bin/claude → ~/.local/bin/claude`.
 - O aprendizado só separa por projeto dentro de um **repositório git**. O ID do Pinny no homunculus é `5f5ce44e3be0` (hash do remote do GitHub).
