@@ -500,6 +500,7 @@ O diferencial do app é o arraste de cards, que por natureza **não é acessíve
 ### ECC (Everything Claude Code)
 
 - Instalado em **2026-10-26**, versão **2.2.3**, só neste projeto (`Pinny/.claude/`), com o perfil **core** e hooks `standard` (`npx ecc-universal@2.2.3 install --target claude-project --profile core --enable-hooks`).
+- **A `/.claude/` é local e fica fora do git** (`.gitignore`), para a versão enxugada do ECC não ir para o GitHub. Ela foi removida também do histórico (reescrito em 2026-10-26). O `mobile/Pinny/.claude/settings.json` é do template do Expo e continua versionado.
 - **Regras mantidas** em `.claude/rules/ecc/`: `common`, `typescript`, `react-native`, `swift` e `kotlin` (as duas últimas só carregam em arquivos `.swift`/`.kt`, para a etapa 13).
 - **Removidas por conflito com este projeto:** `common/agents.md` (disparava agents automaticamente e aumentava o custo), `common/development-workflow.md` e `common/patterns.md` (pesquisa no GitHub e clonar projetos-base antes de codar), `typescript/testing.md` (Playwright, que é para web) e `react-native/production-readiness.md` (Sentry e analytics obrigatórios, o que contraria a seção 12). Também saíram as regras das linguagens que o app não usa, incluindo `web` e `react`.
 - **Prioridade:** em caso de conflito, **`REGRAS.md` e este `CLAUDE.md` vencem as regras do ECC**. Exemplos: o limite de ~200 linhas do REGRAS.md vale em vez do de 400/800; TDD e cobertura de 80% do `common/testing.md` são recomendações, não obrigações; a "tela clara e escura" do `react-native/accessibility.md` não se aplica (v1 só tem tema claro).
@@ -510,7 +511,7 @@ O diferencial do app é o arraste de cards, que por natureza **não é acessíve
   - **44 commands** (cpp/go/rust/flutter/python/fastapi/vue, react-build, epic-*, jira, pm2, setup-pm, marketing, model-route, multi-*, orch-*, gan-*, santa-loop, auto-update, plan-canvas). O `gradle-build` ficou (Android do RN).
   - **17 skills** (continuous-learning v1, windows-desktop-e2e, browser-qa, e2e-testing, codehealth-mcp, repo-scan, council-multi-model, santa-method, dev-team, eval-harness, loop-design-check, skill-comply, delivery-gate, growth-log, unified-memory, inherit-legacy-style, plankton-code-quality).
   - **3 regras**: `rules/ecc/README.md` (manual de instalação), `common/performance.md` e `common/hooks.md`.
-  - Ficaram 25 agents, 50 commands e 31 skills. Para restaurar algum: `git checkout dedf05e -- .claude/<caminho>`.
+  - Ficaram 25 agents, 50 commands e 31 skills. Para restaurar algum, copie-o da instalação original do `npx ecc-universal@2.2.3` (o histórico do git não tem mais a `.claude`).
   - **Depois do enxugamento** (`/context` de 2026-10-26): ~11,9 mil tokens do ECC por mensagem (agents 2k, skills ~3,5k, commands ~2,6k, regras ~3,8k), uma queda de ~42%. As regras de `typescript`, `react-native`, `swift` e `kotlin` não carregam sem arquivos desses tipos. Para comparar: `CLAUDE.md` + `REGRAS.md` somam ~18,2 mil.
 - O `npx ecc-universal@2.2.3 doctor` acusa `missing-managed-files` por causa das regras e dos itens removidos acima e `drifted-managed-files` por causa do `env` no `settings.json`. **É esperado**, não é erro.
 - **GateGuard desligado** via `env.ECC_DISABLED_HOOKS` no `.claude/settings.json` (gastava tokens exigindo "fatos" antes de cada Bash/edição).

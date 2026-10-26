@@ -8,8 +8,9 @@ node_modules/
 .env
 .env*.local
 
-# Claude Code: preferências locais de cada máquina
-.claude/settings.local.json
+# Claude Code / ECC: instalação local, fora do git (CLAUDE.md, seção 13).
+# A barra inicial mantém versionado o mobile/Pinny/.claude do template do Expo.
+/.claude/
 
 # macOS
 .DS_Store
