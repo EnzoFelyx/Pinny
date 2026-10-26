@@ -511,8 +511,10 @@ O diferencial do app é o arraste de cards, que por natureza **não é acessíve
   - **17 skills** (continuous-learning v1, windows-desktop-e2e, browser-qa, e2e-testing, codehealth-mcp, repo-scan, council-multi-model, santa-method, dev-team, eval-harness, loop-design-check, skill-comply, delivery-gate, growth-log, unified-memory, inherit-legacy-style, plankton-code-quality).
   - **3 regras**: `rules/ecc/README.md` (manual de instalação), `common/performance.md` e `common/hooks.md`.
   - Ficaram 25 agents, 50 commands e 31 skills. Para restaurar algum: `git checkout dedf05e -- .claude/<caminho>`.
+  - **Depois do enxugamento** (`/context` de 2026-10-26): ~11,9 mil tokens do ECC por mensagem (agents 2k, skills ~3,5k, commands ~2,6k, regras ~3,8k), uma queda de ~42%. As regras de `typescript`, `react-native`, `swift` e `kotlin` não carregam sem arquivos desses tipos. Para comparar: `CLAUDE.md` + `REGRAS.md` somam ~18,2 mil.
 - O `npx ecc-universal@2.2.3 doctor` acusa `missing-managed-files` por causa das regras e dos itens removidos acima e `drifted-managed-files` por causa do `env` no `settings.json`. **É esperado**, não é erro.
 - **GateGuard desligado** via `env.ECC_DISABLED_HOOKS` no `.claude/settings.json` (gastava tokens exigindo "fatos" antes de cada Bash/edição).
+- **`env.CLAUDE_PLUGIN_ROOT`** no `.claude/settings.json` aponta para `Pinny/.claude`. Sem ele, `/instinct-status`, `/promote`, `/evolve`, `/prune`, `/projects` e `/skill-health` procuram o ECC em `~/.claude` e falham. O caminho é absoluto: se a pasta do projeto mudar de lugar, atualize-o.
 - O observer chama `claude` pelo PATH. A CLI fica em `~/.local/bin`, que não está no PATH do VS Code, por isso existe o link `/opt/homebrew/bin/claude → ~/.local/bin/claude`.
 - O aprendizado só separa por projeto dentro de um **repositório git**. O ID do Pinny no homunculus é `5f5ce44e3be0` (hash do remote do GitHub).
 
