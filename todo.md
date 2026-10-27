@@ -11,7 +11,7 @@
 |---|---|---|
 | 0 | Decisões pendentes | ✅ |
 | 1 | Fundação do projeto | ✅ |
-| 2 | Tema e textos centralizados | ⬜ |
+| 2 | Tema e textos centralizados | ✅ |
 | 3 | Biblioteca de componentes | ⬜ |
 | 4 | Dados local-first | ⬜ |
 | 5 | Navegação e estrutura das telas | ⬜ |
@@ -66,14 +66,17 @@
 
 **Objetivo:** todo valor visual e todo texto do app em um único lugar.
 
-- [ ] `src/theme/colors.ts` com paleta base e tokens semânticos
-- [ ] Conferir o contraste AA de todos os tokens de texto e ícone
-- [ ] `spacing.ts`, `radius.ts`, `shadows.ts`, `typography.ts` e `motion.ts`
-- [ ] Instalar a fonte Nunito e guardar o arquivo de licença (OFL)
-- [ ] `src/i18n/pt-BR.ts` com a estrutura dos textos da interface
-- [ ] Constantes nomeadas para limites do app (ex.: "prazo próximo = 24h")
+- [x] `src/theme/colors.ts` com paleta base, tokens semânticos e sombras
+- [x] Conferir o contraste AA de todos os tokens de texto e ícone
+- [x] `typography.ts` e `motion.ts` (espaçamento, raio e tamanhos ficam nos componentes, ver REGRAS.md regra 2)
+- [x] Instalar a fonte Nunito e guardar o arquivo de licença (OFL)
+- [x] `src/i18n/pt-BR.ts` com a estrutura dos textos da interface
+- [x] Constantes nomeadas para limites do app (ex.: "prazo próximo = 24h")
+- [x] Adotar NativeWind como padrão de estilo, com o `tailwind.config.ts` lendo os tokens de `src/theme/`
+- [x] Regra de lint contra cor arbitrária em `className` no `eslint.config.js`
+- [x] Conferir no iPhone a tela provisória com fundo creme e "Pinny" em Nunito ExtraBold
 
-**Pronto quando:** nenhum componente precisar de cor, tamanho ou texto escrito à mão, e o lint acusar cores soltas.
+**Pronto quando:** nenhum componente precisar de cor, fonte ou texto escrito à mão, e o lint acusar cores soltas.
 
 ---
 

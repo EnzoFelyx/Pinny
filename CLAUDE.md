@@ -82,7 +82,8 @@ Lidos das camadas da biblioteca (node `3:46232`), com dois ajustes de contraste 
 | `background` (fundo creme) | `#FBF8F1` | |
 | `surface` (cartões, inputs, bottom sheets) | `#FFFEFB` | |
 | `columnBackground` | `#EFECE5` | |
-| `border` (bordas decorativas, trilho da barra, botão desabilitado) | `#E8E2D8` | 1,28:1, só decorativo. Borda de input precisa de token próprio ≥ 3:1 (definir na etapa 3) |
+| `border` (bordas decorativas, trilho da barra, botão desabilitado) | `#E8E2D8` | 1,28:1, só decorativo |
+| `borderStrong` (borda de input, trilho do toggle desligado) | `#8B867E` | Não existe no Figma. Criado para passar 3:1: 3,06 a 3,58:1 |
 | `textPrimary` | `#39352F` | 10,3 a 12,1:1 |
 | `textSecondary` | `#6F6A62` | ⚠️ Figma usa `#827C73` (3,5 a 4,1:1, reprovado). Ajustado para 4,55 a 5,3:1 |
 | `primary` (botão, FAB, toggle, checkbox, progresso) | `#776098` | Texto `surface` sobre ele: 5,32:1 |
@@ -114,7 +115,11 @@ Texto sobre os acentos pastéis usa sempre `textPrimary` (9,4 a 10,3:1).
 ### Tipografia
 
 - Fonte do app: **Nunito** ✅ (sans-serif arredondada e amigável, licença SIL OFL).
-- Títulos em peso **semibold**.
+- Títulos em peso **ExtraBold (800)**, como no Figma (decidido em 2026-10-27; substitui o "semibold" anterior).
+- Pesos usados: Medium (500), Bold (700) e ExtraBold (800). Embutidos no binário pelo plugin `expo-font` (pacote `@expo-google-fonts/nunito`). Licença em `mobile/Pinny/assets/fonts/LICENSE-Nunito-OFL.txt`.
+- Altura de linha: **1,35** em todos os textos.
+- Escala (`src/theme/typography.ts`, vira as classes `text-<nome>`): `display` 26, `title` 22, `subtitle` 17, `card-title` 15, `label` 13 e `tag` 12 em ExtraBold; `body` 14 e `caption` 12 em Medium. Cada classe já define tamanho, altura de linha e fonte.
+- **Tamanho mínimo: 12px.** O Figma usa 11px em etiquetas, chips e prazo; no app esses textos usam 12px.
 
 ### Ícones e ilustrações
 
@@ -291,6 +296,7 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
 - **Bibliotecas:** serão escolhidas e instaladas **conforme a necessidade de cada etapa**, não todas de uma vez. Não instale bibliotecas antecipadamente. Ao chegar numa etapa que precise de uma, proponha a opção e confirme com o autor antes de instalar.
 - **iOS first (2026-10-27):** o desenvolvimento e os testes manuais são feitos só no iOS por enquanto. O Android volta quando o autor pedir; até lá, não gere a pasta `android/` nem teste nele.
 - **Testes automatizados adiados (2026-10-27):** Jest, Testing Library e pre-commit com testes ficam para depois, quando o autor pedir. Não escreva testes nem instale ferramentas de teste até lá.
+- **Estilização: NativeWind 4 + Tailwind 3 (2026-10-27).** `className` é o padrão; `StyleSheet`/`style` só em animação (Reanimated), valores dinâmicos ou bibliotecas sem `className` (REGRAS.md, regra 5). O NativeWind 5 ainda era release candidate na época; reavaliar quando sair estável. Configuração em `mobile/Pinny/`: `tailwind.config.ts` (lê os tokens de `src/theme/`), `src/global.css`, `babel.config.js` e `metro.config.js`.
 - **Lint e formatação:** ESLint (`eslint-config-expo` + `eslint-plugin-react-native`) e Prettier, configurados em `mobile/Pinny/eslint.config.js` e `.prettierrc.json`. Rode `npm run lint`, `npm run typecheck` e `npm run format`.
 - **Voz e IA (seção 5.7):** decisão adiada. Serviço de reconhecimento de voz, serviço de IA e onde roda o backend (para proteger a chave) serão definidos mais tarde, na etapa 10 do `todo.md`.
 
@@ -324,7 +330,8 @@ Funcionalidades já desejadas, mas fora da primeira versão:
 - **Respeite o escopo da v1.** Não implemente modo escuro, cor por coluna nem o pet, a menos que o autor peça.
 - **Priorize a qualidade das animações e gestos.** É o diferencial do app e o que mais conta no portfólio.
 - **Código limpo e exemplar.** É um projeto de portfólio: TypeScript bem tipado, componentes reutilizáveis, organização clara de pastas e boas práticas.
-- **Centralize as cores, espaçamentos e fontes em tokens de design**, mesmo sem tema escuro agora.
+- **Centralize só o fundamental em tokens:** cores (com sombras), tipografia e motion. Espaçamento, raio e tamanhos ficam nas classes de cada componente (REGRAS.md, regra 2).
+- **Estilize com `className` (NativeWind).** Use `StyleSheet` ou `style` só quando a regra 5 do REGRAS.md permitir.
 - **Textos da interface em português do Brasil**, com tom amigável.
 - **Pergunte antes de decisões de arquitetura ou bibliotecas** que ainda estão em aberto (seção 9).
 - **Siga as regras de privacidade, acessibilidade e conformidade da seção 12** em toda funcionalidade nova. Elas não são opcionais.

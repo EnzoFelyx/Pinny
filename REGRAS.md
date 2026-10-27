@@ -78,7 +78,12 @@ export type ColorToken = keyof typeof colors;
 ```
 
 - Isso facilita a manutenção e prepara o terreno para o tema escuro e as cores customizáveis do roadmap, sem precisar mexer em cada tela.
-- O mesmo princípio vale para os outros valores visuais: **espaçamentos, raios de borda, sombras, tipografia e duração de animações** ficam em `src/theme/` (ex.: `spacing.ts`, `radius.ts`, `shadows.ts`, `typography.ts`, `motion.ts`).
+- **Só o fundamental vira token** (decisão do autor, 2026-10-27). Em `src/theme/` ficam apenas:
+  - `colors.ts`: cores **e sombras** (`shadows.card`, `shadows.lifted`).
+  - `typography.ts`: família, tamanho, peso e altura de linha dos textos.
+  - `motion.ts`: durações e configurações de animação.
+- **Espaçamento, raio de borda e tamanhos de componente não viram token.** Eles ficam nas classes do próprio componente, usando a escala do Tailwind ou valores arbitrários (`p-3`, `rounded-[18px]`). Não crie `spacing.ts`, `radius.ts` nem `sizes.ts`.
+- O `tailwind.config.ts` **não tem valores próprios**: ele só lê `colors.ts` e `typography.ts` e traduz para classes (`bg-surface`, `text-text-primary`, `text-display`, `shadow-card`). A paleta padrão do Tailwind foi removida, então `bg-white` ou `text-red-500` não existem.
 - Ao definir ou alterar uma cor de texto, confira o **contraste AA** (ver regra 14 da seção 12 do CLAUDE.md).
 
 ---
@@ -97,6 +102,20 @@ export type ColorToken = keyof typeof colors;
   3. Avise o autor na resposta que uma exceção foi criada.
 - No código nativo (widgets, Live Activities), centralize as cores também em **um único arquivo por plataforma** (ex.: `WidgetColors.swift`, `widget_colors.xml`), espelhando os tokens do JS.
 - **Garantia automática:** ativar a regra de lint `react-native/no-color-literals` (do `eslint-plugin-react-native`) para que o projeto acuse erro ao encontrar cor solta no código.
+- Em `className`, também é proibido usar cor arbitrária (`bg-[#fff]`, `text-[rgb(...)]`). A `no-color-literals` não enxerga `className`, então o lint precisa de uma regra própria para isso.
+
+---
+
+## Regra 5 — Estilização com NativeWind (className primeiro)
+
+- O padrão de estilo do app é o **NativeWind** (Tailwind para React Native): estilize com `className`.
+- `StyleSheet.create` e a prop `style` **só** entram quando `className` não resolve:
+  1. Estilos animados do Reanimated (`useAnimatedStyle`, valores compartilhados).
+  2. Valores calculados em tempo de execução (ex.: posição do cartão durante o arraste, largura vinda de uma medição).
+  3. Props de bibliotecas que não aceitam `className`.
+- Objeto de estilo escrito direto no JSX (`style={{ ... }}`) continua proibido (`react-native/no-inline-styles`). Quando `style` for necessário, use `StyleSheet.create` ou o estilo animado.
+- Quando um estilo precisar de cor, sombra ou texto fora do `className`, importe os tokens de `@/theme` (`colors`, `shadows`, `textScale`), nunca valores soltos.
+- Classes que mudam por variante ou estado ficam em um mapa tipado no componente (ex.: `const variantClass: Record<ButtonVariant, string>`), não em strings montadas espalhadas pelo JSX.
 
 ---
 
@@ -111,7 +130,7 @@ export type ColorToken = keyof typeof colors;
   - `src/features/<feature>/view/components/` — componentes usados **só** por aquela feature. Se outra feature precisar, mova para `src/components/`.
 - Componentes compartilhados devem ser **genéricos e configuráveis por props**, sem saber em qual tela estão.
 - Variações de um mesmo componente usam **props de variante** (ex.: `<Button variant="primary" | "secondary" />`), e não componentes copiados (`PrimaryButton`, `SecondaryButton` com código repetido).
-- Estilos repetidos viram tokens do tema ou estilos compartilhados, nunca cópias.
+- Conjuntos de classes repetidos viram um componente ou uma constante compartilhada, nunca cópias.
 
 ---
 
@@ -140,7 +159,8 @@ export type ColorToken = keyof typeof colors;
 
 ## Sem números mágicos
 
-- Espaçamentos, tamanhos, durações de animação, limites (ex.: "arquivar após X dias", "prazo próximo = 24h") ficam em **constantes nomeadas** ou nos tokens do tema, nunca soltos no código.
+- Durações de animação e limites do app (ex.: "arquivar após X dias", "prazo próximo = 24h") ficam em **constantes nomeadas** (`src/constants/`) ou nos tokens do tema, nunca soltos no código.
+- Exceção: valores de layout (espaçamento, raio, tamanho) nas classes do próprio componente são permitidos (ver regras 2 e 5).
 
 ## Estado e dados
 
@@ -180,7 +200,7 @@ export type ColorToken = keyof typeof colors;
 ## Qualidade automática
 
 - **ESLint + Prettier** configurados e rodando no projeto.
-- Regras de lint que reforçam este arquivo: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any` e `react-hooks/exhaustive-deps`.
+- Regras de lint que reforçam este arquivo: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any`, `react-hooks/exhaustive-deps` e a proibição de cor arbitrária em `className` (`no-restricted-syntax`).
 - **Hook de pre-commit** (ex.: Husky + lint-staged) rodando lint, checagem de tipos e testes afetados.
 - Nenhum `console.log` esquecido no código final.
 
@@ -201,7 +221,8 @@ export type ColorToken = keyof typeof colors;
 
 - [ ] Segue MVVM: View sem lógica, ViewModel sem JSX, Model sem UI?
 - [ ] Nenhuma cor hardcoded fora de `src/theme/colors.ts` (ou exceção comentada e avisada)?
-- [ ] Usou tokens do tema para espaçamento, raio, sombra, fonte e animação?
+- [ ] Estilizou com `className` (NativeWind), deixando `StyleSheet`/`style` só para animação, valores dinâmicos ou bibliotecas sem `className`?
+- [ ] Usou os tokens do tema para cor, sombra, texto e animação?
 - [ ] Procurou componentes existentes antes de criar? Nada duplicado?
 - [ ] Textos vindos do arquivo central de pt-BR?
 - [ ] Tipado sem `any`?
