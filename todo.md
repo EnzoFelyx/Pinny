@@ -9,7 +9,7 @@
 
 | # | Etapa | Status |
 |---|---|---|
-| 0 | Decisões pendentes | 🟨 |
+| 0 | Decisões pendentes | ✅ |
 | 1 | Fundação do projeto | 🟨 |
 | 2 | Tema e textos centralizados | ⬜ |
 | 3 | Biblioteca de componentes | ⬜ |
@@ -33,7 +33,7 @@
 
 - [x] Escolher o nome do app → **Pinny** (conferir disponibilidade nas lojas antes de publicar, na etapa 14)
 - [x] Finalizar as telas no Figma → telas prontas
-- [ ] Extrair do Figma os valores exatos das cores e registrar no `CLAUDE.md`
+- [x] Extrair do Figma os valores exatos das cores e registrar no `CLAUDE.md`
 - [x] Escolher a fonte → **Nunito**
 - [x] Decidir: Expo (com dev client) ou React Native CLI → **Expo com dev client**
 - [x] Decidir as bibliotecas → **escolhidas e instaladas conforme a necessidade de cada etapa**, sempre confirmando com o autor

@@ -26,6 +26,7 @@ A **movimentação suave de cards**, dentro de uma coluna e entre colunas, com a
 - **Amigável, acolhedor e leve.** Nada corporativo ou frio.
 - Linguagem próxima e gentil nos textos do app.
 - Todo o texto da interface em **português do Brasil**.
+- **Termo "card":** no código (nomes, tipos, arquivos) usa-se `card`; em todo texto que o usuário vê, usa-se **"cartão"** (ex.: "Adicionar cartão", "Mover 2 cartões").
 
 ---
 
@@ -72,7 +73,35 @@ Todas as funcionalidades da seção 5 e as telas da seção 6.
 - **Cores de apoio (acentos):** lavanda, menta, pêssego, azul-bebê e amarelo-manteiga. Usadas em etiquetas, botões e destaques.
 - **Colunas:** todas com um mesmo tom pastel neutro e suave sobre o fundo.
 
-Os valores hexadecimais exatos ainda serão definidos a partir do design gerado no Figma. Quando estiverem definidos, registre-os aqui.
+#### Valores (extraídos do Figma em 2026-10-27) ✅
+
+Lidos das camadas da biblioteca (node `3:46232`), com dois ajustes de contraste aprovados pelo autor (marcados com ⚠️). Vão para `src/theme/colors.ts` na etapa 2.
+
+| Token (uso) | Hex | Observação |
+|---|---|---|
+| `background` (fundo creme) | `#FBF8F1` | |
+| `surface` (cartões, inputs, bottom sheets) | `#FFFEFB` | |
+| `columnBackground` | `#EFECE5` | |
+| `border` (bordas decorativas, trilho da barra, botão desabilitado) | `#E8E2D8` | 1,28:1, só decorativo. Borda de input precisa de token próprio ≥ 3:1 (definir na etapa 3) |
+| `textPrimary` | `#39352F` | 10,3 a 12,1:1 |
+| `textSecondary` | `#6F6A62` | ⚠️ Figma usa `#827C73` (3,5 a 4,1:1, reprovado). Ajustado para 4,55 a 5,3:1 |
+| `primary` (botão, FAB, toggle, checkbox, progresso) | `#776098` | Texto `surface` sobre ele: 5,32:1 |
+| `onSecondary` (texto do botão secundário) | `#604A80` | 6,5:1 sobre `secondary` |
+| `secondary` (fundo do botão secundário) | `#F2ECF7` | |
+| `lavender` | `#EAE1F4` | Acento (etiquetas, seleção) |
+| `mint` | `#DDEDE2` | Acento (etiquetas, prioridade baixa, concluído) |
+| `peach` | `#F6DECE` | Acento (etiquetas, prioridade alta, atrasado) |
+| `babyBlue` | `#DDEAF2` | Acento (etiquetas) |
+| `butter` | `#F6EDBE` | Acento (etiquetas, prioridade média, prazo próximo) |
+| `alert` (prioridade alta, prazo vencido) | `#9E4D42` | ⚠️ Figma usa `#A95246` (4,08:1 sobre pêssego, reprovado). Ajustado para 4,52:1 |
+| `illustrationLine` (linhas do post-it do estado vazio) | `#8A622D` | |
+
+Sombras (cor base `rgb(81, 68, 53)`):
+
+- Cartão parado: `0 4 6`, opacidade **0,05**.
+- Cartão arrastado / elevado: `0 12 24`, opacidade **0,15**.
+
+Texto sobre os acentos pastéis usa sempre `textPrimary` (9,4 a 10,3:1).
 
 > ⚠️ **Atenção ao contraste:** tons pastéis costumam ter contraste baixo. Texto e ícones **nunca** devem ser pastéis sobre fundo pastel. O pastel fica no fundo e nas superfícies; textos usam tons escuros. Ver regra 14 da seção 12.
 
@@ -244,6 +273,10 @@ Include a reusable component library: card, column, label, priority chip, button
 ```
 
 Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seguir.
+
+- Arquivo: `wfGj6T0xiY95z4AQ8dP3zT`. A biblioteca de componentes está no node `3:46232` ("Biblioteca · Miolo").
+- O nome **"Miolo"** que aparece no Figma foi inventado pela IA. **Ignore-o**: o app se chama Pinny.
+- O Figma **não tem variáveis de cor**. Os valores foram lidos das camadas (ver seção 4).
 
 ---
 
