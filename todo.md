@@ -10,7 +10,7 @@
 | # | Etapa | Status |
 |---|---|---|
 | 0 | Decisões pendentes | ✅ |
-| 1 | Fundação do projeto | 🟨 |
+| 1 | Fundação do projeto | ✅ |
 | 2 | Tema e textos centralizados | ⬜ |
 | 3 | Biblioteca de componentes | ⬜ |
 | 4 | Dados local-first | ⬜ |
@@ -53,13 +53,12 @@
 - [x] Montar a estrutura de pastas MVVM por feature (`src/features`, `src/components`, `src/hooks`, `src/utils`, `src/theme`, `src/i18n`)
 - [x] Configurar imports absolutos com alias (`@/`)
 - [x] Limpar o template do Expo (telas de demo, suporte web, deps sem uso) e fixar bundle ID `com.enzofelyx.pinny` e tema claro
-- [ ] Configurar ESLint e Prettier com as regras: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any`, `react-hooks/exhaustive-deps`
-- [ ] Configurar Jest e React Native Testing Library
-- [ ] Configurar hook de pre-commit (lint, tipos e testes)
-- [ ] Criar um README inicial com objetivo, stack e como rodar
-- [ ] Rodar o app vazio no iOS e no Android
+- [x] Configurar ESLint e Prettier com as regras: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any`, `react-hooks/exhaustive-deps`
+- [x] Rodar o app vazio no iOS
 
-**Pronto quando:** o app abre nas duas plataformas, e lint, checagem de tipos e testes passam no pre-commit.
+> **Adiado (decisão de 2026-10-27):** Android, tudo que envolve testes (Jest, Testing Library, pre-commit com testes) e o README inicial. O README fica para a etapa 14. Android e testes voltam quando o autor pedir.
+
+**Pronto quando:** o app abre no iOS, e lint e checagem de tipos passam.
 
 ---
 

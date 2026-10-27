@@ -289,6 +289,9 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
 - **Arquitetura MVVM**, com cores centralizadas e reutilização de componentes. Detalhes no `REGRAS.md`.
 - **Fonte:** Nunito.
 - **Bibliotecas:** serão escolhidas e instaladas **conforme a necessidade de cada etapa**, não todas de uma vez. Não instale bibliotecas antecipadamente. Ao chegar numa etapa que precise de uma, proponha a opção e confirme com o autor antes de instalar.
+- **iOS first (2026-10-27):** o desenvolvimento e os testes manuais são feitos só no iOS por enquanto. O Android volta quando o autor pedir; até lá, não gere a pasta `android/` nem teste nele.
+- **Testes automatizados adiados (2026-10-27):** Jest, Testing Library e pre-commit com testes ficam para depois, quando o autor pedir. Não escreva testes nem instale ferramentas de teste até lá.
+- **Lint e formatação:** ESLint (`eslint-config-expo` + `eslint-plugin-react-native`) e Prettier, configurados em `mobile/Pinny/eslint.config.js` e `.prettierrc.json`. Rode `npm run lint`, `npm run typecheck` e `npm run format`.
 - **Voz e IA (seção 5.7):** decisão adiada. Serviço de reconhecimento de voz, serviço de IA e onde roda o backend (para proteger a chave) serão definidos mais tarde, na etapa 10 do `todo.md`.
 
 ### Sugestões de bibliotecas (ainda não decididas)
