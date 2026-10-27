@@ -10,7 +10,7 @@
 | # | Etapa | Status |
 |---|---|---|
 | 0 | Decisões pendentes | 🟨 |
-| 1 | Fundação do projeto | ⬜ |
+| 1 | Fundação do projeto | 🟨 |
 | 2 | Tema e textos centralizados | ⬜ |
 | 3 | Biblioteca de componentes | ⬜ |
 | 4 | Dados local-first | ⬜ |
@@ -48,10 +48,11 @@
 
 **Objetivo:** projeto criado, organizado e com qualidade automática desde o primeiro commit.
 
-- [ ] Criar o projeto com Expo (dev client) e TypeScript em modo `strict`
-- [ ] Criar o repositório Git, `.gitignore` (incluindo `.env`) e a primeira branch
-- [ ] Montar a estrutura de pastas MVVM por feature (`src/features`, `src/components`, `src/hooks`, `src/utils`, `src/theme`, `src/i18n`)
-- [ ] Configurar imports absolutos com alias (`@/`)
+- [x] Criar o projeto com Expo (dev client) e TypeScript em modo `strict`
+- [x] Criar o repositório Git, `.gitignore` (incluindo `.env`) e a primeira branch
+- [x] Montar a estrutura de pastas MVVM por feature (`src/features`, `src/components`, `src/hooks`, `src/utils`, `src/theme`, `src/i18n`)
+- [x] Configurar imports absolutos com alias (`@/`)
+- [x] Limpar o template do Expo (telas de demo, suporte web, deps sem uso) e fixar bundle ID `com.enzofelyx.pinny` e tema claro
 - [ ] Configurar ESLint e Prettier com as regras: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any`, `react-hooks/exhaustive-deps`
 - [ ] Configurar Jest e React Native Testing Library
 - [ ] Configurar hook de pre-commit (lint, tipos e testes)
