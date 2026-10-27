@@ -18,6 +18,19 @@ module.exports = defineConfig([
       '@typescript-eslint/no-explicit-any': 'error',
       'react-hooks/exhaustive-deps': 'error',
       'no-console': ['error', { allow: ['warn', 'error'] }],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "JSXAttribute[name.name='className'] :matches(Literal, TemplateElement)[value=/#[0-9a-fA-F]{3,8}|rgba?\\(|hsla?\\(/]",
+          message: 'Cor solta em className. Use um token de src/theme/colors.ts (ex.: bg-surface).',
+        },
+        {
+          selector:
+            "JSXAttribute[name.name='className'] TemplateElement[value.raw=/#[0-9a-fA-F]{3,8}|rgba?\\(|hsla?\\(/]",
+          message: 'Cor solta em className. Use um token de src/theme/colors.ts (ex.: bg-surface).',
+        },
+      ],
     },
   },
   prettierRecommended,

@@ -24,6 +24,16 @@
     "plugins": [
       "expo-router",
       [
+        "expo-font",
+        {
+          "fonts": [
+            "./node_modules/@expo-google-fonts/nunito/500Medium/Nunito_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/nunito/700Bold/Nunito_700Bold.ttf",
+            "./node_modules/@expo-google-fonts/nunito/800ExtraBold/Nunito_800ExtraBold.ttf"
+          ]
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
