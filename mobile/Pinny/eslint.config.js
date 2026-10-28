@@ -7,7 +7,8 @@ const prettierRecommended = require('eslint-plugin-prettier/recommended');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*', 'ios/*', 'android/*', '.expo/*'],
+    // src/db/migrations: gerado pelo drizzle-kit (npm run db:generate).
+    ignores: ['dist/*', 'ios/*', 'android/*', '.expo/*', 'src/db/migrations/*'],
   },
   {
     plugins: { 'react-native': reactNative },
