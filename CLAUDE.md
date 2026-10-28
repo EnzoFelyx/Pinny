@@ -26,6 +26,7 @@ A **movimentação suave de cards**, dentro de uma coluna e entre colunas, com a
 - **Amigável, acolhedor e leve.** Nada corporativo ou frio.
 - Linguagem próxima e gentil nos textos do app.
 - Todo o texto da interface em **português do Brasil**.
+- **Termo "card":** no código (nomes, tipos, arquivos) usa-se `card`; em todo texto que o usuário vê, usa-se **"cartão"** (ex.: "Adicionar cartão", "Mover 2 cartões").
 
 ---
 
@@ -72,7 +73,38 @@ Todas as funcionalidades da seção 5 e as telas da seção 6.
 - **Cores de apoio (acentos):** lavanda, menta, pêssego, azul-bebê e amarelo-manteiga. Usadas em etiquetas, botões e destaques.
 - **Colunas:** todas com um mesmo tom pastel neutro e suave sobre o fundo.
 
-Os valores hexadecimais exatos ainda serão definidos a partir do design gerado no Figma. Quando estiverem definidos, registre-os aqui.
+#### Valores (extraídos do Figma em 2026-10-27) ✅
+
+Lidos das camadas da biblioteca (node `3:46232`), com dois ajustes de contraste aprovados pelo autor (marcados com ⚠️). Vão para `src/theme/colors.ts` na etapa 2.
+
+| Token (uso) | Hex | Observação |
+|---|---|---|
+| `background` (fundo creme) | `#FBF8F1` | |
+| `surface` (cartões, inputs, bottom sheets) | `#FFFEFB` | |
+| `columnBackground` | `#EFECE5` | |
+| `border` (bordas decorativas, trilho da barra, botão desabilitado) | `#E8E2D8` | 1,28:1, só decorativo |
+| `borderStrong` (borda de input, trilho do toggle desligado) | `#8B867E` | Não existe no Figma. Criado para passar 3:1: 3,06 a 3,58:1 |
+| `textPrimary` | `#39352F` | 10,3 a 12,1:1 |
+| `textSecondary` | `#6F6A62` | ⚠️ Figma usa `#827C73` (3,5 a 4,1:1, reprovado). Ajustado para 4,55 a 5,3:1 |
+| `primary` (botão, FAB, toggle, checkbox, progresso) | `#776098` | Texto `surface` sobre ele: 5,32:1 |
+| `onSecondary` (texto do botão secundário) | `#604A80` | 6,5:1 sobre `secondary` |
+| `secondary` (fundo do botão secundário) | `#F2ECF7` | |
+| `lavender` | `#EAE1F4` | Acento (etiquetas, seleção) |
+| `mint` | `#DDEDE2` | Acento (etiquetas, prioridade baixa, concluído) |
+| `peach` | `#F6DECE` | Acento (etiquetas, prioridade alta, atrasado) |
+| `babyBlue` | `#DDEAF2` | Acento (etiquetas) |
+| `butter` | `#F6EDBE` | Acento (etiquetas, prioridade média, prazo próximo) |
+| `alert` (prioridade alta, prazo vencido) | `#9E4D42` | ⚠️ Figma usa `#A95246` (4,08:1 sobre pêssego, reprovado). Ajustado para 4,52:1 |
+| `disabledBackground` (botão desabilitado) | `#EFECE5` | Igual ao Figma; texto `textDisabled` sobre ele: 4,55:1 |
+| `inverseSurface` / `onInverseSurface` / `inverseAction` (snackbar) | `#39352F` / `#FFFEFB` / `#EAE1F4` | Não existe no Figma. Texto 12,1:1; ação 9,6:1 |
+| `illustrationLine` (linhas do post-it do estado vazio) | `#8A622D` | |
+
+Sombras (cor base `rgb(81, 68, 53)`):
+
+- Cartão parado: `0 4 6`, opacidade **0,05**.
+- Cartão arrastado / elevado: `0 12 24`, opacidade **0,15**.
+
+Texto sobre os acentos pastéis usa sempre `textPrimary` (9,4 a 10,3:1).
 
 > ⚠️ **Atenção ao contraste:** tons pastéis costumam ter contraste baixo. Texto e ícones **nunca** devem ser pastéis sobre fundo pastel. O pastel fica no fundo e nas superfícies; textos usam tons escuros. Ver regra 14 da seção 12.
 
@@ -85,7 +117,11 @@ Os valores hexadecimais exatos ainda serão definidos a partir do design gerado 
 ### Tipografia
 
 - Fonte do app: **Nunito** ✅ (sans-serif arredondada e amigável, licença SIL OFL).
-- Títulos em peso **semibold**.
+- Títulos em peso **ExtraBold (800)**, como no Figma (decidido em 2026-10-27; substitui o "semibold" anterior).
+- Pesos usados: Medium (500), Bold (700) e ExtraBold (800). Embutidos no binário pelo plugin `expo-font` (pacote `@expo-google-fonts/nunito`). Licença em `mobile/Pinny/assets/fonts/LICENSE-Nunito-OFL.txt`.
+- Altura de linha: **1,35** em todos os textos.
+- Escala (`src/theme/typography.ts`, vira as classes `text-<nome>`): `display` 26, `title` 22, `subtitle` 17, `card-title` 15, `label` 13 e `tag` 12 em ExtraBold; `body` 14 e `caption` 12 em Medium. Cada classe já define tamanho, altura de linha e fonte.
+- **Tamanho mínimo: 12px.** O Figma usa 11px em etiquetas, chips e prazo; no app esses textos usam 12px.
 
 ### Ícones e ilustrações
 
@@ -245,6 +281,10 @@ Include a reusable component library: card, column, label, priority chip, button
 
 Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seguir.
 
+- Arquivo: `wfGj6T0xiY95z4AQ8dP3zT`. A biblioteca de componentes está no node `3:46232` ("Biblioteca · Miolo").
+- O nome **"Miolo"** que aparece no Figma foi inventado pela IA. **Ignore-o**: o app se chama Pinny.
+- O Figma **não tem variáveis de cor**. Os valores foram lidos das camadas (ver seção 4).
+
 ---
 
 ## 9. Stack técnica
@@ -256,6 +296,16 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
 - **Arquitetura MVVM**, com cores centralizadas e reutilização de componentes. Detalhes no `REGRAS.md`.
 - **Fonte:** Nunito.
 - **Bibliotecas:** serão escolhidas e instaladas **conforme a necessidade de cada etapa**, não todas de uma vez. Não instale bibliotecas antecipadamente. Ao chegar numa etapa que precise de uma, proponha a opção e confirme com o autor antes de instalar.
+- **iOS first (2026-10-27):** o desenvolvimento e os testes manuais são feitos só no iOS por enquanto. O Android volta quando o autor pedir; até lá, não gere a pasta `android/` nem teste nele.
+- **Testes automatizados adiados (2026-10-27):** Jest, Testing Library e pre-commit com testes ficam para depois, quando o autor pedir. Não escreva testes nem instale ferramentas de teste até lá.
+- **Componentes (etapa 3, 2026-10-27):** ícones com `lucide-react-native` + `react-native-svg` (os mesmos do Figma) e bottom sheet com `@gorhom/bottom-sheet`. Nenhum dos dois acessa dados do usuário. Os componentes compartilhados ficam em `mobile/Pinny/src/components/`.
+- **Ajustes de componentes pedidos pelo autor (2026-10-27):**
+  - Coluna do quadro com **75% da largura da tela**, para a próxima aparecer pela borda; rolagem horizontal com encaixe por coluna.
+  - Cartão **sem checkbox**. Enquanto pressionado, mostra a borda `borderSelected`; ao soltar, volta ao normal. O toque longo e a seleção em lote serão definidos na etapa 6.
+  - Toggle com **48×25** (Figma: 44×28), bolinha de 19 e área de toque de 45pt.
+  - Cartão aceita foto opcional (`thumbnail`, arquivo local ou `{ uri }`).
+- **Estilização: NativeWind 4 + Tailwind 3 (2026-10-27).** `className` é o padrão; `StyleSheet`/`style` só em animação (Reanimated), valores dinâmicos ou bibliotecas sem `className` (REGRAS.md, regra 5). O NativeWind 5 ainda era release candidate na época; reavaliar quando sair estável. Configuração em `mobile/Pinny/`: `tailwind.config.ts` (lê os tokens de `src/theme/`), `src/global.css`, `babel.config.js` e `metro.config.js`.
+- **Lint e formatação:** ESLint (`eslint-config-expo` + `eslint-plugin-react-native`) e Prettier, configurados em `mobile/Pinny/eslint.config.js` e `.prettierrc.json`. Rode `npm run lint`, `npm run typecheck` e `npm run format`.
 - **Voz e IA (seção 5.7):** decisão adiada. Serviço de reconhecimento de voz, serviço de IA e onde roda o backend (para proteger a chave) serão definidos mais tarde, na etapa 10 do `todo.md`.
 
 ### Sugestões de bibliotecas (ainda não decididas)
@@ -288,7 +338,8 @@ Funcionalidades já desejadas, mas fora da primeira versão:
 - **Respeite o escopo da v1.** Não implemente modo escuro, cor por coluna nem o pet, a menos que o autor peça.
 - **Priorize a qualidade das animações e gestos.** É o diferencial do app e o que mais conta no portfólio.
 - **Código limpo e exemplar.** É um projeto de portfólio: TypeScript bem tipado, componentes reutilizáveis, organização clara de pastas e boas práticas.
-- **Centralize as cores, espaçamentos e fontes em tokens de design**, mesmo sem tema escuro agora.
+- **Centralize só o fundamental em tokens:** cores (com sombras), tipografia e motion. Espaçamento, raio e tamanhos ficam nas classes de cada componente (REGRAS.md, regra 2).
+- **Estilize com `className` (NativeWind).** Use `StyleSheet` ou `style` só quando a regra 5 do REGRAS.md permitir.
 - **Textos da interface em português do Brasil**, com tom amigável.
 - **Pergunte antes de decisões de arquitetura ou bibliotecas** que ainda estão em aberto (seção 9).
 - **Siga as regras de privacidade, acessibilidade e conformidade da seção 12** em toda funcionalidade nova. Elas não são opcionais.
@@ -462,6 +513,7 @@ O diferencial do app é o arraste de cards, que por natureza **não é acessíve
 - A Nunito (fonte do app) é distribuída pela licença **SIL Open Font License**, que permite uso em apps. Mantenha o arquivo de licença junto à fonte no projeto.
 - Ícones, ilustrações dos estados vazios e templates: use apenas material próprio, gerado com direitos claros ou com licença que permita uso comercial. Registre a origem de cada pacote.
 - Ilustrações geradas por IA (incluindo pelo Figma): confira os termos de uso da ferramenta.
+- **Fotos de exemplo** em `mobile/Pinny/assets/images/samples/` (`desk-proposal.jpg`, `desk-references.jpg`): vêm do Figma do projeto, geradas pela IA do Figma. Uso só na galeria de desenvolvimento; **não podem ir para a versão publicada** sem conferir os termos da ferramenta.
 - Crie uma tela de **"Licenças de código aberto"** em Configurações listando as bibliotecas usadas.
 
 **20. Pedido de exclusão de dados** — ✅ v1

@@ -9,10 +9,10 @@
 
 | # | Etapa | Status |
 |---|---|---|
-| 0 | Decisões pendentes | 🟨 |
-| 1 | Fundação do projeto | ⬜ |
-| 2 | Tema e textos centralizados | ⬜ |
-| 3 | Biblioteca de componentes | ⬜ |
+| 0 | Decisões pendentes | ✅ |
+| 1 | Fundação do projeto | ✅ |
+| 2 | Tema e textos centralizados | ✅ |
+| 3 | Biblioteca de componentes | ✅ |
 | 4 | Dados local-first | ⬜ |
 | 5 | Navegação e estrutura das telas | ⬜ |
 | 6 | Quadro kanban (o diferencial) | ⬜ |
@@ -33,7 +33,7 @@
 
 - [x] Escolher o nome do app → **Pinny** (conferir disponibilidade nas lojas antes de publicar, na etapa 14)
 - [x] Finalizar as telas no Figma → telas prontas
-- [ ] Extrair do Figma os valores exatos das cores e registrar no `CLAUDE.md`
+- [x] Extrair do Figma os valores exatos das cores e registrar no `CLAUDE.md`
 - [x] Escolher a fonte → **Nunito**
 - [x] Decidir: Expo (com dev client) ou React Native CLI → **Expo com dev client**
 - [x] Decidir as bibliotecas → **escolhidas e instaladas conforme a necessidade de cada etapa**, sempre confirmando com o autor
@@ -48,17 +48,17 @@
 
 **Objetivo:** projeto criado, organizado e com qualidade automática desde o primeiro commit.
 
-- [ ] Criar o projeto com Expo (dev client) e TypeScript em modo `strict`
-- [ ] Criar o repositório Git, `.gitignore` (incluindo `.env`) e a primeira branch
-- [ ] Montar a estrutura de pastas MVVM por feature (`src/features`, `src/components`, `src/hooks`, `src/utils`, `src/theme`, `src/i18n`)
-- [ ] Configurar imports absolutos com alias (`@/`)
-- [ ] Configurar ESLint e Prettier com as regras: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any`, `react-hooks/exhaustive-deps`
-- [ ] Configurar Jest e React Native Testing Library
-- [ ] Configurar hook de pre-commit (lint, tipos e testes)
-- [ ] Criar um README inicial com objetivo, stack e como rodar
-- [ ] Rodar o app vazio no iOS e no Android
+- [x] Criar o projeto com Expo (dev client) e TypeScript em modo `strict`
+- [x] Criar o repositório Git, `.gitignore` (incluindo `.env`) e a primeira branch
+- [x] Montar a estrutura de pastas MVVM por feature (`src/features`, `src/components`, `src/hooks`, `src/utils`, `src/theme`, `src/i18n`)
+- [x] Configurar imports absolutos com alias (`@/`)
+- [x] Limpar o template do Expo (telas de demo, suporte web, deps sem uso) e fixar bundle ID `com.enzofelyx.pinny` e tema claro
+- [x] Configurar ESLint e Prettier com as regras: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any`, `react-hooks/exhaustive-deps`
+- [x] Rodar o app vazio no iOS
 
-**Pronto quando:** o app abre nas duas plataformas, e lint, checagem de tipos e testes passam no pre-commit.
+> **Adiado (decisão de 2026-10-27):** Android, tudo que envolve testes (Jest, Testing Library, pre-commit com testes) e o README inicial. O README fica para a etapa 14. Android e testes voltam quando o autor pedir.
+
+**Pronto quando:** o app abre no iOS, e lint e checagem de tipos passam.
 
 ---
 
@@ -66,14 +66,17 @@
 
 **Objetivo:** todo valor visual e todo texto do app em um único lugar.
 
-- [ ] `src/theme/colors.ts` com paleta base e tokens semânticos
-- [ ] Conferir o contraste AA de todos os tokens de texto e ícone
-- [ ] `spacing.ts`, `radius.ts`, `shadows.ts`, `typography.ts` e `motion.ts`
-- [ ] Instalar a fonte Nunito e guardar o arquivo de licença (OFL)
-- [ ] `src/i18n/pt-BR.ts` com a estrutura dos textos da interface
-- [ ] Constantes nomeadas para limites do app (ex.: "prazo próximo = 24h")
+- [x] `src/theme/colors.ts` com paleta base, tokens semânticos e sombras
+- [x] Conferir o contraste AA de todos os tokens de texto e ícone
+- [x] `typography.ts` e `motion.ts` (espaçamento, raio e tamanhos ficam nos componentes, ver REGRAS.md regra 2)
+- [x] Instalar a fonte Nunito e guardar o arquivo de licença (OFL)
+- [x] `src/i18n/pt-BR.ts` com a estrutura dos textos da interface
+- [x] Constantes nomeadas para limites do app (ex.: "prazo próximo = 24h")
+- [x] Adotar NativeWind como padrão de estilo, com o `tailwind.config.ts` lendo os tokens de `src/theme/`
+- [x] Regra de lint contra cor arbitrária em `className` no `eslint.config.js`
+- [x] Conferir no iPhone a tela provisória com fundo creme e "Pinny" em Nunito ExtraBold
 
-**Pronto quando:** nenhum componente precisar de cor, tamanho ou texto escrito à mão, e o lint acusar cores soltas.
+**Pronto quando:** nenhum componente precisar de cor, fonte ou texto escrito à mão, e o lint acusar cores soltas.
 
 ---
 
@@ -81,22 +84,26 @@
 
 **Objetivo:** todos os componentes reutilizáveis prontos, acessíveis e testados antes das telas.
 
-- [ ] Botão (variantes primária e secundária)
-- [ ] Botão flutuante (FAB)
-- [ ] Input
-- [ ] Toggle
-- [ ] Etiqueta
-- [ ] Chip de prioridade (com ícone e texto, não só cor)
-- [ ] Barra de progresso
-- [ ] Bottom sheet
-- [ ] Card (post-it), incluindo os estados de prazo
-- [ ] Coluna
-- [ ] Estado vazio com ilustração
-- [ ] Snackbar (para o "Desfazer")
-- [ ] Hooks compartilhados: `useReducedMotion`, `useHaptics`, `usePermission`
-- [ ] Testes de cada componente, incluindo acessibilidade
+- [x] Botão (variantes primária, secundária e ghost, além do estado desabilitado)
+- [x] Botão flutuante (FAB)
+- [x] Input
+- [x] Toggle
+- [x] Etiqueta
+- [x] Chip de prioridade (com ícone e texto, não só cor)
+- [x] Barra de progresso
+- [x] Bottom sheet (`@gorhom/bottom-sheet`)
+- [x] Card (post-it), incluindo os estados de prazo e de seleção
+- [x] Coluna
+- [x] Estado vazio com ilustração
+- [x] Snackbar (para o "Desfazer")
+- [x] Checkbox (extra, usado na seleção e no checklist)
+- [x] Hook compartilhado `useReducedMotion`
+- [x] Galeria de componentes na rota inicial para conferir no aparelho (sai na etapa 5)
+- [x] Conferir a galeria no iPhone, comparando com o Figma
 
-**Pronto quando:** todos os componentes tiverem `accessibilityLabel`/`accessibilityRole`, área de toque mínima, testes passando e seguirem o Figma.
+> **Adiado (decisão de 2026-10-27):** `useHaptics` vai para a etapa 6 (arraste); `usePermission` vai para a etapa 7 (primeira permissão real); os testes de componentes seguem adiados junto com os demais testes.
+
+**Pronto quando:** todos os componentes tiverem `accessibilityLabel`/`accessibilityRole`, área de toque mínima e seguirem o Figma.
 
 ---
 
