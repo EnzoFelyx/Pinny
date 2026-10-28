@@ -23,6 +23,7 @@ export const textScale = {
   label: { size: 13, family: fontFamily.extraBold },
   caption: { size: 12, family: fontFamily.medium },
   tag: { size: 12, family: fontFamily.extraBold },
+  meta: { size: 12, family: fontFamily.bold },
 } as const satisfies Record<string, TextScaleEntry>;
 
 export type TextScaleToken = keyof typeof textScale;

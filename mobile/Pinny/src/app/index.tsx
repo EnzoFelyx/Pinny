@@ -1,14 +1,6 @@
-import { Text, View } from 'react-native';
+import { ComponentGalleryScreen } from '@/features/dev/view/ComponentGalleryScreen';
 
-import { ptBR } from '@/i18n/pt-BR';
-
-// Placeholder até a etapa 5, quando a tela Início ganha View + ViewModel.
+// Até a etapa 5, a rota inicial mostra a galeria de componentes.
 export default function IndexRoute() {
-  return (
-    <View className="flex-1 items-center justify-center bg-background">
-      <Text accessibilityRole="header" className="text-display text-text-primary">
-        {ptBR.appName}
-      </Text>
-    </View>
-  );
+  return <ComponentGalleryScreen />;
 }

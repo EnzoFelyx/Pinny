@@ -42,7 +42,12 @@ export const colors = {
   primary: palette.violet600,
   secondary: palette.lavender100,
   onSecondary: palette.violet700,
-  disabledBackground: palette.sand200,
+  disabledBackground: palette.sand100,
+
+  // Snackbar: superfície escura para se destacar sobre o quadro.
+  inverseSurface: palette.ink900,
+  onInverseSurface: palette.cream0,
+  inverseAction: palette.lavender200,
 
   alert: palette.terracotta700,
 
