@@ -304,6 +304,10 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
   - Cartão **sem checkbox**. Enquanto pressionado, mostra a borda `borderSelected`; ao soltar, volta ao normal. O toque longo e a seleção em lote serão definidos na etapa 6.
   - Toggle com **48×25** (Figma: 44×28), bolinha de 19 e área de toque de 45pt.
   - Cartão aceita foto opcional (`thumbnail`, arquivo local ou `{ uri }`).
+- **Dados local-first (etapa 4, 2026-10-28):** `expo-sqlite` + **Drizzle ORM** (migrações em `src/db/migrations`, geradas com `npm run db:generate`) + **Zod** via `drizzle-zod`. As tabelas em `src/db/schema.ts` são a fonte única: os schemas Zod e os tipos derivam delas. IDs com `expo-crypto` (`randomUUID`). Datas em ISO 8601 UTC.
+  - **Ordenação por posição decimal:** mover um item grava só ele, com o ponto médio entre `previousId` e `nextId`; a lista é renumerada só quando o vão fica pequeno demais (`src/utils/position.ts`). Vale para pastas, quadros, colunas, cartões e checklist.
+  - **Repositórios** atrás de interfaces em `features/<feature>/model/`; toda leitura passa pelo Zod (`parseRows`).
+  - **Histórico de ações** em `features/history/model/actionHistory.ts`: pilha imutável de até `HISTORY_LIMIT` (20) entradas, cada uma com a operação que desfaz a ação.
 - **Estilização: NativeWind 4 + Tailwind 3 (2026-10-27).** `className` é o padrão; `StyleSheet`/`style` só em animação (Reanimated), valores dinâmicos ou bibliotecas sem `className` (REGRAS.md, regra 5). O NativeWind 5 ainda era release candidate na época; reavaliar quando sair estável. Configuração em `mobile/Pinny/`: `tailwind.config.ts` (lê os tokens de `src/theme/`), `src/global.css`, `babel.config.js` e `metro.config.js`.
 - **Lint e formatação:** ESLint (`eslint-config-expo` + `eslint-plugin-react-native`) e Prettier, configurados em `mobile/Pinny/eslint.config.js` e `.prettierrc.json`. Rode `npm run lint`, `npm run typecheck` e `npm run format`.
 - **Voz e IA (seção 5.7):** decisão adiada. Serviço de reconhecimento de voz, serviço de IA e onde roda o backend (para proteger a chave) serão definidos mais tarde, na etapa 10 do `todo.md`.
@@ -423,7 +427,9 @@ O app deve ser **local-first**: os dados do usuário (quadros, cards, fotos) fic
 
 | SDK / serviço | Dados acessados | Enviado para | Motivo |
 |---|---|---|---|
-| _(preencher conforme as bibliotecas forem escolhidas)_ | | | |
+| `expo-sqlite` + `drizzle-orm` | Quadros, cartões, etiquetas, checklist e registros de anexos | Nada sai do aparelho (banco local `pinny.db`) | Persistência local-first |
+| `expo-crypto` | Nenhum dado do usuário (só gera IDs aleatórios) | — | IDs únicos |
+| `lucide-react-native`, `react-native-svg`, `@gorhom/bottom-sheet`, `nativewind`, `zod`, `drizzle-zod` | Nenhum | — | Interface e validação |
 
 ---
 
