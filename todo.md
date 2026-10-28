@@ -12,7 +12,7 @@
 | 0 | Decisões pendentes | ✅ |
 | 1 | Fundação do projeto | ✅ |
 | 2 | Tema e textos centralizados | ✅ |
-| 3 | Biblioteca de componentes | ⬜ |
+| 3 | Biblioteca de componentes | ✅ |
 | 4 | Dados local-first | ⬜ |
 | 5 | Navegação e estrutura das telas | ⬜ |
 | 6 | Quadro kanban (o diferencial) | ⬜ |
@@ -84,22 +84,26 @@
 
 **Objetivo:** todos os componentes reutilizáveis prontos, acessíveis e testados antes das telas.
 
-- [ ] Botão (variantes primária e secundária)
-- [ ] Botão flutuante (FAB)
-- [ ] Input
-- [ ] Toggle
-- [ ] Etiqueta
-- [ ] Chip de prioridade (com ícone e texto, não só cor)
-- [ ] Barra de progresso
-- [ ] Bottom sheet
-- [ ] Card (post-it), incluindo os estados de prazo
-- [ ] Coluna
-- [ ] Estado vazio com ilustração
-- [ ] Snackbar (para o "Desfazer")
-- [ ] Hooks compartilhados: `useReducedMotion`, `useHaptics`, `usePermission`
-- [ ] Testes de cada componente, incluindo acessibilidade
+- [x] Botão (variantes primária, secundária e ghost, além do estado desabilitado)
+- [x] Botão flutuante (FAB)
+- [x] Input
+- [x] Toggle
+- [x] Etiqueta
+- [x] Chip de prioridade (com ícone e texto, não só cor)
+- [x] Barra de progresso
+- [x] Bottom sheet (`@gorhom/bottom-sheet`)
+- [x] Card (post-it), incluindo os estados de prazo e de seleção
+- [x] Coluna
+- [x] Estado vazio com ilustração
+- [x] Snackbar (para o "Desfazer")
+- [x] Checkbox (extra, usado na seleção e no checklist)
+- [x] Hook compartilhado `useReducedMotion`
+- [x] Galeria de componentes na rota inicial para conferir no aparelho (sai na etapa 5)
+- [x] Conferir a galeria no iPhone, comparando com o Figma
 
-**Pronto quando:** todos os componentes tiverem `accessibilityLabel`/`accessibilityRole`, área de toque mínima, testes passando e seguirem o Figma.
+> **Adiado (decisão de 2026-10-27):** `useHaptics` vai para a etapa 6 (arraste); `usePermission` vai para a etapa 7 (primeira permissão real); os testes de componentes seguem adiados junto com os demais testes.
+
+**Pronto quando:** todos os componentes tiverem `accessibilityLabel`/`accessibilityRole`, área de toque mínima e seguirem o Figma.
 
 ---
 

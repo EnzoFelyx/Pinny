@@ -95,6 +95,8 @@ Lidos das camadas da biblioteca (node `3:46232`), com dois ajustes de contraste 
 | `babyBlue` | `#DDEAF2` | Acento (etiquetas) |
 | `butter` | `#F6EDBE` | Acento (etiquetas, prioridade média, prazo próximo) |
 | `alert` (prioridade alta, prazo vencido) | `#9E4D42` | ⚠️ Figma usa `#A95246` (4,08:1 sobre pêssego, reprovado). Ajustado para 4,52:1 |
+| `disabledBackground` (botão desabilitado) | `#EFECE5` | Igual ao Figma; texto `textDisabled` sobre ele: 4,55:1 |
+| `inverseSurface` / `onInverseSurface` / `inverseAction` (snackbar) | `#39352F` / `#FFFEFB` / `#EAE1F4` | Não existe no Figma. Texto 12,1:1; ação 9,6:1 |
 | `illustrationLine` (linhas do post-it do estado vazio) | `#8A622D` | |
 
 Sombras (cor base `rgb(81, 68, 53)`):
@@ -296,6 +298,12 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
 - **Bibliotecas:** serão escolhidas e instaladas **conforme a necessidade de cada etapa**, não todas de uma vez. Não instale bibliotecas antecipadamente. Ao chegar numa etapa que precise de uma, proponha a opção e confirme com o autor antes de instalar.
 - **iOS first (2026-10-27):** o desenvolvimento e os testes manuais são feitos só no iOS por enquanto. O Android volta quando o autor pedir; até lá, não gere a pasta `android/` nem teste nele.
 - **Testes automatizados adiados (2026-10-27):** Jest, Testing Library e pre-commit com testes ficam para depois, quando o autor pedir. Não escreva testes nem instale ferramentas de teste até lá.
+- **Componentes (etapa 3, 2026-10-27):** ícones com `lucide-react-native` + `react-native-svg` (os mesmos do Figma) e bottom sheet com `@gorhom/bottom-sheet`. Nenhum dos dois acessa dados do usuário. Os componentes compartilhados ficam em `mobile/Pinny/src/components/`.
+- **Ajustes de componentes pedidos pelo autor (2026-10-27):**
+  - Coluna do quadro com **75% da largura da tela**, para a próxima aparecer pela borda; rolagem horizontal com encaixe por coluna.
+  - Cartão **sem checkbox**. Enquanto pressionado, mostra a borda `borderSelected`; ao soltar, volta ao normal. O toque longo e a seleção em lote serão definidos na etapa 6.
+  - Toggle com **48×25** (Figma: 44×28), bolinha de 19 e área de toque de 45pt.
+  - Cartão aceita foto opcional (`thumbnail`, arquivo local ou `{ uri }`).
 - **Estilização: NativeWind 4 + Tailwind 3 (2026-10-27).** `className` é o padrão; `StyleSheet`/`style` só em animação (Reanimated), valores dinâmicos ou bibliotecas sem `className` (REGRAS.md, regra 5). O NativeWind 5 ainda era release candidate na época; reavaliar quando sair estável. Configuração em `mobile/Pinny/`: `tailwind.config.ts` (lê os tokens de `src/theme/`), `src/global.css`, `babel.config.js` e `metro.config.js`.
 - **Lint e formatação:** ESLint (`eslint-config-expo` + `eslint-plugin-react-native`) e Prettier, configurados em `mobile/Pinny/eslint.config.js` e `.prettierrc.json`. Rode `npm run lint`, `npm run typecheck` e `npm run format`.
 - **Voz e IA (seção 5.7):** decisão adiada. Serviço de reconhecimento de voz, serviço de IA e onde roda o backend (para proteger a chave) serão definidos mais tarde, na etapa 10 do `todo.md`.
@@ -505,6 +513,7 @@ O diferencial do app é o arraste de cards, que por natureza **não é acessíve
 - A Nunito (fonte do app) é distribuída pela licença **SIL Open Font License**, que permite uso em apps. Mantenha o arquivo de licença junto à fonte no projeto.
 - Ícones, ilustrações dos estados vazios e templates: use apenas material próprio, gerado com direitos claros ou com licença que permita uso comercial. Registre a origem de cada pacote.
 - Ilustrações geradas por IA (incluindo pelo Figma): confira os termos de uso da ferramenta.
+- **Fotos de exemplo** em `mobile/Pinny/assets/images/samples/` (`desk-proposal.jpg`, `desk-references.jpg`): vêm do Figma do projeto, geradas pela IA do Figma. Uso só na galeria de desenvolvimento; **não podem ir para a versão publicada** sem conferir os termos da ferramenta.
 - Crie uma tela de **"Licenças de código aberto"** em Configurações listando as bibliotecas usadas.
 
 **20. Pedido de exclusão de dados** — ✅ v1
