@@ -13,7 +13,7 @@
 | 1 | Fundação do projeto | ✅ |
 | 2 | Tema e textos centralizados | ✅ |
 | 3 | Biblioteca de componentes | ✅ |
-| 4 | Dados local-first | ⬜ |
+| 4 | Dados local-first | ✅ |
 | 5 | Navegação e estrutura das telas | ⬜ |
 | 6 | Quadro kanban (o diferencial) | ⬜ |
 | 7 | Card completo | ⬜ |
@@ -111,15 +111,19 @@
 
 **Objetivo:** a camada Model completa, funcionando offline.
 
-- [ ] Tipos das entidades: Folder, Board, Column, Card, Label, Checklist, Attachment
-- [ ] Repositórios com interfaces (pastas, quadros, colunas, cards)
-- [ ] Persistência local escolhida na etapa 0
-- [ ] Validação dos dados lidos do armazenamento
-- [ ] Histórico de ações (base do "Desfazer")
-- [ ] Funções puras: estado do prazo, reordenação de cards e colunas
-- [ ] Testes unitários dos repositórios e das funções puras
+- [x] Tipos das entidades: Folder, Board, Column, Card, Label, Checklist, Attachment (schema Drizzle → Zod → tipo)
+- [x] Repositórios com interfaces (pastas, quadros, colunas, cartões, etiquetas e checklist)
+- [x] Persistência local: `expo-sqlite` + Drizzle ORM, com migrações versionadas
+- [x] Validação dos dados lidos do armazenamento (Zod, via `drizzle-zod`)
+- [x] Histórico de ações (base do "Desfazer"): mover, editar, criar e excluir cartão
+- [x] Funções puras: estado do prazo e posição decimal (com renumeração rara)
+- [x] Seção "Dados" na galeria para conferir criar, mover, excluir, desfazer e apagar tudo
+- [x] Conferir no iPhone: os dados continuam lá depois de fechar e abrir o app
+- [x] Ignorar `src/db/migrations/*` no `eslint.config.js` (código gerado)
 
-**Pronto quando:** for possível criar, editar, mover e apagar dados, fechar o app, abrir de novo e tudo continuar lá, com testes cobrindo a lógica.
+> **Adiado:** testes unitários (decisão de 2026-10-27). Undo de excluir coluna, quadro e pasta entra junto com essas ações (etapas 6 e 8).
+
+**Pronto quando:** for possível criar, editar, mover e apagar dados, fechar o app, abrir de novo e tudo continuar lá.
 
 ---
 

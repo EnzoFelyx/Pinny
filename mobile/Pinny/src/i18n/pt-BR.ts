@@ -4,6 +4,8 @@ export const ptBR = {
   appName: 'Pinny',
   common: {
     undo: 'Desfazer',
+    databaseError:
+      'Não conseguimos abrir seus quadros agora. Feche o Pinny e abra de novo, por favor.',
   },
   folders: {},
   templates: {},

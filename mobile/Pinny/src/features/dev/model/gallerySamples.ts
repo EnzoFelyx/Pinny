@@ -5,6 +5,8 @@ import deskReferencesPhoto from '@/assets/images/samples/desk-references.jpg';
 import type { CardDeadline, CardLabel } from '@/components/Card';
 import type { Priority } from '@/features/card/model/card.types';
 
+import type { DataSummary } from './devDataService';
+
 // Dados fictícios da galeria de componentes (só para desenvolvimento, sai na etapa 5).
 // As fotos vêm do Figma do projeto (geradas pela IA do Figma) e servem só de exemplo.
 
@@ -77,6 +79,7 @@ export const galleryText = {
     controls: 'Controles',
     input: 'Input',
     columns: 'Colunas (pressione um cartão)',
+    data: 'Dados locais (etapa 4)',
   },
   confirm: 'Confirmar',
   edit: 'Editar',
@@ -95,4 +98,20 @@ export const galleryText = {
   fabVoice: 'Criar cartão por voz',
   columnInProgress: 'Em andamento',
   columnTodo: 'A fazer',
+  data: {
+    seed: 'Criar quadro de exemplo',
+    move: 'Mover 1º cartão para a próxima coluna',
+    delete: 'Excluir 1º cartão',
+    clear: 'Apagar todos os dados',
+    hint: 'Feche o app por completo e abra de novo: os totais devem continuar iguais.',
+    summary: (s: DataSummary) =>
+      `${s.folders} pastas · ${s.boards} quadros · ${s.columns} colunas · ${s.cards} cartões · ${s.checklistItems} subtarefas`,
+    seeded: 'Quadro de exemplo criado.',
+    moved: 'Cartão movido para a próxima coluna',
+    deleted: 'Cartão excluído',
+    undone: (description: string) => `Desfeito: ${description}`,
+    cleared: 'Todos os dados foram apagados.',
+    noCard: 'Nenhum cartão encontrado. Crie o quadro de exemplo primeiro.',
+    error: 'Algo deu errado com os dados. Veja o terminal do Metro.',
+  },
 } as const;

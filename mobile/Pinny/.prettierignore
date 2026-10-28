@@ -3,3 +3,4 @@ android/
 .expo/
 dist/
 package-lock.json
+src/db/migrations/

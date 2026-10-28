@@ -22,6 +22,7 @@ import {
   COLUMN_GAP,
   useComponentGalleryViewModel,
 } from '../viewmodel/useComponentGalleryViewModel';
+import { DevDataSection } from './components/DevDataSection';
 import { GallerySection } from './components/GallerySection';
 
 const PROGRESS_SAMPLE = 2 / 3;
@@ -39,6 +40,8 @@ export function ComponentGalleryScreen() {
         <Text accessibilityRole="header" className="text-display text-text-primary">
           {text.title}
         </Text>
+
+        <DevDataSection />
 
         <GallerySection title={text.sections.buttons}>
           <Button label={text.confirm} icon={Check} onPress={vm.showSnackbar} />
