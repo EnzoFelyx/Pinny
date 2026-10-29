@@ -2,17 +2,25 @@ import { asc, eq, ne } from 'drizzle-orm';
 
 import { type Database, db } from '@/db/client';
 import { folders } from '@/db/schema';
+import type { LabelColor } from '@/features/card/model/card.types';
 import { applyPlacement } from '@/db/ordering';
 import { parseRow, parseRows } from '@/db/validation';
 import { createId } from '@/utils/id';
 import { type Placement, positionAtEnd } from '@/utils/position';
 import { nowIso } from '@/utils/time';
 
-import { type Folder, folderSchema } from './folder.schema';
+import { type Folder, type FolderIcon, folderSchema } from './folder.schema';
+
+export interface NewFolderInput {
+  title: string;
+  icon?: FolderIcon;
+  color?: LabelColor;
+}
 
 export interface FolderRepository {
   list(): Promise<Folder[]>;
-  create(title: string): Promise<Folder>;
+  getById(id: string): Promise<Folder | null>;
+  create(input: NewFolderInput): Promise<Folder>;
   rename(id: string, title: string): Promise<void>;
   move(id: string, placement: Placement): Promise<void>;
   // Apaga a pasta e, em cascata, tudo o que está dentro dela.
@@ -26,7 +34,12 @@ export function createFolderRepository(database: Database = db): FolderRepositor
       return parseRows(folderSchema, rows, 'folders');
     },
 
-    async create(title) {
+    async getById(id) {
+      const row = database.select().from(folders).where(eq(folders.id, id)).get();
+      return row ? parseRow(folderSchema, row, 'folders') : null;
+    },
+
+    async create({ title, icon = 'folder', color = 'lavender' }) {
       const siblings = database
         .select({ id: folders.id, position: folders.position })
         .from(folders)
@@ -38,6 +51,8 @@ export function createFolderRepository(database: Database = db): FolderRepositor
         .values({
           id: createId(),
           title,
+          icon,
+          color,
           position: positionAtEnd(siblings),
           createdAt: now,
           updatedAt: now,

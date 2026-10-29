@@ -1,0 +1,5 @@
+<svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="2.625" y="2.625" width="15.75" height="6.125" rx="0.875" fill="{{active}}" stroke="{{active}}" stroke-width="1.7" stroke-linejoin="round"/>
+<rect x="2.625" y="12.25" width="7.875" height="6.125" rx="0.875" fill="{{active}}" stroke="{{active}}" stroke-width="1.7" stroke-linejoin="round"/>
+<rect x="14" y="12.25" width="4.375" height="6.125" rx="0.875" fill="{{active}}" stroke="{{active}}" stroke-width="1.7" stroke-linejoin="round"/>
+</svg>

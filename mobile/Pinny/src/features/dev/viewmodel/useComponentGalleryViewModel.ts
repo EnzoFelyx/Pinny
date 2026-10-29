@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 
@@ -13,7 +14,6 @@ export function useComponentGalleryViewModel() {
   const [isToggleOn, setIsToggleOn] = useState(true);
   const [isChecked, setIsChecked] = useState(true);
   const [folderName, setFolderName] = useState('');
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isSnackbarVisible, setIsSnackbarVisible] = useState(false);
 
   return {
@@ -24,13 +24,12 @@ export function useComponentGalleryViewModel() {
     isToggleOn,
     isChecked,
     folderName,
-    isSheetOpen,
     isSnackbarVisible,
     changeToggle: setIsToggleOn,
     toggleChecked: useCallback(() => setIsChecked((value) => !value), []),
     changeFolderName: setFolderName,
-    openSheet: useCallback(() => setIsSheetOpen(true), []),
-    closeSheet: useCallback(() => setIsSheetOpen(false), []),
+    // A folha da galeria é a "Nova pasta" de verdade (folha nativa do iOS).
+    openSheet: useCallback(() => router.push('/folder/new'), []),
     showSnackbar: useCallback(() => setIsSnackbarVisible(true), []),
     hideSnackbar: useCallback(() => setIsSnackbarVisible(false), []),
     noop: useCallback(() => undefined, []),

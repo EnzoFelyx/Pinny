@@ -1,8 +1,7 @@
-import { ArrowRight, Check, Folder, FolderPlus, Mic, Plus } from 'lucide-react-native';
+import { Check, Folder, Mic, Plus } from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BottomSheet } from '@/components/BottomSheet';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Checkbox } from '@/components/Checkbox';
@@ -127,17 +126,6 @@ export function ComponentGalleryScreen() {
           </ScrollView>
         </GallerySection>
       </ScrollView>
-
-      <BottomSheet isOpen={vm.isSheetOpen} onClose={vm.closeSheet} title={text.sheetTitle}>
-        <Input
-          label={text.folderLabel}
-          icon={FolderPlus}
-          placeholder={text.folderPlaceholder}
-          value={vm.folderName}
-          onChangeText={vm.changeFolderName}
-        />
-        <Button label={text.createFolder} icon={ArrowRight} onPress={vm.closeSheet} />
-      </BottomSheet>
 
       <Snackbar
         visible={vm.isSnackbarVisible}

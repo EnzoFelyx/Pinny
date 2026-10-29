@@ -15,6 +15,8 @@ interface TextScaleEntry {
 // Cada entrada vira uma classe text-<nome> no Tailwind (tamanho, altura de linha e fonte).
 // O Figma usa 11px em etiquetas e chips; subimos para 12px por legibilidade.
 export const textScale = {
+  hero: { size: 29, family: fontFamily.extraBold },
+  brand: { size: 24, family: fontFamily.extraBold },
   display: { size: 26, family: fontFamily.extraBold },
   title: { size: 22, family: fontFamily.extraBold },
   subtitle: { size: 17, family: fontFamily.extraBold },

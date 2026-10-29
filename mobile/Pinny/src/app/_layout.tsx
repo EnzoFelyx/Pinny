@@ -1,6 +1,5 @@
 import '../global.css';
 
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Stack } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -8,20 +7,45 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { EmptyState } from '@/components/EmptyState';
 import { useDatabaseStatus } from '@/db/useDatabaseStatus';
 import { ptBR } from '@/i18n/pt-BR';
+import { colors } from '@/theme';
+
+// Telas abertas por cima das abas: só o botão de voltar (o título fica na própria tela).
+const pushedScreenOptions = {
+  headerShown: true,
+  title: '',
+  headerBackButtonDisplayMode: 'minimal',
+  headerTintColor: colors.primary,
+  headerShadowVisible: false,
+  headerStyle: { backgroundColor: colors.background },
+} as const;
+
+// Folhas nativas do iOS: altura pelo conteúdo, puxador e arraste para fechar do sistema.
+const sheetScreenOptions = {
+  presentation: 'formSheet',
+  sheetAllowedDetents: 'fitToContents',
+  sheetGrabberVisible: true,
+  contentStyle: { backgroundColor: colors.surface },
+} as const;
 
 export default function RootLayout() {
   const databaseStatus = useDatabaseStatus();
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <BottomSheetModalProvider>
-        {databaseStatus === 'ready' ? <Stack screenOptions={{ headerShown: false }} /> : null}
-        {databaseStatus === 'error' ? (
-          <View className="flex-1 justify-center bg-background px-6">
-            <EmptyState message={ptBR.common.databaseError} />
-          </View>
-        ) : null}
-      </BottomSheetModalProvider>
+      {databaseStatus === 'ready' ? (
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="board/[boardId]" options={pushedScreenOptions} />
+          <Stack.Screen name="dev/gallery" options={pushedScreenOptions} />
+          <Stack.Screen name="folder/new" options={sheetScreenOptions} />
+          <Stack.Screen name="folder/[folderId]/rename" options={sheetScreenOptions} />
+        </Stack>
+      ) : null}
+      {databaseStatus === 'error' ? (
+        <View className="flex-1 justify-center bg-background px-6">
+          <EmptyState message={ptBR.common.databaseError} />
+        </View>
+      ) : null}
     </GestureHandlerRootView>
   );
 }

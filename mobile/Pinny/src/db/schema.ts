@@ -6,6 +6,17 @@ import { index, integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm
 
 export const PRIORITIES = ['low', 'medium', 'high'] as const;
 export const LABEL_COLORS = ['lavender', 'mint', 'peach', 'babyBlue', 'butter'] as const;
+// Ícones que o usuário pode escolher para a pasta (tela de criar pasta, etapa 8).
+export const FOLDER_ICONS = [
+  'folder',
+  'briefcase',
+  'heart',
+  'lightbulb',
+  'book',
+  'plane',
+  'house',
+  'star',
+] as const;
 
 const timestamps = {
   createdAt: text('created_at').notNull(),
@@ -15,6 +26,9 @@ const timestamps = {
 export const folders = sqliteTable('folders', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
+  // Escolhidos pelo usuário ao criar a pasta (exceção à regra "sem personalizar cores" da v1).
+  icon: text('icon', { enum: FOLDER_ICONS }).notNull().default('folder'),
+  color: text('color', { enum: LABEL_COLORS }).notNull().default('lavender'),
   position: real('position').notNull(),
   ...timestamps,
 });
