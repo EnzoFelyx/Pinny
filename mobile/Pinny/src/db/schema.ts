@@ -140,3 +140,10 @@ export const attachments = sqliteTable(
   },
   (table) => [index('attachments_card_idx').on(table.cardId)],
 );
+
+// Preferências do app (chave e valor em texto), só no aparelho. Ex.: se a dica do chacoalhar
+// já foi mostrada. Entra em "Apagar todos os meus dados".
+export const preferences = sqliteTable('preferences', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+});

@@ -24,6 +24,8 @@ const palette = {
   shadowCard: 'rgba(81, 68, 53, 0.05)',
   shadowLifted: 'rgba(81, 68, 53, 0.15)',
   inkOverlay: 'rgba(57, 53, 47, 0.4)',
+  // lavender200 (#EAE1F4) translúcido: fundo do espaço tracejado do arraste.
+  lavenderTranslucent: 'rgba(234, 225, 244, 0.55)',
 } as const;
 
 export const colors = {
@@ -52,6 +54,10 @@ export const colors = {
   inverseAction: palette.lavender200,
 
   alert: palette.terracotta700,
+
+  // Espaço tracejado onde o cartão arrastado vai cair. A borda (primary) tem 4,55:1 sobre a coluna.
+  dropZoneBorder: palette.violet600,
+  dropZoneBackground: palette.lavenderTranslucent,
 
   lavender: palette.lavender200,
   mint: palette.mint200,

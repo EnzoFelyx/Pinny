@@ -42,7 +42,13 @@
         }
       ],
       "expo-sqlite",
-      "./plugins/withTabBarIcons"
+      "./plugins/withTabBarIcons",
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "O Pinny usa o movimento do celular só para perceber quando você chacoalha para desfazer uma ação. Nada sai do aparelho."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

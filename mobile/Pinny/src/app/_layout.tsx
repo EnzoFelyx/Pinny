@@ -6,6 +6,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { EmptyState } from '@/components/EmptyState';
 import { useDatabaseStatus } from '@/db/useDatabaseStatus';
+import { SnackbarHost } from '@/features/feedback/view/SnackbarHost';
+import { ShakeToUndoListener } from '@/features/history/view/ShakeToUndoListener';
 import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
@@ -33,13 +35,18 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       {databaseStatus === 'ready' ? (
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="board/[boardId]" options={pushedScreenOptions} />
-          <Stack.Screen name="dev/gallery" options={pushedScreenOptions} />
-          <Stack.Screen name="folder/new" options={sheetScreenOptions} />
-          <Stack.Screen name="folder/[folderId]/rename" options={sheetScreenOptions} />
-        </Stack>
+        <>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="board/[boardId]" options={pushedScreenOptions} />
+            <Stack.Screen name="dev/gallery" options={pushedScreenOptions} />
+            <Stack.Screen name="folder/new" options={sheetScreenOptions} />
+            <Stack.Screen name="folder/[folderId]/rename" options={sheetScreenOptions} />
+          </Stack>
+          {/* Chacoalhar para desfazer e o snackbar global valem para todas as telas. */}
+          <ShakeToUndoListener />
+          <SnackbarHost />
+        </>
       ) : null}
       {databaseStatus === 'error' ? (
         <View className="flex-1 justify-center bg-background px-6">

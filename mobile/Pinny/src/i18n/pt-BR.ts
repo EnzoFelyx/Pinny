@@ -45,12 +45,39 @@ export const ptBR = {
   templates: {
     title: 'Modelos',
   },
+  history: {
+    shakeHint: 'Experimente chacoalhar para desfazer a ação',
+    // Nomes das ações nos alertas, como no iOS ("Desfazer Digitação").
+    actions: {
+      moveCard: 'Movimento',
+      createCard: 'Criação',
+    },
+    undoAction: (actionName: string) => `Desfazer ${actionName}`,
+    redoAction: (actionName: string) => `Refazer ${actionName}`,
+    undo: 'Desfazer',
+    redo: 'Refazer',
+    cancel: 'Cancelar',
+    undoError: 'Não deu para desfazer ou refazer agora. Tente de novo, por favor.',
+  },
   board: {
     addCard: 'Adicionar cartão',
     emptyColumn: 'Todo plano começa com uma notinha.',
     columnOptions: 'Opções da coluna',
     columnSummary: (title: string, count: number) =>
       `${title}, ${count === 1 ? '1 cartão' : `${count} cartões`}`,
+    subtitle: (folderTitle: string, count: number) =>
+      `${folderTitle} / ${count === 1 ? '1 cartão' : `${count} cartões`}`,
+    loadError: 'Não conseguimos abrir este quadro agora. Tente de novo em instantes.',
+    cardMoved: 'Cartão movido',
+    moveUp: 'Mover para cima',
+    moveDown: 'Mover para baixo',
+    movedTo: (position: number, total: number) =>
+      `Cartão movido para a posição ${position} de ${total}`,
+    dragHint: 'Segure um cartão para mudar a ordem.',
+    deleteColumnTitle: (title: string) => `Excluir a coluna "${title}"?`,
+    deleteColumnMessage: 'Os cartões dela também vão embora.',
+    deleteColumnConfirm: 'Excluir',
+    deleteColumnCancel: 'Cancelar',
   },
   card: {
     priority: {
@@ -64,6 +91,19 @@ export const ptBR = {
       high: 'Prioridade alta',
     },
     labelA11y: (name: string) => `Etiqueta ${name}`,
+    deadlineStatus: {
+      normal: '',
+      soon: 'Em breve',
+      overdue: 'Atrasado',
+      done: 'Concluído',
+    },
+    today: (time: string) => `Hoje, ${time}`,
+    checklist: (done: number, total: number) => `${done}/${total}`,
+    // Leitura completa do cartão (CLAUDE.md, regra 13).
+    summaryTitle: (title: string) => `Cartão ${title}`,
+    summaryDeadline: (text: string) => `prazo ${text}`,
+    summaryChecklist: (done: number, total: number) =>
+      `${done} de ${total} ${total === 1 ? 'subtarefa concluída' : 'subtarefas concluídas'}`,
   },
   calendar: {
     title: 'Agenda',

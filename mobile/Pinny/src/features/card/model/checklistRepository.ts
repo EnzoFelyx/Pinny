@@ -1,4 +1,4 @@
-import { and, asc, eq, ne } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, ne, sql } from 'drizzle-orm';
 
 import { type Database, db } from '@/db/client';
 import { applyPlacement } from '@/db/ordering';
@@ -10,8 +10,15 @@ import { nowIso } from '@/utils/time';
 
 import { type ChecklistItem, checklistItemSchema } from './card.schema';
 
+export interface ChecklistProgress {
+  done: number;
+  total: number;
+}
+
 export interface ChecklistRepository {
   listByCard(cardId: string): Promise<ChecklistItem[]>;
+  // Progresso de vários cartões numa consulta só (tela do quadro). Cartão sem checklist não aparece.
+  progressByCards(cardIds: readonly string[]): Promise<Record<string, ChecklistProgress>>;
   add(cardId: string, text: string): Promise<ChecklistItem>;
   rename(id: string, text: string): Promise<void>;
   setDone(id: string, isDone: boolean): Promise<void>;
@@ -50,6 +57,23 @@ export function createChecklistRepository(database: Database = db): ChecklistRep
         .orderBy(asc(checklistItems.position))
         .all();
       return parseRows(checklistItemSchema, rows, 'checklist_items');
+    },
+
+    async progressByCards(cardIds) {
+      if (cardIds.length === 0) return {};
+      const rows = database
+        .select({
+          cardId: checklistItems.cardId,
+          total: count(),
+          done: sql<number>`sum(${checklistItems.isDone})`,
+        })
+        .from(checklistItems)
+        .where(inArray(checklistItems.cardId, [...cardIds]))
+        .groupBy(checklistItems.cardId)
+        .all();
+      return Object.fromEntries(
+        rows.map((row) => [row.cardId, { done: Number(row.done ?? 0), total: row.total }]),
+      );
     },
 
     async add(cardId, text) {

@@ -1,6 +1,14 @@
 import { Check, Clock3, ListChecks, type LucideIcon } from 'lucide-react-native';
 import { memo } from 'react';
-import { Image, type ImageSourcePropType, Pressable, Text, View } from 'react-native';
+import {
+  type AccessibilityActionEvent,
+  type AccessibilityActionInfo,
+  Image,
+  type ImageSourcePropType,
+  Pressable,
+  Text,
+  View,
+} from 'react-native';
 
 import type { DeadlineStatus, LabelColor, Priority } from '@/features/card/model/card.types';
 import { colors } from '@/theme';
@@ -33,6 +41,9 @@ interface CardProps {
   thumbnail?: ImageSourcePropType;
   onPress?: () => void;
   onLongPress?: () => void;
+  // Alternativas ao gesto para o leitor de tela (ex.: "Mover para cima" no quadro).
+  accessibilityActions?: readonly AccessibilityActionInfo[];
+  onAccessibilityAction?: (event: AccessibilityActionEvent) => void;
 }
 
 const META_ICON_SIZE = 14;
@@ -58,6 +69,8 @@ export const Card = memo(function Card({
   thumbnail,
   onPress,
   onLongPress,
+  accessibilityActions,
+  onAccessibilityAction,
 }: CardProps) {
   const hasTags = labels.length > 0 || priority !== undefined;
   const hasMeta = deadline !== undefined || checklistText !== undefined;
@@ -66,6 +79,8 @@ export const Card = memo(function Card({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       onPress={onPress}
       onLongPress={onLongPress}
       // Enquanto o dedo está no cartão, a borda aparece; ao soltar, some.

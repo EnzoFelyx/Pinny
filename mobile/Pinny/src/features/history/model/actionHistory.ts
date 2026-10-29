@@ -1,5 +1,5 @@
 import { HISTORY_LIMIT } from '@/constants/limits';
-import type { CardSnapshot } from '@/features/card/model/card.schema';
+import type { Card, CardSnapshot } from '@/features/card/model/card.schema';
 import type { CardPatch, CardRepository } from '@/features/card/model/cardRepository';
 
 // Histórico de ações (base do "Desfazer"). Cada entrada guarda como voltar ao estado anterior.
@@ -17,7 +17,8 @@ export type UndoOperation =
 
 export interface HistoryEntry {
   id: string;
-  // Texto pronto para o snackbar (ex.: "Cartão movido para Concluído").
+  // Nome da ação no estilo do iOS, usado no alerta do chacoalhar (ex.: "Movimento" vira
+  // "Desfazer Movimento").
   description: string;
   createdAt: string;
   undo: UndoOperation;
@@ -44,26 +45,49 @@ export interface UndoRepositories {
   cards: CardRepository;
 }
 
+// Campos do patch com os valores atuais do cartão: o que é preciso para voltar uma edição.
+function currentValuesOf(card: Card, patch: CardPatch): CardPatch {
+  const fields = Object.keys(patch) as (keyof CardPatch)[];
+  return fields.reduce<CardPatch>((values, field) => ({ ...values, [field]: card[field] }), {});
+}
+
+// Aplica a operação e devolve a inversa dela (o que refaz o que acabou de ser desfeito).
+// null = não há como inverter (ex.: o cartão não existe mais).
 export async function applyUndo(
   operation: UndoOperation,
   repositories: UndoRepositories,
-): Promise<void> {
+): Promise<UndoOperation | null> {
+  const { cards } = repositories;
   switch (operation.kind) {
-    case 'deleteCard':
-      await repositories.cards.remove(operation.cardId);
-      return;
-    case 'moveCard':
-      await repositories.cards.moveToPosition(
-        operation.cardId,
-        operation.columnId,
-        operation.position,
-      );
-      return;
-    case 'updateCard':
-      await repositories.cards.update(operation.cardId, operation.previous);
-      return;
+    case 'deleteCard': {
+      const snapshot = await cards.remove(operation.cardId);
+      return { kind: 'restoreCard', snapshot };
+    }
+    case 'moveCard': {
+      const before = await cards.getById(operation.cardId);
+      await cards.moveToPosition(operation.cardId, operation.columnId, operation.position);
+      return before
+        ? {
+            kind: 'moveCard',
+            cardId: before.id,
+            columnId: before.columnId,
+            position: before.position,
+          }
+        : null;
+    }
+    case 'updateCard': {
+      const before = await cards.getById(operation.cardId);
+      await cards.update(operation.cardId, operation.previous);
+      return before
+        ? {
+            kind: 'updateCard',
+            cardId: before.id,
+            previous: currentValuesOf(before, operation.previous),
+          }
+        : null;
+    }
     case 'restoreCard':
-      await repositories.cards.restore(operation.snapshot);
-      return;
+      await cards.restore(operation.snapshot);
+      return { kind: 'deleteCard', cardId: operation.snapshot.card.id };
   }
 }
