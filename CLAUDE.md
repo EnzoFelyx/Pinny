@@ -320,6 +320,27 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
   - Telas por cima das abas (quadro, galeria de dev) usam o `Stack` raiz com só o botão de voltar.
   - A galeria de componentes saiu da rota inicial: agora fica em `/dev/gallery`, aberta por Ajustes **só em `__DEV__`**.
   - As telas recarregam sozinhas quando o banco muda (`src/db/changes.ts`, ouvinte do `expo-sqlite`).
+- **Arraste do quadro (etapa 6.1, 2026-10-29):** `react-native-gesture-handler` 3 (API `usePanGesture`, com `activateAfterLongPress`) + `react-native-reanimated` 4 + `expo-haptics`.
+  - Cartões em **posição absoluta** dentro de cada coluna. A ordem visual (`order`) e as alturas medidas (`heights`) ficam em shared values. Os topos (`offsets`) são calculados uma vez por mudança, com as funções puras de `features/board/model/reorder.ts`.
+  - O gesto e a rolagem automática (`useFrameCallback` + `scrollTo`) rodam na **UI thread** (`useSortableColumn`). O React só recebe a intenção final (`moveCard(columnId, cardId, toIndex)`), que grava só o cartão movido (posição decimal) e entra no histórico para o "Desfazer".
+  - Shared values com `.get()`/`.set()`, por causa do React Compiler.
+  - **Camada de arraste (2026-10-29):** ao levantar, o cartão é desenhado num "fantasma" por cima da tela do quadro (`DragOverlay` + `useDragOverlay`), acima dos cabeçalhos fixos e sem o corte da coluna. O original fica na coluna, invisível, com o gesto e as vagas. A posição vem de `measure` da lista da coluna, na UI thread. **Ao soltar**, a cópia some e o cartão da lista assume do mesmo ponto, ainda girado, e assenta com a mola dentro da própria lista, para o quique acompanhar a rolagem. Isso prepara o arraste entre colunas (6.2).
+  - Visual do Figma "Quadro · Arrastar cartão": rotação 3°, escala 1,03, sombra `lifted` e espaço tracejado (`dropZoneBorder`/`dropZoneBackground`). Com "Reduzir movimento", sem rotação, escala nem mola.
+  - Referência usada: o kanban antigo do autor (Vendd), reescrito com melhorias (cálculo por coluna em vez de ordenar o quadro inteiro a cada quadro de animação, rolagem automática na UI thread, acessibilidade).
+- **Puxar para excluir coluna (visual adiantado da 6.3, 2026-10-29):** puxar a coluna para baixo além de `pullToDelete.distance` e segurar `holdMs` (1 s) enche um anel vermelho (`alert`) em volta da lixeira, que fica atrás da coluna (`PullToDeleteIndicator`, `usePullToDelete`). Ao completar, abre o alerta nativo "Excluir a coluna?". Por enquanto os dois botões só fecham.
+- **Desfazer ao chacoalhar (antecipado na etapa 6.1, 2026-10-29):**
+  - Histórico **global** em memória (`features/history/model/historyStore.ts`): toda tela registra a ação com a operação que a desfaz.
+  - **Desfazer várias vezes e refazer (2026-10-29):** duas pilhas (até 20 ações). `applyUndo` devolve a operação inversa; desfazer a guarda em "refazer" e refazer a devolve. Uma ação nova limpa o "refazer".
+  - **Igual ao "Agitar para Desfazer" do iOS (decisão do autor, 2026-10-29):**
+    - Chacoalhar abre o **alerta nativo** (`Alert.alert`): "Desfazer Movimento" com [Desfazer], "Refazer Movimento" com [Refazer], ou as duas opções juntas, sempre com "Cancelar". A regra fica em `shakePrompt.ts`.
+    - Nada é desfeito sem confirmação. Sem nada no histórico, chacoalhar não faz nada, e não há aviso depois de desfazer.
+    - Nomes das ações no estilo do iOS: `ptBR.history.actions` ("Movimento", "Criação").
+  - O chacoalhar vem do acelerômetro (`expo-sensors`), detectado pela função pura `shakeDetector.ts` (valores em `src/constants/shake.ts`) atrás da interface `ShakeService`. O sensor só fica ligado com o app aberto.
+  - Respeita o **"Agitar para Desfazer"** do iPhone (Ajustes → Acessibilidade → Toque), lido pelo módulo Expo local `modules/shake-to-undo` (Swift, `UIAccessibility.isShakeToUndoEnabled`). Com ele desligado, chacoalhar não faz nada.
+  - Aviso depois de mover (`decideUndoNotice`): na primeira vez, um snackbar ensina o chacoalhar ("Experimente chacoalhar para desfazer a ação", com ícone), sem botão. Quem não pode chacoalhar recebe sempre o snackbar com "Desfazer" (regra 15), que desfaz direto, sem alerta. A primeira vez fica gravada na tabela `preferences`.
+  - Um único snackbar global (`features/feedback`), montado no layout raiz.
+  - No dev client, o gesto de chacoalhar do menu de desenvolvimento foi desligado no aparelho (Go home → Settings → Menu gestures). O menu abre com três dedos ou `m` no Metro.
+- **Preferências (2026-10-29):** tabela `preferences` (chave/valor, migração `0002`) com `preferencesRepository` em `features/settings/model`. Entra em "Apagar todos os meus dados".
 - **Estilização: NativeWind 4 + Tailwind 3 (2026-10-27).** `className` é o padrão; `StyleSheet`/`style` só em animação (Reanimated), valores dinâmicos ou bibliotecas sem `className` (REGRAS.md, regra 5). O NativeWind 5 ainda era release candidate na época; reavaliar quando sair estável. Configuração em `mobile/Pinny/`: `tailwind.config.ts` (lê os tokens de `src/theme/`), `src/global.css`, `babel.config.js` e `metro.config.js`.
 - **Lint e formatação:** ESLint (`eslint-config-expo` + `eslint-plugin-react-native`) e Prettier, configurados em `mobile/Pinny/eslint.config.js` e `.prettierrc.json`. Rode `npm run lint`, `npm run typecheck` e `npm run format`.
 - **Voz e IA (seção 5.7):** decisão adiada. Serviço de reconhecimento de voz, serviço de IA e onde roda o backend (para proteger a chave) serão definidos mais tarde, na etapa 10 do `todo.md`.
@@ -442,7 +463,8 @@ O app deve ser **local-first**: os dados do usuário (quadros, cards, fotos) fic
 |---|---|---|---|
 | `expo-sqlite` + `drizzle-orm` | Quadros, cartões, etiquetas, checklist e registros de anexos | Nada sai do aparelho (banco local `pinny.db`) | Persistência local-first |
 | `expo-crypto` | Nenhum dado do usuário (só gera IDs aleatórios) | — | IDs únicos |
-| `lucide-react-native`, `react-native-svg`, `expo-glass-effect`, `nativewind`, `zod`, `drizzle-zod` | Nenhum | — | Interface e validação |
+| `lucide-react-native`, `react-native-svg`, `expo-glass-effect`, `expo-haptics`, `nativewind`, `zod`, `drizzle-zod` | Nenhum | — | Interface e validação |
+| `expo-sensors` (acelerômetro) e o módulo local `shake-to-undo` | Movimento do aparelho, só para detectar o chacoalhar, e a opção "Agitar para Desfazer" do iOS | Nada sai do aparelho; nada é gravado | Desfazer ao chacoalhar |
 
 ---
 

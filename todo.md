@@ -15,7 +15,7 @@
 | 3 | Biblioteca de componentes | ✅ |
 | 4 | Dados local-first | ✅ |
 | 5 | Navegação e estrutura das telas | ✅ |
-| 6 | Quadro kanban (o diferencial) | ⬜ |
+| 6 | Quadro kanban (o diferencial) | 🟨 |
 | 7 | Card completo | ⬜ |
 | 8 | Pastas e templates | ⬜ |
 | 9 | Notificações e calendário | ⬜ |
@@ -151,19 +151,43 @@
 
 **Objetivo:** a tela principal com a movimentação mais fluida possível.
 
-- [ ] Colunas lado a lado com scroll horizontal
+> Dividida em subetapas (decisão do autor em 2026-10-29), cada uma com o seu PR.
+
+### 6.1 — Quadro real e reordenar na coluna
+- [x] Tela do quadro com dados reais: título, "Pasta / N cartões" e colunas lado a lado com encaixe
+- [x] Arrastar cartão na mesma coluna (segurar 300 ms), com os vizinhos deslizando
+- [x] Cartão inclinado, maior e elevado durante o arraste, com espaço tracejado na origem (Figma)
+- [x] Feedback tátil ao levantar, a cada troca de vaga e ao soltar (`expo-haptics`)
+- [x] Rolagem automática da coluna perto das bordas
+- [x] Gravar a nova ordem (só o cartão movido) e registrar no histórico
+- [x] Chacoalhar para desfazer (antecipado da etapa 11)
+- [x] "Adicionar cartão" provisório cria um cartão de exemplo (até o formulário da etapa 7)
+- [x] Alternativa acessível: ações "Mover para cima/baixo" com anúncio da posição
+- [x] Respeitar "Reduzir movimento"
+- [x] Conferir no iPhone
+
+### 6.2 — Entre colunas
+- [ ] Arrastar card entre colunas, com scroll automático nas bordas (horizontal)
+- [ ] Destino tracejado na coluna de chegada (Figma "Destino de arraste")
+- [ ] Alternativa acessível: ação "Mover para..." (escolher coluna e posição)
+
+### 6.3 — Colunas
 - [ ] Criar, renomear e excluir colunas (com confirmação e desfazer)
+- [x] Visual do "puxar para excluir" (adiantado em 2026-10-29): puxar a coluna para baixo e segurar 1 s enche um anel vermelho na lixeira e abre o alerta nativo. Os dois botões só fecham por enquanto
+- [ ] Ligar o "Excluir" do alerta à exclusão de verdade (com desfazer) e oferecer a mesma opção no menu da coluna (alternativa sem gesto)
 - [ ] Contador de cards por coluna e "+ Adicionar coluna"
-- [ ] Lista virtualizada de cards por coluna
-- [ ] Arrastar card na mesma coluna
-- [ ] Arrastar card entre colunas, com scroll automático nas bordas
-- [ ] Card inclinado e elevado durante o arraste, com feedback tátil
+
+### 6.4 — Reordenar colunas
 - [ ] Reordenar colunas segurando e arrastando
-- [ ] Modo de seleção múltipla e arraste em lote
-- [ ] Alternativa acessível: ação "Mover para..." e `accessibilityActions`
 - [ ] Alternativa acessível para reordenar colunas
-- [ ] Respeitar "Reduzir movimento"
-- [ ] Testes do ViewModel do quadro
+
+### 6.5 — Seleção em lote
+- [ ] Modo de seleção múltipla e arraste em lote
+
+### 6.6 — Virtualização e desempenho
+- [ ] Lista virtualizada de cards por coluna (montar só os cartões visíveis)
+- [ ] Medir 60fps em build de release
+- [ ] Testes do ViewModel do quadro (quando os testes voltarem)
 
 **Pronto quando:** o arraste rodar a 60fps em build de release num Android intermediário, e todas as ações também funcionarem pelo VoiceOver e pelo TalkBack.
 
@@ -246,8 +270,9 @@
 - [ ] Tela de automações da coluna
 - [ ] Regra: ao mover para Concluído, marcar todo o checklist
 - [ ] Regra: arquivar concluídos após X dias
-- [ ] Shake to undo usando o histórico de ações
-- [ ] Snackbar "Desfazer" após ações importantes
+- [x] Shake to undo usando o histórico de ações (antecipado na etapa 6.1, 2026-10-29: acelerômetro + histórico global)
+- [x] Snackbar após mover: dica do chacoalhar na primeira vez; botão "Desfazer" sempre, para quem desligou o "Agitar para Desfazer" do iPhone
+- [ ] Toggle "Desfazer ao chacoalhar" em Ajustes (etapa 12)
 - [ ] Testes das automações e do desfazer
 
 **Pronto quando:** as automações rodarem corretamente, e mover, editar ou excluir puderem ser desfeitos tanto chacoalhando quanto pelo botão.
