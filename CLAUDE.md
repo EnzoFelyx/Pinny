@@ -52,6 +52,7 @@ O nome do app é **Pinny** (decidido).
 
 - **Tema claro/escuro:** não haverá modo escuro nem alternância de tema. O app tem **apenas tema claro**.
 - **Troca de cor das colunas:** todas as colunas têm a **mesma cor neutra**. Não há opção para personalizar a cor de uma coluna.
+  - **Exceção (2026-10-28): pastas.** Ao criar uma pasta, o usuário escolhe o **ícone** e a **cor** (um dos 5 acentos). A tela de escolha entra na etapa 8; até lá, as pastas usam `folder` e `lavender`.
 - **Pet/mascote:** o mascote que reage às interações fica para depois. Não implemente nada dele agora.
 
 Também **não crie opções de tema ou cores na tela de Configurações**.
@@ -98,6 +99,7 @@ Lidos das camadas da biblioteca (node `3:46232`), com dois ajustes de contraste 
 | `disabledBackground` (botão desabilitado) | `#EFECE5` | Igual ao Figma; texto `textDisabled` sobre ele: 4,55:1 |
 | `inverseSurface` / `onInverseSurface` / `inverseAction` (snackbar) | `#39352F` / `#FFFEFB` / `#EAE1F4` | Não existe no Figma. Texto 12,1:1; ação 9,6:1 |
 | `illustrationLine` (linhas do post-it do estado vazio) | `#8A622D` | |
+| `lavenderInk` / `mintInk` / `peachInk` / `babyBlueInk` / `butterInk` (ícone e miniatura da pasta) | `#776098` / `#537360` / `#9E4D42` / `#4F6F86` / `#8A622D` | Versão escura de cada acento. `#537360` vem do Figma; `#4F6F86` foi criado. Todos ≥ 4,4:1 nas superfícies |
 
 Sombras (cor base `rgb(81, 68, 53)`):
 
@@ -298,7 +300,7 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
 - **Bibliotecas:** serão escolhidas e instaladas **conforme a necessidade de cada etapa**, não todas de uma vez. Não instale bibliotecas antecipadamente. Ao chegar numa etapa que precise de uma, proponha a opção e confirme com o autor antes de instalar.
 - **iOS first (2026-10-27):** o desenvolvimento e os testes manuais são feitos só no iOS por enquanto. O Android volta quando o autor pedir; até lá, não gere a pasta `android/` nem teste nele.
 - **Testes automatizados adiados (2026-10-27):** Jest, Testing Library e pre-commit com testes ficam para depois, quando o autor pedir. Não escreva testes nem instale ferramentas de teste até lá.
-- **Componentes (etapa 3, 2026-10-27):** ícones com `lucide-react-native` + `react-native-svg` (os mesmos do Figma) e bottom sheet com `@gorhom/bottom-sheet`. Nenhum dos dois acessa dados do usuário. Os componentes compartilhados ficam em `mobile/Pinny/src/components/`.
+- **Componentes (etapa 3, 2026-10-27):** ícones com `lucide-react-native` + `react-native-svg` (os mesmos do Figma) e bottom sheet com `@gorhom/bottom-sheet` (trocado pela folha nativa em 2026-10-28, ver Navegação). Nenhum dos dois acessa dados do usuário. Os componentes compartilhados ficam em `mobile/Pinny/src/components/`.
 - **Ajustes de componentes pedidos pelo autor (2026-10-27):**
   - Coluna do quadro com **75% da largura da tela**, para a próxima aparecer pela borda; rolagem horizontal com encaixe por coluna.
   - Cartão **sem checkbox**. Enquanto pressionado, mostra a borda `borderSelected`; ao soltar, volta ao normal. O toque longo e a seleção em lote serão definidos na etapa 6.
@@ -308,6 +310,16 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
   - **Ordenação por posição decimal:** mover um item grava só ele, com o ponto médio entre `previousId` e `nextId`; a lista é renumerada só quando o vão fica pequeno demais (`src/utils/position.ts`). Vale para pastas, quadros, colunas, cartões e checklist.
   - **Repositórios** atrás de interfaces em `features/<feature>/model/`; toda leitura passa pelo Zod (`parseRows`).
   - **Histórico de ações** em `features/history/model/actionHistory.ts`: pilha imutável de até `HISTORY_LIMIT` (20) entradas, cada uma com a operação que desfaz a ação.
+- **Navegação (etapa 5, 2026-10-28):** Expo Router com **Native Tabs** (`expo-router/native-tabs`): tab bar nativa, com o **Liquid Glass** do iOS 26. Abas: Início, Modelos, Agenda e Ajustes, com ícones SF Symbols.
+  - **Ícones das abas = os do Figma (Lucide), exceto Início**, que usa cartões empilhados no estilo do SF Symbol `rectangle.stack` (desenhado em SVG para seguir as mesmas cores). No iOS, os SVGs de `mobile/Pinny/assets/images/tabs/` entram no `Images.xcassets` como **vetor** via config plugin (`mobile/Pinny/plugins/withTabBarIcons.js`, roda a cada prebuild); no Android, usam os PNGs 1x/2x/3x gerados do mesmo SVG. Para trocar um ícone: substitua o SVG, gere os PNGs e rode `npx expo prebuild --clean`.
+  - **Sem rótulos visíveis e ícones de 26pt**, decisão do autor em 2026-10-28: o Liquid Glass do iOS 26 ignora a cor de texto dos itens não focados. Cada aba tem `accessibilityLabel` para o VoiceOver.
+  - Ícones: não focado = contorno em `textSecondary` (`#6F6A62`; o `#827C73` do Figma ficava apagado no vidro); focado = **versão preenchida** em `onSecondary` (`tab-x-active.svg`, com detalhes vazados em `surface`), para a aba ativa não depender só de cor. No iOS, os ícones são gerados **já coloridos** em modo `original` (`plugins/tabBarColors.js`, exceção `COR-HARDCODED`), porque o vidro ignora a cor de ícones `template`.
+  - **Busca na aba separada (2026-10-28):** o círculo de vidro ao lado da barra é a aba `search` (`role="search"`, iOS 26.1+), com a barra de busca nativa (`Stack.SearchBar` em `(tabs)/search/`). Busca pastas e quadros sem diferenciar acentos. Em iOS mais antigo, aparece como mais um item da barra. A Início não tem mais campo de busca.
+  - **"+" no topo da Início (2026-10-28):** no lugar do avatar com as iniciais, um botão redondo de **50pt** com Liquid Glass (`GlassIconButton`, `expo-glass-effect`; sem a expansão do vidro ao toque, só escurece) abre a folha "Nova pasta". Sem Liquid Glass, vira uma superfície clara com borda.
+  - **Folhas nativas do iOS (2026-10-28):** o `@gorhom/bottom-sheet` não abria dentro da navegação nativa e foi removido. Cada folha é uma rota do `Stack` raiz com `presentation: 'formSheet'` e altura pelo conteúdo (`sheetScreenOptions` em `app/_layout.tsx`), com o conteúdo em `SheetLayout`. Ex.: `/folder/new` e `/folder/[folderId]/rename`. O puxador, o arraste e o teclado são do sistema.
+  - Telas por cima das abas (quadro, galeria de dev) usam o `Stack` raiz com só o botão de voltar.
+  - A galeria de componentes saiu da rota inicial: agora fica em `/dev/gallery`, aberta por Ajustes **só em `__DEV__`**.
+  - As telas recarregam sozinhas quando o banco muda (`src/db/changes.ts`, ouvinte do `expo-sqlite`).
 - **Estilização: NativeWind 4 + Tailwind 3 (2026-10-27).** `className` é o padrão; `StyleSheet`/`style` só em animação (Reanimated), valores dinâmicos ou bibliotecas sem `className` (REGRAS.md, regra 5). O NativeWind 5 ainda era release candidate na época; reavaliar quando sair estável. Configuração em `mobile/Pinny/`: `tailwind.config.ts` (lê os tokens de `src/theme/`), `src/global.css`, `babel.config.js` e `metro.config.js`.
 - **Lint e formatação:** ESLint (`eslint-config-expo` + `eslint-plugin-react-native`) e Prettier, configurados em `mobile/Pinny/eslint.config.js` e `.prettierrc.json`. Rode `npm run lint`, `npm run typecheck` e `npm run format`.
 - **Voz e IA (seção 5.7):** decisão adiada. Serviço de reconhecimento de voz, serviço de IA e onde roda o backend (para proteger a chave) serão definidos mais tarde, na etapa 10 do `todo.md`.
@@ -413,7 +425,8 @@ O app deve ser **local-first**: os dados do usuário (quadros, cards, fotos) fic
 **7. Sem dados desnecessários** — ✅ v1
 
 - Colete apenas o mínimo necessário para cada função.
-- A v1 **não precisa de conta, e-mail, nome ou login**. Não peça.
+- A v1 **não precisa de conta, e-mail ou login**. Não peça.
+- **Exceção decidida em 2026-10-28:** na primeira abertura, o app pede um **nome ou apelido** para a saudação ("Oi, Enzo"). Ele fica **só no aparelho**, nunca sai dele, e entra em "Apagar todos os meus dados". Por enquanto o nome está fixo ("Enzo") no `useHomeViewModel`; a tela de primeira abertura foi adiada para a etapa 12 do `todo.md`. Lembrar de citar esse dado na política de privacidade.
 - Áudio de voz: envie para processamento apenas o necessário e **não guarde a gravação** depois que o card for criado.
 - Fotos anexadas ficam no armazenamento local do app. Remova metadados sensíveis (ex.: localização GPS do EXIF) quando possível.
 - Leia do calendário do celular apenas o necessário para a sincronização.
@@ -429,7 +442,7 @@ O app deve ser **local-first**: os dados do usuário (quadros, cards, fotos) fic
 |---|---|---|---|
 | `expo-sqlite` + `drizzle-orm` | Quadros, cartões, etiquetas, checklist e registros de anexos | Nada sai do aparelho (banco local `pinny.db`) | Persistência local-first |
 | `expo-crypto` | Nenhum dado do usuário (só gera IDs aleatórios) | — | IDs únicos |
-| `lucide-react-native`, `react-native-svg`, `@gorhom/bottom-sheet`, `nativewind`, `zod`, `drizzle-zod` | Nenhum | — | Interface e validação |
+| `lucide-react-native`, `react-native-svg`, `expo-glass-effect`, `nativewind`, `zod`, `drizzle-zod` | Nenhum | — | Interface e validação |
 
 ---
 
