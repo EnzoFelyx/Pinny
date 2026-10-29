@@ -37,7 +37,7 @@ export function getDataSummary(): DataSummary {
 }
 
 export async function seedSampleBoard(): Promise<void> {
-  const folder = await folderRepository.create('Pessoal');
+  const folder = await folderRepository.create({ title: 'Pessoal', icon: 'heart', color: 'mint' });
   const board = await boardRepository.create(folder.id, 'Minha semana');
   const todo = await columnRepository.create(board.id, 'A fazer');
   await columnRepository.create(board.id, 'Em andamento');

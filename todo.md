@@ -14,7 +14,7 @@
 | 2 | Tema e textos centralizados | ✅ |
 | 3 | Biblioteca de componentes | ✅ |
 | 4 | Dados local-first | ✅ |
-| 5 | Navegação e estrutura das telas | ⬜ |
+| 5 | Navegação e estrutura das telas | ✅ |
 | 6 | Quadro kanban (o diferencial) | ⬜ |
 | 7 | Card completo | ⬜ |
 | 8 | Pastas e templates | ⬜ |
@@ -131,9 +131,17 @@
 
 **Objetivo:** o esqueleto navegável do app.
 
-- [ ] Configurar a navegação entre as telas
-- [ ] Criar View e ViewModel vazios para cada tela da seção 6 do `CLAUDE.md`
-- [ ] Tela Início: listar pastas e quadros a partir dos repositórios
+- [x] Configurar a navegação: Native Tabs (Liquid Glass) com Início, Modelos, Agenda e Ajustes
+- [x] Aba de busca separada da tab bar (círculo de vidro), buscando pastas e quadros
+- [x] Tela Início: logo, saudação, data, "+" de vidro no topo e pastas com quadros vindos dos repositórios
+- [x] Renomear pasta (lápis) e criar pasta pelo "+", em folhas nativas do iOS (`formSheet`)
+- [x] Pasta com ícone e cor no banco (migração `0001`); escolha na tela de criar pasta fica para a etapa 8
+- [x] Esqueletos navegáveis: Modelos, Agenda, Ajustes e Quadro
+- [x] Galeria de componentes movida para `/dev/gallery` (só em desenvolvimento)
+- [x] Conferir no iPhone: tab bar de vidro, busca, "+", folhas e Início com os dados reais
+- [x] ~~Tela de primeira abertura pedindo o nome~~ → adiada para a etapa 12 (decisão do autor em 2026-10-28)
+
+> As demais telas da seção 6 (detalhe do cartão, criar cartão, voz, automações) ganham View e ViewModel quando suas etapas chegarem, para não criar arquivos vazios antes da hora.
 
 **Pronto quando:** for possível navegar por todas as telas, mesmo que ainda incompletas.
 
@@ -250,6 +258,7 @@
 
 **Objetivo:** cumprir as regras da seção 12 do `CLAUDE.md` dentro do app.
 
+- [ ] 🔔 **Lembrete:** tela de primeira abertura pedindo o nome ou apelido da saudação (adiada da etapa 5). Hoje o nome está fixo ("Enzo") no `useHomeViewModel`. Guardar só no aparelho, incluir em "Apagar todos os meus dados" e citar na política de privacidade
 - [ ] Notificações (ativar e desativar)
 - [ ] Sincronização do calendário
 - [ ] Desfazer ao chacoalhar (ativar e desativar)

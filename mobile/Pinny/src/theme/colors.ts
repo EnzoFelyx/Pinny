@@ -19,6 +19,8 @@ const palette = {
   butter200: '#F6EDBE',
   terracotta700: '#9E4D42',
   honey800: '#8A622D',
+  green600: '#537360',
+  blue600: '#4F6F86',
   shadowCard: 'rgba(81, 68, 53, 0.05)',
   shadowLifted: 'rgba(81, 68, 53, 0.15)',
   inkOverlay: 'rgba(57, 53, 47, 0.4)',
@@ -56,6 +58,13 @@ export const colors = {
   peach: palette.peach200,
   babyBlue: palette.babyBlue200,
   butter: palette.butter200,
+
+  // Versão escura de cada acento: ícone e miniatura da pasta (≥ 4,4:1 nas superfícies).
+  lavenderInk: palette.violet600,
+  mintInk: palette.green600,
+  peachInk: palette.terracotta700,
+  babyBlueInk: palette.blue600,
+  butterInk: palette.honey800,
 
   illustrationLine: palette.honey800,
 } as const;

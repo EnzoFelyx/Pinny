@@ -12,6 +12,7 @@ import { type Board, boardSchema } from './board.schema';
 
 export interface BoardRepository {
   listByFolder(folderId: string): Promise<Board[]>;
+  getById(id: string): Promise<Board | null>;
   create(folderId: string, title: string): Promise<Board>;
   rename(id: string, title: string): Promise<void>;
   // Pode trocar de pasta: folderId é a pasta de destino.
@@ -41,6 +42,11 @@ export function createBoardRepository(database: Database = db): BoardRepository 
         .orderBy(asc(boards.position))
         .all();
       return parseRows(boardSchema, rows, 'boards');
+    },
+
+    async getById(id) {
+      const row = database.select().from(boards).where(eq(boards.id, id)).get();
+      return row ? parseRow(boardSchema, row, 'boards') : null;
     },
 
     async create(folderId, title) {
