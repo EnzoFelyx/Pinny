@@ -50,7 +50,7 @@ export const SortableColumnView = memo(function SortableColumnView({
   onDrop,
 }: SortableColumnViewProps) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-  const sortable = useSortableColumn({
+  const { column: sortable, scrollHandler } = useSortableColumn({
     columnId: column.id,
     ids: column.cards.map((card) => card.id),
     scrollRef,
@@ -99,7 +99,7 @@ export const SortableColumnView = memo(function SortableColumnView({
       />
       <AnimatedScrollView
         ref={scrollRef}
-        onScroll={sortable.scrollHandler}
+        onScroll={scrollHandler}
         scrollEventThrottle={16}
         onLayout={measureViewport}
         onContentSizeChange={measureContent}

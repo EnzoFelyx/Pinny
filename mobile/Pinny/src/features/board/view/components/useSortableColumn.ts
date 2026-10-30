@@ -48,7 +48,6 @@ export interface SortableColumn {
   // Rolagem da coluna (negativa quando puxada para baixo além do topo).
   scrollY: SharedValue<number>;
   isUserScrolling: SharedValue<boolean>;
-  scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   // Lista dos cartões (sem transform), medida para posicionar o cartão na camada de arraste.
   listRef: AnimatedRef<View>;
   startDrag: (id: string) => void;
@@ -67,7 +66,12 @@ export function useSortableColumn({
   onLift,
   onTick,
   onDrop,
-}: SortableColumnOptions): SortableColumn {
+}: SortableColumnOptions): {
+  column: SortableColumn;
+  // Fica fora do objeto da coluna: os worklets capturam esse objeto, e o manipulador de rolagem
+  // não pode ser copiado para a UI thread.
+  scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
+} {
   const order = useSharedValue<string[]>([...ids]);
   const heights = useSharedValue<Record<string, number>>({});
   const activeId = useSharedValue<string | null>(null);
@@ -192,22 +196,24 @@ export function useSortableColumn({
   };
 
   return {
-    order,
-    heights,
-    offsets,
-    contentHeight,
-    isLaidOut,
-    activeId,
-    dragTop,
-    viewportHeight,
-    listTop,
-    scrollContentHeight,
-    scrollY,
-    isUserScrolling,
     scrollHandler,
-    listRef,
-    startDrag,
-    updateDrag,
-    endDrag,
+    column: {
+      order,
+      heights,
+      offsets,
+      contentHeight,
+      isLaidOut,
+      activeId,
+      dragTop,
+      viewportHeight,
+      listTop,
+      scrollContentHeight,
+      scrollY,
+      isUserScrolling,
+      listRef,
+      startDrag,
+      updateDrag,
+      endDrag,
+    },
   };
 }
