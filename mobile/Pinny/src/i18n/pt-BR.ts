@@ -76,6 +76,21 @@ export const ptBR = {
     moveDown: 'Mover para baixo',
     movedTo: (position: number, total: number) =>
       `Cartão movido para a posição ${position} de ${total}`,
+    moveToPreviousColumn: 'Mover para a coluna anterior',
+    moveToNextColumn: 'Mover para a próxima coluna',
+    moveTo: 'Mover para…',
+    movedToColumn: (columnTitle: string, position: number, total: number) =>
+      `Movido para ${columnTitle}, posição ${position} de ${total}`,
+    moveSheet: {
+      title: 'Mover cartão',
+      columnLabel: 'Coluna',
+      positionLabel: 'Posição',
+      positionStart: 'No início',
+      positionEnd: 'No fim',
+      currentColumn: (title: string) => `${title} (atual)`,
+      submit: 'Mover',
+      loadError: 'Não conseguimos abrir as colunas agora. Tente de novo em instantes.',
+    },
     dragHint: 'Segure um cartão para mudar a ordem.',
     filterAll: 'Todos os cartões',
     filterByDeadline: 'Por prazo',

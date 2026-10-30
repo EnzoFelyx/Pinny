@@ -15,11 +15,13 @@ interface ColumnHeaderProps {
 }
 
 interface ColumnFooterProps {
-  cardCount: number;
+  // Sem cartões (nem vaga de arraste): mostra o estado vazio.
+  isEmpty: boolean;
   onAddCard: () => void;
 }
 
-interface ColumnProps extends ColumnHeaderProps, ColumnFooterProps {
+interface ColumnProps extends ColumnHeaderProps {
+  onAddCard: () => void;
   // Lista de cartões.
   children?: ReactNode;
 }
@@ -62,8 +64,8 @@ export function ColumnHeader({ title, cardCount, onOpenMenu }: ColumnHeaderProps
 }
 
 // Fim da coluna: o estado vazio (com o botão em destaque) ou o "Adicionar cartão" discreto.
-export function ColumnFooter({ cardCount, onAddCard }: ColumnFooterProps) {
-  if (cardCount === 0) {
+export function ColumnFooter({ isEmpty, onAddCard }: ColumnFooterProps) {
+  if (isEmpty) {
     return (
       <EmptyState
         message={ptBR.board.emptyColumn}
@@ -83,7 +85,7 @@ export function Column({ title, cardCount, onAddCard, onOpenMenu, children }: Co
       <ColumnHeader title={title} cardCount={cardCount} onOpenMenu={onOpenMenu} />
       <View className="gap-3">
         {cardCount > 0 ? children : null}
-        <ColumnFooter cardCount={cardCount} onAddCard={onAddCard} />
+        <ColumnFooter isEmpty={cardCount === 0} onAddCard={onAddCard} />
       </View>
     </View>
   );

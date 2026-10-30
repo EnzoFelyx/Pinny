@@ -167,9 +167,12 @@
 - [x] Conferir no iPhone
 
 ### 6.2 — Entre colunas
-- [ ] Arrastar card entre colunas, com scroll automático nas bordas (horizontal)
-- [ ] Destino tracejado na coluna de chegada (Figma "Destino de arraste")
-- [ ] Alternativa acessível: ação "Mover para..." (escolher coluna e posição)
+- [x] Arrastar card entre colunas, com scroll automático nas bordas (horizontal)
+- [x] Destino tracejado na coluna de chegada (Figma "Destino de arraste")
+- [x] Alternativa acessível: ação "Mover para..." (escolher coluna e posição)
+- [x] Ações do VoiceOver "Mover para a coluna anterior/próxima"
+- [x] Desfazer devolve o cartão à coluna e à posição de antes
+- [x] Conferir no iPhone
 
 ### 6.3 — Colunas
 - [ ] Criar, renomear e excluir colunas (com confirmação e desfazer)

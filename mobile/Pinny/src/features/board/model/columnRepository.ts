@@ -12,6 +12,7 @@ import { type Column, columnSchema } from './board.schema';
 
 export interface ColumnRepository {
   listByBoard(boardId: string): Promise<Column[]>;
+  getById(id: string): Promise<Column | null>;
   // Novas colunas entram no fim do quadro ("+ Adicionar coluna").
   create(boardId: string, title: string): Promise<Column>;
   rename(id: string, title: string): Promise<void>;
@@ -42,6 +43,11 @@ export function createColumnRepository(database: Database = db): ColumnRepositor
         .orderBy(asc(columns.position))
         .all();
       return parseRows(columnSchema, rows, 'columns');
+    },
+
+    async getById(id) {
+      const row = database.select().from(columns).where(eq(columns.id, id)).get();
+      return row ? parseRow(columnSchema, row, 'columns') : null;
     },
 
     async create(boardId, title) {

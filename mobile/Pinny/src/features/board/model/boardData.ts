@@ -11,7 +11,6 @@ import type { Board, Column, Label } from './board.schema';
 import { type BoardRepository, boardRepository } from './boardRepository';
 import { type ColumnRepository, columnRepository } from './columnRepository';
 import { type LabelRepository, labelRepository } from './labelRepository';
-import { moveIndex } from './reorder';
 
 export interface BoardCard {
   card: Card;
@@ -87,32 +86,42 @@ export async function loadBoard(
 
 export interface CardMoveResult {
   data: BoardData;
-  // Ordem final dos ids na coluna (para calcular os vizinhos ao gravar).
+  // Ordem final dos ids na coluna de destino (para calcular os vizinhos ao gravar).
   orderedIds: string[];
-  // Posição do cartão antes do movimento (para o "Desfazer").
+  // Coluna e posição do cartão antes do movimento (para o "Desfazer").
+  previousColumnId: string;
   previousPosition: number;
 }
 
-// Novo retrato do quadro com o cartão levado para toIndex dentro da coluna, sem alterar o original.
-// null = nada mudou (coluna ou cartão inexistente, ou mesma vaga).
+// Novo retrato do quadro com o cartão levado para toIndex na coluna de destino (a mesma ou outra),
+// sem alterar o original. null = nada mudou (cartão ou coluna inexistente, ou mesma vaga).
 export function withCardMoved(
   data: BoardData,
-  columnId: string,
   cardId: string,
+  toColumnId: string,
   toIndex: number,
 ): CardMoveResult | null {
-  const target = data.columns.find((item) => item.column.id === columnId);
-  const fromIndex = target?.cards.findIndex((item) => item.card.id === cardId) ?? -1;
-  const movedCard = target?.cards[fromIndex];
-  if (!target || !movedCard || fromIndex === toIndex) return null;
+  const source = data.columns.find((item) => item.cards.some((entry) => entry.card.id === cardId));
+  const target = data.columns.find((item) => item.column.id === toColumnId);
+  const fromIndex = source?.cards.findIndex((item) => item.card.id === cardId) ?? -1;
+  const movedCard = source?.cards[fromIndex];
+  if (!source || !target || !movedCard) return null;
+  if (source === target && fromIndex === toIndex) return null;
 
-  const cards = moveIndex(target.cards, fromIndex, toIndex);
+  const sourceCards = source.cards.filter((item) => item !== movedCard);
+  const targetBase = source === target ? sourceCards : target.cards;
+  const targetCards = [...targetBase.slice(0, toIndex), movedCard, ...targetBase.slice(toIndex)];
   return {
     data: {
       ...data,
-      columns: data.columns.map((item) => (item === target ? { ...item, cards } : item)),
+      columns: data.columns.map((item) => {
+        if (item === target) return { ...item, cards: targetCards };
+        if (item === source) return { ...item, cards: sourceCards };
+        return item;
+      }),
     },
-    orderedIds: cards.map((item) => item.card.id),
+    orderedIds: targetCards.map((item) => item.card.id),
+    previousColumnId: source.column.id,
     previousPosition: movedCard.card.position,
   };
 }

@@ -1,7 +1,9 @@
 import { StyleSheet, Text } from 'react-native';
 import Animated, {
+  type DerivedValue,
   useAnimatedReaction,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
@@ -9,25 +11,43 @@ import Animated, {
 import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
+import type { BoardDrag } from './useBoardDrag';
 import { ESTIMATED_CARD_HEIGHT, type SortableColumn } from './useSortableColumn';
 
 interface DropPlaceholderProps {
+  columnId: string;
   column: SortableColumn;
+  drag: BoardDrag;
   reorderDuration: number;
+  // Altura fixa da vaga (coluna vazia: o espaço do estado vazio). 0 = altura do cartão.
+  fixedHeight: DerivedValue<number>;
 }
 
 const RADIUS = 18;
 const BORDER_WIDTH = 2;
 
-// Vaga tracejada onde o cartão arrastado vai cair (Figma: "Espaço de origem"). Decorativa:
-// o leitor de tela usa as ações "Mover para cima/baixo" do cartão.
-export function DropPlaceholder({ column, reorderDuration }: DropPlaceholderProps) {
+// Vaga tracejada onde o cartão arrastado vai cair, sempre com "Solte para reorganizar". Na coluna
+// de onde ele saiu, só a borda; nas outras, preenchida (destino). Decorativa: o leitor de tela usa
+// as ações de mover do cartão.
+export function DropPlaceholder({
+  columnId,
+  column,
+  drag,
+  reorderDuration,
+  fixedHeight,
+}: DropPlaceholderProps) {
   const top = useSharedValue(0);
+  // Cartão arrastado que está na ordem desta coluna (null = a vaga não é aqui).
+  const slotId = useDerivedValue(() => {
+    const id = drag.activeId.get();
+    return id !== null && column.order.get().includes(id) ? id : null;
+  });
+  const isOrigin = useDerivedValue(() => drag.fromColumnId.get() === columnId);
 
-  // Ao levantar o cartão, aparece direto na vaga dele; nas trocas seguintes, desliza junto com os vizinhos.
+  // Ao aparecer, vai direto à vaga; nas trocas seguintes, desliza junto com os vizinhos.
   useAnimatedReaction(
     () => {
-      const id = column.activeId.get();
+      const id = slotId.get();
       return id === null ? null : { id, offset: column.offsets.get()[id] ?? 0 };
     },
     (next, previous) => {
@@ -41,10 +61,14 @@ export function DropPlaceholder({ column, reorderDuration }: DropPlaceholderProp
   );
 
   const animatedStyle = useAnimatedStyle(() => {
-    const id = column.activeId.get();
+    const id = slotId.get();
     return {
       opacity: id === null ? 0 : 1,
-      height: id === null ? 0 : (column.heights.get()[id] ?? ESTIMATED_CARD_HEIGHT),
+      height:
+        id === null ? 0 : fixedHeight.get() || (drag.heights.get()[id] ?? ESTIMATED_CARD_HEIGHT),
+      backgroundColor: isOrigin.get()
+        ? colors.dropZoneOriginBackground
+        : colors.dropZoneTargetBackground,
       transform: [{ translateY: top.get() }],
     };
   });
@@ -77,6 +101,5 @@ const styles = StyleSheet.create({
     borderWidth: BORDER_WIDTH,
     borderStyle: 'dashed',
     borderColor: colors.dropZoneBorder,
-    backgroundColor: colors.dropZoneBackground,
   },
 });

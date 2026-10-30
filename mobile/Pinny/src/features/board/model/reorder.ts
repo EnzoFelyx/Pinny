@@ -76,3 +76,24 @@ export function toPlacement(ids: readonly string[], movedId: string): Placement 
     nextId: index >= 0 && index < ids.length - 1 ? ids[index + 1] : null,
   };
 }
+
+// Coluna sob o ponto x, contado do início da primeira coluna (pitch = largura + espaço). A divisa
+// entre duas colunas fica no meio do espaço entre elas. Fora do quadro, vale a coluna da ponta.
+export function columnIndexAt(x: number, pitch: number, gap: number, count: number): number {
+  'worklet';
+  if (count === 0 || pitch <= 0) return -1;
+  const index = Math.floor((x + gap / 2) / pitch);
+  return Math.max(0, Math.min(count - 1, index));
+}
+
+// Vizinhos para levar o cartão ao início ou ao fim de uma coluna ("Mover para...").
+export function edgePlacement(
+  ids: readonly string[],
+  movedId: string,
+  edge: 'start' | 'end',
+): Placement {
+  const others = ids.filter((id) => id !== movedId);
+  return edge === 'start'
+    ? { previousId: null, nextId: others[0] ?? null }
+    : { previousId: others.at(-1) ?? null, nextId: null };
+}

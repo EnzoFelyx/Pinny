@@ -23,12 +23,17 @@ export const dragLift = {
 // Tempo segurando o cartão até o arraste começar (antes disso, o dedo rola a coluna).
 export const DRAG_ACTIVATION_MS = 300;
 
-// Rolagem automática da coluna quando o cartão chega perto da borda.
+// Rolagem automática quando o cartão chega perto da borda (da coluna ou da tela).
 export const autoScroll = {
-  // Distância da borda, em pontos, em que a rolagem começa.
+  // Distância da borda, em pontos, em que a rolagem começa: em cima e embaixo da coluna.
   edge: 60,
+  // Nas bordas esquerda e direita da tela, para o quadro rolar para os lados (50% maior, pedido
+  // do autor em 2026-10-30).
+  boardEdge: 90,
   // Pontos por quadro na velocidade máxima (bem na borda).
   maxSpeed: 12,
+  // Velocidade máxima do quadro para os lados (ajustada pelo autor no aparelho em 2026-10-30).
+  boardMaxSpeed: 16,
 } as const;
 
 // Puxar a coluna para baixo e segurar para excluir (alerta de confirmação no fim).

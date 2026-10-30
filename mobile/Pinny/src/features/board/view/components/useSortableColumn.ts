@@ -17,15 +17,22 @@ import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import { computeOffsets, indexFromCenter, moveIndex, totalHeight } from '../../model/reorder';
 import { autoScroll } from '@/theme';
 
+import type { BoardDrag } from './useBoardDrag';
+
 // Espaço entre os cartões e altura usada antes de o cartão ser medido (Figma: 110 + 10).
 export const CARD_GAP = 10;
 export const ESTIMATED_CARD_HEIGHT = 110;
+
+// Resultado da vaga do cartão arrastado nesta coluna: fora de um arraste ou fora da coluna.
+const NO_DRAG = -2;
+const OUTSIDE = -1;
 
 interface SortableColumnOptions {
   columnId: string;
   ids: readonly string[];
   scrollRef: AnimatedRef<Animated.ScrollView>;
-  onMove: (columnId: string, cardId: string, toIndex: number) => void;
+  drag: BoardDrag;
+  onMove: (cardId: string, toColumnId: string, toIndex: number) => void;
   onLift: () => void;
   onTick: () => void;
   onDrop: () => void;
@@ -33,13 +40,11 @@ interface SortableColumnOptions {
 
 export interface SortableColumn {
   order: SharedValue<string[]>;
-  heights: SharedValue<Record<string, number>>;
   offsets: DerivedValue<Record<string, number>>;
   contentHeight: DerivedValue<number>;
   // true quando todos os cartões já foram medidos (a partir daí, mudanças deslizam).
   isLaidOut: DerivedValue<boolean>;
-  activeId: SharedValue<string | null>;
-  // Topo do cartão arrastado, em coordenadas da lista (acompanha o dedo e a rolagem automática).
+  // Topo do cartão arrastado nas coordenadas desta lista (acompanha o dedo e as rolagens).
   dragTop: DerivedValue<number>;
   viewportHeight: SharedValue<number>;
   // Onde a lista começa dentro da coluna (abaixo do cabeçalho fixo) e a altura de todo o conteúdo.
@@ -51,17 +56,17 @@ export interface SortableColumn {
   // Lista dos cartões (sem transform), medida para posicionar o cartão na camada de arraste.
   listRef: AnimatedRef<View>;
   startDrag: (id: string) => void;
-  updateDrag: (translationY: number) => void;
-  // Solta o cartão e devolve o topo da vaga final.
+  // Solta o cartão na própria coluna e devolve o topo da vaga final.
   endDrag: () => number;
 }
 
-// Estado do arraste de uma coluna, todo na UI thread. A ordem visual (order) muda durante o
-// gesto; o React só fica sabendo uma vez, ao soltar (onMove).
+// Ordem visual de uma coluna, toda na UI thread. Durante o arraste, o cartão entra na ordem da
+// coluna que está sob o dedo e sai das outras; o React só fica sabendo ao soltar (onMove).
 export function useSortableColumn({
   columnId,
   ids,
   scrollRef,
+  drag,
   onMove,
   onLift,
   onTick,
@@ -72,13 +77,9 @@ export function useSortableColumn({
   // não pode ser copiado para a UI thread.
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
 } {
+  const { activeId, heights } = drag;
   const order = useSharedValue<string[]>([...ids]);
-  const heights = useSharedValue<Record<string, number>>({});
-  const activeId = useSharedValue<string | null>(null);
   const startIndex = useSharedValue(-1);
-  const startTop = useSharedValue(0);
-  const startScroll = useSharedValue(0);
-  const translationY = useSharedValue(0);
   const viewportHeight = useSharedValue(0);
   const listTop = useSharedValue(0);
   const scrollContentHeight = useSharedValue(0);
@@ -118,14 +119,16 @@ export function useSortableColumn({
     order.get().every((id) => heights.get()[id] !== undefined),
   );
   const dragTop = useDerivedValue(
-    () => startTop.get() + translationY.get() + scrollY.get() - startScroll.get(),
+    () => drag.startY.get() + drag.translationY.get() - drag.listOriginY.get() + scrollY.get(),
   );
 
-  // Troca de vaga ao passar do meio de um vizinho, tanto pelo dedo quanto pela rolagem automática.
+  // Vaga do cartão nesta coluna: entra quando a coluna fica sob o dedo, troca de lugar ao passar
+  // do meio de um vizinho (pelo dedo ou pela rolagem automática) e sai quando o dedo vai embora.
   useAnimatedReaction(
     () => {
       const id = activeId.get();
-      if (id === null) return -1;
+      if (id === null) return NO_DRAG;
+      if (drag.overColumnId.get() !== columnId) return OUTSIDE;
       const center = dragTop.get() + (heights.get()[id] ?? ESTIMATED_CARD_HEIGHT) / 2;
       return indexFromCenter(
         center,
@@ -138,19 +141,43 @@ export function useSortableColumn({
     },
     (target) => {
       const id = activeId.get();
-      if (id === null || target < 0) return;
-      const current = order.get().indexOf(id);
-      if (current === target) return;
-      order.set(moveIndex(order.get(), current, target));
+      if (id === null || target === NO_DRAG) return;
+      const current = order.get();
+      const index = current.indexOf(id);
+      if (target === OUTSIDE) {
+        if (index >= 0) order.set(current.filter((item) => item !== id));
+        return;
+      }
+      if (index === target) return;
+      order.set(
+        index < 0
+          ? [...current.slice(0, target), id, ...current.slice(target)]
+          : moveIndex(current, index, target),
+      );
       scheduleOnRN(onTick);
     },
   );
 
-  // Rola a coluna quando o cartão chega perto da borda: mais rápido quanto mais perto.
+  // A coluna sob o dedo informa a vaga ao quadro, para o cartão saber onde cair ao soltar.
+  useAnimatedReaction(
+    () => {
+      const id = activeId.get();
+      if (id === null || drag.overColumnId.get() !== columnId) return null;
+      const index = order.get().indexOf(id);
+      return index < 0 ? null : index;
+    },
+    (index) => {
+      if (index !== null) drag.slotIndex.set(index);
+    },
+  );
+
+  // Rola a coluna sob o dedo quando o cartão chega perto da borda: mais rápido quanto mais perto.
   // A borda de cima fica logo abaixo do cabeçalho fixo (listTop), que cobre o topo da coluna.
+  // Também mantém o quique do cartão que assenta nesta coluna grudado na lista (rolagens incluídas).
   useFrameCallback(() => {
+    if (drag.settleColumnId.get() === columnId) drag.trackSettle(listRef);
     const id = activeId.get();
-    if (id === null || viewportHeight.get() === 0) return;
+    if (id === null || drag.overColumnId.get() !== columnId || viewportHeight.get() === 0) return;
 
     const top = listTop.get() + dragTop.get() - scrollY.get();
     const bottom = top + (heights.get()[id] ?? ESTIMATED_CARD_HEIGHT);
@@ -171,39 +198,34 @@ export function useSortableColumn({
 
   const startDrag = (id: string) => {
     'worklet';
-    activeId.set(id);
     startIndex.set(order.get().indexOf(id));
-    startTop.set(offsets.get()[id] ?? 0);
-    startScroll.set(scrollY.get());
-    translationY.set(0);
     scheduleOnRN(onLift);
-  };
-
-  const updateDrag = (nextTranslationY: number) => {
-    'worklet';
-    translationY.set(nextTranslationY);
   };
 
   const endDrag = () => {
     'worklet';
     const id = activeId.get();
     if (id === null) return 0;
-    const finalIndex = order.get().indexOf(id);
-    if (finalIndex !== startIndex.get()) scheduleOnRN(onMove, columnId, id, finalIndex);
+    let finalIndex = order.get().indexOf(id);
+    // Sem vaga aqui (o dedo saiu e o arraste acabou sem destino): volta ao lugar de antes.
+    if (finalIndex < 0) {
+      finalIndex = Math.max(0, startIndex.get());
+      const current = order.get();
+      order.set([...current.slice(0, finalIndex), id, ...current.slice(finalIndex)]);
+    }
+    if (finalIndex !== startIndex.get()) scheduleOnRN(onMove, id, columnId, finalIndex);
     scheduleOnRN(onDrop);
-    activeId.set(null);
-    return offsets.get()[id] ?? 0;
+    // Calculado na hora: o valor derivado (offsets) só se atualiza no próximo quadro.
+    return computeOffsets(order.get(), heights.get(), CARD_GAP, ESTIMATED_CARD_HEIGHT)[id] ?? 0;
   };
 
   return {
     scrollHandler,
     column: {
       order,
-      heights,
       offsets,
       contentHeight,
       isLaidOut,
-      activeId,
       dragTop,
       viewportHeight,
       listTop,
@@ -212,7 +234,6 @@ export function useSortableColumn({
       isUserScrolling,
       listRef,
       startDrag,
-      updateDrag,
       endDrag,
     },
   };

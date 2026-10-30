@@ -5,14 +5,13 @@ import { Card } from '@/components/Card';
 import { colors, dragLift, shadows } from '@/theme';
 
 import type { BoardCardItem } from '../../viewmodel/boardItems';
-import type { DragOverlay as DragOverlayState } from './useDragOverlay';
+import type { BoardDrag } from './useBoardDrag';
 
 const CARD_RADIUS = 18;
 
 interface DragOverlayProps {
-  overlay: DragOverlayState;
-  // A mesma ref de overlay.originRef, em prop própria (o React Compiler não aceita ler ref
-  // de dentro de um objeto durante o render).
+  drag: BoardDrag;
+  // Camada que serve de origem para as medidas do arraste (useBoardDrag).
   originRef: AnimatedRef<View>;
   card: BoardCardItem | null;
   isReducedMotion: boolean;
@@ -20,23 +19,40 @@ interface DragOverlayProps {
 
 // Camada por cima da tela do quadro com o cartão segurado: levemente girado, maior e com
 // sombra elevada (Figma "Quadro · Arrastar cartão"). Só visual: o leitor de tela não a vê.
-export function DragOverlay({ overlay, originRef, card, isReducedMotion }: DragOverlayProps) {
+export function DragOverlay({ drag, originRef, card, isReducedMotion }: DragOverlayProps) {
   const rotation = isReducedMotion ? 0 : dragLift.rotationDeg;
   const scale = isReducedMotion ? 1 : dragLift.scale;
 
-  const cardStyle = useAnimatedStyle(() => ({
-    // Escondido até ser desenhado e logo ao soltar, na mesma hora em que o original aparece.
-    opacity: overlay.visibleId.get() === null ? 0 : 1,
-    width: overlay.width.get(),
-    transform: [
-      { translateX: overlay.x.get() },
-      { translateY: overlay.startY.get() + overlay.translationY.get() },
-      { rotate: `${interpolate(overlay.lift.get(), [0, 1], [0, rotation])}deg` },
-      { scale: interpolate(overlay.lift.get(), [0, 1], [1, scale]) },
-    ],
-  }));
+  // Segue o dedo enquanto arrasta; ao soltar, faz o quique na vaga, grudado na lista da coluna.
+  const cardStyle = useAnimatedStyle(() => {
+    const isSettling = drag.settleId.get() !== null;
+    const lift = isSettling ? drag.settleLift.get() : drag.lift.get();
+    return {
+      // Escondido até ser desenhado e quando o original reaparece na lista.
+      opacity: drag.visibleId.get() === null ? 0 : 1,
+      width: drag.width.get(),
+      transform: [
+        {
+          translateX: isSettling
+            ? drag.settleListX.get() + drag.settleLeft.get()
+            : drag.x.get() + drag.translationX.get(),
+        },
+        {
+          translateY: isSettling
+            ? drag.settleListY.get() + drag.settleTop.get()
+            : drag.startY.get() + drag.translationY.get(),
+        },
+        { rotate: `${interpolate(lift, [0, 1], [0, rotation])}deg` },
+        { scale: interpolate(lift, [0, 1], [1, scale]) },
+      ],
+    };
+  });
 
-  const shadowStyle = useAnimatedStyle(() => ({ opacity: overlay.lift.get() }));
+  const shadowStyle = useAnimatedStyle(() =>
+    drag.settleId.get() !== null
+      ? { opacity: drag.settleLift.get() }
+      : { opacity: drag.lift.get() },
+  );
 
   return (
     <Animated.View
@@ -50,7 +66,7 @@ export function DragOverlay({ overlay, originRef, card, isReducedMotion }: DragO
         <Animated.View
           // Novo cartão = nova medida: o original só some quando o fantasma já está na tela.
           key={card.id}
-          onLayout={() => overlay.markVisible(card.id)}
+          onLayout={() => drag.markVisible(card.id)}
           style={[styles.card, cardStyle]}
         >
           {/* Sombra elevada numa camada própria, para aparecer e sumir com fade. */}

@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import {
   AccessibilityInfo,
   type AccessibilityActionEvent,
@@ -7,144 +7,186 @@ import {
 } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
-  interpolate,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 
 import { Card } from '@/components/Card';
 import { ptBR } from '@/i18n/pt-BR';
-import { colors, DRAG_ACTIVATION_MS, dragLift, dragSpring, duration, shadows } from '@/theme';
+import { DRAG_ACTIVATION_MS, duration } from '@/theme';
 
 import type { BoardCardItem } from '../../viewmodel/boardItems';
-import type { DragOverlay } from './useDragOverlay';
+import type { BoardDrag } from './useBoardDrag';
 import type { SortableColumn } from './useSortableColumn';
 
 const text = ptBR.board;
 const CARD_RADIUS = 18;
 
-const accessibilityActions = [
-  { name: 'moveUp', label: text.moveUp },
-  { name: 'moveDown', label: text.moveDown },
-] as const;
+type MoveAction = 'moveUp' | 'moveDown' | 'moveToPreviousColumn' | 'moveToNextColumn' | 'moveTo';
+
+const actionLabels: Record<MoveAction, string> = {
+  moveUp: text.moveUp,
+  moveDown: text.moveDown,
+  moveToPreviousColumn: text.moveToPreviousColumn,
+  moveToNextColumn: text.moveToNextColumn,
+  moveTo: text.moveTo,
+};
 
 interface SortableCardProps {
   card: BoardCardItem;
   columnId: string;
+  columnIndex: number;
+  columnCount: number;
   index: number;
   total: number;
   column: SortableColumn;
-  overlay: DragOverlay;
+  drag: BoardDrag;
   isReducedMotion: boolean;
-  onMove: (columnId: string, cardId: string, toIndex: number) => void;
+  onMove: (cardId: string, toColumnId: string, toIndex: number) => void;
+  onMoveToAdjacentColumn: (cardId: string, step: -1 | 1) => string | null;
+  onOpenMoveCard: (cardId: string) => void;
 }
 
-// Cartão do quadro: segurar e arrastar muda a ordem. Enquanto o dedo segura, quem aparece é a
-// cópia na camada de arraste (por cima de tudo). Ao soltar, este cartão assume no mesmo ponto,
-// ainda girado e elevado, e assenta na vaga com a mola dentro da própria lista: assim o quique
-// acompanha a rolagem. Tudo animado na UI thread.
+// Cartão do quadro: segurar e arrastar muda a ordem ou a coluna. Enquanto o dedo segura e
+// durante o quique ao soltar, quem aparece é a cópia na camada de arraste, por cima de tudo; no
+// quique, ela acompanha a posição da vaga na lista a cada quadro (rolagens incluídas). Este cartão
+// fica invisível já no lugar final e reaparece quando o quique termina. Tudo na UI thread.
 export const SortableCard = memo(function SortableCard({
   card,
   columnId,
+  columnIndex,
+  columnCount,
   index,
   total,
   column,
-  overlay,
+  drag,
   isReducedMotion,
   onMove,
+  onMoveToAdjacentColumn,
+  onOpenMoveCard,
 }: SortableCardProps) {
   const { id } = card;
   // Começa em 0 e a reação abaixo posiciona o cartão já na montagem (sem ler shared value no render).
   const top = useSharedValue(0);
-  // 1 = girado, maior e elevado (Figma "Quadro · Arrastar cartão"); usado só ao assentar.
-  const lift = useSharedValue(0);
-  const rotation = isReducedMotion ? 0 : dragLift.rotationDeg;
-  const scale = isReducedMotion ? 1 : dragLift.scale;
   const reorderDuration = isReducedMotion ? duration.fast : duration.normal;
 
   // Os outros cartões deslizam até a nova vaga quando a ordem muda.
   useAnimatedReaction(
     () => column.offsets.get()[id] ?? 0,
     (next, previous) => {
-      if (next === previous || column.activeId.get() === id) return;
+      if (next === previous || drag.activeId.get() === id) return;
+      // Acabou de chegar de outra coluna: quem posiciona é a reação abaixo (assume do fantasma).
+      if (drag.landingId.get() === id && drag.landingColumnId.get() === columnId) return;
       // Na montagem e antes de todos os cartões serem medidos, vai direto ao lugar (sem deslizar).
       const shouldSlide = previous !== null && column.isLaidOut.get();
       top.set(shouldSlide ? withTiming(next, { duration: reorderDuration }) : next);
     },
   );
 
+  // Vai direto para a vaga (invisível) e o quique é desenhado pelo fantasma, por cima de tudo,
+  // grudado na posição da vaga na lista (acompanha as rolagens).
+  const settle = (from: { top: number; left: number }, target: number) => {
+    'worklet';
+    top.set(target);
+    drag.settle(id, columnId, column.listRef, from, target, isReducedMotion);
+  };
+
+  // Solto em outra coluna: este cartão é o novo, nesta coluna, e assume de onde o fantasma parou.
+  useAnimatedReaction(
+    () => drag.landingId.get() === id && drag.landingColumnId.get() === columnId,
+    (isLanding) => {
+      if (!isLanding) return;
+      settle(drag.takeOver(column.scrollY.get()), column.offsets.get()[id] ?? 0);
+    },
+  );
+
   const gesture = usePanGesture({
     activateAfterLongPress: DRAG_ACTIVATION_MS,
-    onActivate: () => {
+    onActivate: (event) => {
       'worklet';
-      overlay.begin(id, column.listRef, column.offsets.get()[id] ?? 0);
+      drag.begin(
+        id,
+        columnId,
+        column.listRef,
+        column.offsets.get()[id] ?? 0,
+        column.scrollY.get(),
+        event.absoluteX,
+      );
       column.startDrag(id);
     },
     onUpdate: (event) => {
       'worklet';
-      overlay.move(event.translationY);
-      column.updateDrag(event.translationY);
+      drag.move(event.translationX, event.translationY, event.absoluteX);
     },
     onDeactivate: () => {
       'worklet';
-      const from = column.dragTop.get();
-      const target = column.endDrag();
-      overlay.release();
+      const over = drag.overColumnId.get();
+      if (over !== null && over !== columnId && drag.slotIndex.get() >= 0) {
+        drag.dropInOtherColumn();
+        return;
+      }
       // Assume do mesmo ponto e jeito da cópia e assenta na vaga dentro da lista.
-      top.set(from);
-      top.set(
-        isReducedMotion
-          ? withTiming(target, { duration: duration.fast })
-          : withSpring(target, dragSpring),
-      );
-      lift.set(1);
-      lift.set(withTiming(0, { duration: duration.normal }));
+      const fromTop = column.dragTop.get();
+      const fromLeft = drag.horizontalOffset();
+      const target = column.endDrag();
+      drag.release();
+      settle({ top: fromTop, left: fromLeft }, target);
     },
   });
 
+  // Invisível enquanto o fantasma o representa (arraste e quique).
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: overlay.visibleId.get() === id ? 0 : 1,
-    zIndex: lift.get() > 0 ? 1 : 0,
-    transform: [
-      { translateY: top.get() },
-      { rotate: `${interpolate(lift.get(), [0, 1], [0, rotation])}deg` },
-      { scale: interpolate(lift.get(), [0, 1], [1, scale]) },
-    ],
+    opacity: drag.visibleId.get() === id ? 0 : 1,
+    transform: [{ translateY: top.get() }],
   }));
-
-  const shadowStyle = useAnimatedStyle(() => ({ opacity: lift.get() }));
 
   const measure = useCallback(
     (event: LayoutChangeEvent) => {
       const { height } = event.nativeEvent.layout;
       // modify roda na UI thread: vários cartões medindo ao mesmo tempo não apagam a medida um do outro.
-      column.heights.modify((current) => {
+      drag.heights.modify((current) => {
         'worklet';
         return current[id] === height ? current : { ...current, [id]: height };
       });
     },
-    [column.heights, id],
+    [drag.heights, id],
   );
 
-  // Alternativa sem gesto (CLAUDE.md, regra 15): mover uma vaga e anunciar a nova posição.
+  // Alternativas sem gesto (CLAUDE.md, regra 15): mover uma vaga, mudar de coluna ou escolher
+  // coluna e posição na folha "Mover para...". O leitor de tela anuncia o resultado.
+  const accessibilityActions = useMemo(() => {
+    const names: MoveAction[] = ['moveUp', 'moveDown'];
+    if (columnIndex > 0) names.push('moveToPreviousColumn');
+    if (columnIndex < columnCount - 1) names.push('moveToNextColumn');
+    names.push('moveTo');
+    return names.map((name) => ({ name, label: actionLabels[name] }));
+  }, [columnIndex, columnCount]);
+
   const handleAccessibilityAction = useCallback(
     (event: AccessibilityActionEvent) => {
-      const step = event.nativeEvent.actionName === 'moveUp' ? -1 : 1;
-      const target = index + step;
+      const action = event.nativeEvent.actionName;
+      if (action === 'moveTo') {
+        onOpenMoveCard(id);
+        return;
+      }
+      if (action === 'moveToPreviousColumn' || action === 'moveToNextColumn') {
+        const announcement = onMoveToAdjacentColumn(id, action === 'moveToNextColumn' ? 1 : -1);
+        if (announcement) AccessibilityInfo.announceForAccessibility(announcement);
+        return;
+      }
+      const target = index + (action === 'moveUp' ? -1 : 1);
       if (target < 0 || target >= total) return;
-      onMove(columnId, id, target);
+      onMove(id, columnId, target);
       AccessibilityInfo.announceForAccessibility(text.movedTo(target + 1, total));
     },
-    [columnId, id, index, total, onMove],
+    [columnId, id, index, total, onMove, onMoveToAdjacentColumn, onOpenMoveCard],
   );
 
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View onLayout={measure} style={[styles.card, animatedStyle]}>
-        <Animated.View style={[styles.liftedShadow, shadowStyle]} />
         <Card
           title={card.title}
           accessibilityLabel={card.accessibilityLabel}
@@ -168,12 +210,5 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     borderRadius: CARD_RADIUS,
-  },
-  // Sombra elevada numa camada própria, para sumir com fade ao assentar.
-  liftedShadow: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: CARD_RADIUS,
-    backgroundColor: colors.surface,
-    boxShadow: shadows.lifted,
   },
 });
