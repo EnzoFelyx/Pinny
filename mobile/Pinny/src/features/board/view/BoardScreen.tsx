@@ -10,6 +10,8 @@ import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
 import { useBoardViewModel } from '../viewmodel/useBoardViewModel';
+import { BoardHeader } from './components/BoardHeader';
+import { BoardToolbar } from './components/BoardToolbar';
 import { DragOverlay } from './components/DragOverlay';
 import { SortableColumnView } from './components/SortableColumn';
 import { useDragOverlay } from './components/useDragOverlay';
@@ -51,18 +53,16 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   }, [columnToDelete, closeDeleteColumn]);
 
   return (
-    <SafeAreaView edges={['bottom']} style={styles.screen}>
-      <View className="gap-1 px-6 pb-4">
-        <Text accessibilityRole="header" className="text-display text-text-primary">
-          {vm.title}
-        </Text>
-        <Text className="text-body text-text-secondary">{vm.subtitle}</Text>
-        {vm.errorText ? (
-          <Text accessibilityLiveRegion="polite" className="text-body text-alert">
-            {vm.errorText}
-          </Text>
-        ) : null}
-      </View>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
+      <BoardHeader
+        title={vm.title}
+        subtitle={vm.subtitle}
+        errorText={vm.errorText}
+        onBack={vm.goBack}
+        onOpenMenu={vm.openBoardMenu}
+      />
+
+      <BoardToolbar />
 
       <ScrollView
         horizontal

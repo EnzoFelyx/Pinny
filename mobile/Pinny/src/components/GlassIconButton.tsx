@@ -10,9 +10,9 @@ interface GlassIconButtonProps {
   onPress: () => void;
 }
 
-// Mesmo tamanho do h-[50px]/w-[50px] do botão sem vidro (já passa da área de toque mínima de 44pt).
-const BUTTON_SIZE = 50;
-const ICON_SIZE = 24;
+// Mesmo tamanho do h-[45px]/w-[45px] do botão sem vidro (ainda passa da área de toque mínima de 44pt).
+const BUTTON_SIZE = 45;
+const ICON_SIZE = 22;
 
 // Botão redondo só com ícone. No iOS 26+ usa o Liquid Glass do sistema; antes dele, uma
 // superfície clara com borda, para o botão continuar visível sobre o fundo creme.
@@ -31,7 +31,7 @@ export function GlassIconButton({ icon: Icon, accessibilityLabel, onPress }: Gla
         // Sem isInteractive: o vidro não expande ao toque; o retorno visual é só o active:opacity-40.
         <GlassView style={styles.circle}>{iconElement}</GlassView>
       ) : (
-        <View className="h-[50px] w-[50px] items-center justify-center rounded-full border border-border bg-surface">
+        <View className="h-[45px] w-[45px] items-center justify-center rounded-full border border-border bg-surface">
           {iconElement}
         </View>
       )}

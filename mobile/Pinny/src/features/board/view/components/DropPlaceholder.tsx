@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
 import { ESTIMATED_CARD_HEIGHT, type SortableColumn } from './useSortableColumn';
@@ -54,7 +55,11 @@ export function DropPlaceholder({ column, reorderDuration }: DropPlaceholderProp
       importantForAccessibility="no-hide-descendants"
       pointerEvents="none"
       style={[styles.placeholder, animatedStyle]}
-    />
+    >
+      <Text numberOfLines={1} className="text-caption text-primary">
+        {ptBR.board.dropToReorder}
+      </Text>
+    </Animated.View>
   );
 }
 
@@ -65,6 +70,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
     borderRadius: RADIUS,
     borderWidth: BORDER_WIDTH,
     borderStyle: 'dashed',

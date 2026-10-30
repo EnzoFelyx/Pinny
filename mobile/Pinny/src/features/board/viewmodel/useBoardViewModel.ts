@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
@@ -99,7 +100,9 @@ export function useBoardViewModel(boardId: string) {
     errorText,
     moveCard,
     addCard,
-    // O menu da coluna chega na etapa 6.3. Por enquanto não faz nada.
+    goBack: router.back,
+    // Os menus do quadro e da coluna chegam numa etapa futura. Por enquanto não fazem nada.
+    openBoardMenu: noop,
     openColumnMenu: noop,
     // Puxar e segurar a coluna pede a confirmação. Por enquanto só visual: os dois botões
     // fecham o alerta, e a exclusão de verdade chega na etapa 6.3.

@@ -16,7 +16,7 @@ export const dragSpring = {
 
 // Cartão segurado (Figma "Quadro · Arrastar cartão"): levemente girado, maior e elevado.
 export const dragLift = {
-  rotationDeg: 3,
+  rotationDeg: -5,
   scale: 1.03,
 } as const;
 

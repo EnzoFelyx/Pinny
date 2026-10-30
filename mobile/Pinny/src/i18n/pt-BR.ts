@@ -4,6 +4,7 @@ export const ptBR = {
   appName: 'Pinny',
   common: {
     undo: 'Desfazer',
+    back: 'Voltar',
     databaseError:
       'Não conseguimos abrir seus quadros agora. Feche o Pinny e abra de novo, por favor.',
     loadError: 'Não conseguimos carregar suas pastas. Tente de novo em instantes.',
@@ -63,6 +64,8 @@ export const ptBR = {
     addCard: 'Adicionar cartão',
     emptyColumn: 'Todo plano começa com uma notinha.',
     columnOptions: 'Opções da coluna',
+    boardOptions: 'Opções do quadro',
+    dropToReorder: 'Solte para reorganizar',
     columnSummary: (title: string, count: number) =>
       `${title}, ${count === 1 ? '1 cartão' : `${count} cartões`}`,
     subtitle: (folderTitle: string, count: number) =>
@@ -74,6 +77,8 @@ export const ptBR = {
     movedTo: (position: number, total: number) =>
       `Cartão movido para a posição ${position} de ${total}`,
     dragHint: 'Segure um cartão para mudar a ordem.',
+    filterAll: 'Todos os cartões',
+    filterByDeadline: 'Por prazo',
     deleteColumnTitle: (title: string) => `Excluir a coluna "${title}"?`,
     deleteColumnMessage: 'Os cartões dela também vão embora.',
     deleteColumnConfirm: 'Excluir',

@@ -38,7 +38,8 @@ export default function RootLayout() {
         <>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="board/[boardId]" options={pushedScreenOptions} />
+            {/* O quadro desenha o próprio topo (voltar, título e menu na mesma linha). */}
+            <Stack.Screen name="board/[boardId]" />
             <Stack.Screen name="dev/gallery" options={pushedScreenOptions} />
             <Stack.Screen name="folder/new" options={sheetScreenOptions} />
             <Stack.Screen name="folder/[folderId]/rename" options={sheetScreenOptions} />
