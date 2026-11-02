@@ -189,8 +189,17 @@
 - [ ] Menu "…" do topo do quadro (com "Nova coluna"), adiado da 6.3
 - [ ] Reordenar colunas segurando e arrastando
 - [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)
+- [ ] Melhoria de performance do aplicativo
+  - [x] Objeto do arraste estável (o cartão segurado saiu dele) e ações com identidade fixa: segurar e soltar não redesenham mais todas as colunas e cartões
+  - [x] Recarga do banco reaproveita as colunas e os cartões que não mudaram e junta os avisos do banco numa carga só
+  - [x] Alturas dos cartões gravadas em lote (uma vez por quadro de animação)
+  - [x] Animações de cada cartão dependem só dos valores que leem (antes rodavam a cada quadro do arraste, em todos os cartões)
+  - [x] Montagem progressiva: uma coluna por quadro depois das 2 primeiras
+  - [ ] Medir de novo no quadro superlotado (20 × 100) em build de release
+  - [ ] 🔁 **Lembrete (F): virtualizar os cartões de cada coluna** (montar só os visíveis + uma margem, usando as posições absolutas que já existem). Junto, avaliar a "paginação" de renderização: cartões por coluna (ex.: 30 por vez, mais ao rolar) e colunas (montar só as próximas da tela, com um espaço do mesmo tamanho no lugar das outras). Os dados continuam carregados inteiros; só a montagem é limitada
 
 ### 6.5 — Seleção em lote
+- [ ] Refatorar o `useBoardDrag.ts` (252 linhas) para ficar abaixo de ~200, adiado da 6.4
 - [ ] Modo de seleção múltipla e arraste em lote
 
 ### 6.6 — Virtualização e desempenho
