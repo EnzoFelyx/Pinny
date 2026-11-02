@@ -32,7 +32,7 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 - `todo.md`: item de performance detalhado, com o lembrete da virtualização e da paginação da montagem (cartões por coluna e colunas).
 - `CLAUDE.md`: regras de performance do quadro (nunca capturar `drag`/`column` inteiro em worklets de animação).
-- `todo.md`: refatoração do `useBoardDrag.ts` (252 linhas) adiada para a 6.5.
+- `todo.md`: refatoração do `useBoardDrag.ts` (252 linhas) como item pendente da 6.4.
 - Este `CHANGELOG.md`, com todo o histórico desde 2026-10-26.
 
 ---

@@ -188,6 +188,7 @@
 - [x] Skeleton loading do quadro (enquanto carrega): 2 colunas com 4 e 3 cartões, shimmer no estilo do YouTube, sem tempo mínimo.
 - [ ] Menu "…" do topo do quadro (com "Nova coluna"), adiado da 6.3
 - [ ] Reordenar colunas segurando e arrastando
+- [ ] Refatorar o `useBoardDrag.ts` (252 linhas) para ficar abaixo de ~200
 - [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)
 - [ ] Melhoria de performance do aplicativo
   - [x] Objeto do arraste estável (o cartão segurado saiu dele) e ações com identidade fixa: segurar e soltar não redesenham mais todas as colunas e cartões
@@ -199,7 +200,6 @@
   - [ ] 🔁 **Lembrete (F): virtualizar os cartões de cada coluna** (montar só os visíveis + uma margem, usando as posições absolutas que já existem). Junto, avaliar a "paginação" de renderização: cartões por coluna (ex.: 30 por vez, mais ao rolar) e colunas (montar só as próximas da tela, com um espaço do mesmo tamanho no lugar das outras). Os dados continuam carregados inteiros; só a montagem é limitada
 
 ### 6.5 — Seleção em lote
-- [ ] Refatorar o `useBoardDrag.ts` (252 linhas) para ficar abaixo de ~200, adiado da 6.4
 - [ ] Modo de seleção múltipla e arraste em lote
 
 ### 6.6 — Virtualização e desempenho
