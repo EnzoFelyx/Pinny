@@ -37,18 +37,21 @@ export function DropPlaceholder({
   fixedHeight,
 }: DropPlaceholderProps) {
   const top = useSharedValue(0);
+  // Só os valores lidos (capturar `drag` ou `column` inteiro faria tudo rodar a cada quadro).
+  const { activeId, fromColumnId, heights } = drag;
+  const { order, offsets } = column;
   // Cartão arrastado que está na ordem desta coluna (null = a vaga não é aqui).
   const slotId = useDerivedValue(() => {
-    const id = drag.activeId.get();
-    return id !== null && column.order.get().includes(id) ? id : null;
+    const id = activeId.get();
+    return id !== null && order.get().includes(id) ? id : null;
   });
-  const isOrigin = useDerivedValue(() => drag.fromColumnId.get() === columnId);
+  const isOrigin = useDerivedValue(() => fromColumnId.get() === columnId);
 
   // Ao aparecer, vai direto à vaga; nas trocas seguintes, desliza junto com os vizinhos.
   useAnimatedReaction(
     () => {
       const id = slotId.get();
-      return id === null ? null : { id, offset: column.offsets.get()[id] ?? 0 };
+      return id === null ? null : { id, offset: offsets.get()[id] ?? 0 };
     },
     (next, previous) => {
       if (next === null) return;
@@ -64,8 +67,7 @@ export function DropPlaceholder({
     const id = slotId.get();
     return {
       opacity: id === null ? 0 : 1,
-      height:
-        id === null ? 0 : fixedHeight.get() || (drag.heights.get()[id] ?? ESTIMATED_CARD_HEIGHT),
+      height: id === null ? 0 : fixedHeight.get() || (heights.get()[id] ?? ESTIMATED_CARD_HEIGHT),
       backgroundColor: isOrigin.get()
         ? colors.dropZoneOriginBackground
         : colors.dropZoneTargetBackground,

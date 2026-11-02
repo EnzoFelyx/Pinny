@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
 import { createSampleCard } from '@/features/dev/model/devDataService';
@@ -11,7 +11,7 @@ import { type BoardData, emptyColumnIdsOf, loadBoard, withCardMoved } from '../m
 import { moveCardWithHistory } from '../model/cardMove';
 import { assignEmptyVariants, type EmptyVariantMap } from '../model/emptyVariants';
 import { toPlacement } from '../model/reorder';
-import { toColumnItem } from './boardItems';
+import { type BoardColumnItem, toColumnItems } from './boardItems';
 import { useColumnActions } from './useColumnActions';
 
 const text = ptBR.board;
@@ -19,18 +19,25 @@ const text = ptBR.board;
 function noop() {}
 
 export function useBoardViewModel(boardId: string) {
-  // Dados do quadro e o estado vazio sorteado de cada coluna vazia, atualizados juntos: a coluna
-  // que esvazia já aparece com a variação dela, e quem já tinha uma continua com a mesma.
-  const [board, setBoard] = useState<{ data: BoardData | null; emptyVariants: EmptyVariantMap }>({
-    data: null,
-    emptyVariants: {},
-  });
-  const { data, emptyVariants } = board;
+  // Dados do quadro, o estado vazio sorteado de cada coluna vazia e as colunas prontas para exibir,
+  // atualizados juntos: a coluna que esvazia já aparece com a variação dela, quem já tinha uma
+  // continua com a mesma, e as colunas e cartões que não mudaram mantêm o mesmo objeto (não são
+  // redesenhados).
+  const [board, setBoard] = useState<{
+    data: BoardData | null;
+    emptyVariants: EmptyVariantMap;
+    columns: BoardColumnItem[];
+  }>({ data: null, emptyVariants: {}, columns: [] });
+  const { data, columns } = board;
   const setData = useCallback((next: BoardData | null) => {
-    setBoard((current) => ({
-      data: next,
-      emptyVariants: assignEmptyVariants(emptyColumnIdsOf(next), current.emptyVariants),
-    }));
+    setBoard((current) => {
+      const emptyVariants = assignEmptyVariants(emptyColumnIdsOf(next), current.emptyVariants);
+      return {
+        data: next,
+        emptyVariants,
+        columns: toColumnItems(next, emptyVariants, current.columns, new Date()),
+      };
+    });
   }, []);
   const [errorText, setErrorText] = useState<string | null>(null);
   const notifyUndoable = useUndoNotice();
@@ -67,13 +74,6 @@ export function useBoardViewModel(boardId: string) {
       unsubscribe();
     };
   }, [boardId, setData]);
-
-  const columns = useMemo(() => {
-    const now = new Date();
-    return (data?.columns ?? []).map((column) =>
-      toColumnItem(column, now, emptyVariants[column.column.id]),
-    );
-  }, [data, emptyVariants]);
 
   const cardCount = columns.reduce((total, column) => total + column.cards.length, 0);
 

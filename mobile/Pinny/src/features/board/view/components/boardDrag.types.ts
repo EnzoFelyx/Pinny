@@ -8,14 +8,14 @@ export const ADD_COLUMN_SLOT = '__add-column__';
 // Estado do arraste no nível do quadro, compartilhado pela camada (DragOverlay), pelas colunas e
 // pelos cartões. Tudo em shared values e worklets: roda na UI thread.
 export interface BoardDrag {
-  // Qual cartão desenhar na camada (estado do React, só para o conteúdo).
-  activeCardId: string | null;
   activeId: SharedValue<string | null>;
   fromColumnId: SharedValue<string | null>;
   // Coluna sob o dedo: é nela que a vaga aparece.
   overColumnId: SharedValue<string | null>;
   // Altura medida de todos os cartões do quadro (os ids não se repetem entre colunas).
   heights: SharedValue<Record<string, number>>;
+  // Grava a altura medida de um cartão (em lote, uma vez por quadro de animação).
+  reportHeight: (id: string, height: number) => void;
   // Cópia do cartão na camada: posição inicial (x, startY) mais o deslocamento do dedo.
   x: SharedValue<number>;
   startY: SharedValue<number>;

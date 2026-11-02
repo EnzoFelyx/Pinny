@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo } from 'react';
 import { type LayoutChangeEvent, StyleSheet } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
@@ -55,17 +55,22 @@ export const SortableCard = memo(function SortableCard({
   actions,
 }: SortableCardProps) {
   const { id } = card;
+  // Só os valores que cada animação lê: um worklet que captura o objeto `drag` ou `column` inteiro
+  // depende de todos os shared values dele e rodaria de novo a cada quadro do arraste, em todos
+  // os cartões do quadro.
+  const { activeId, landingId, landingColumnId, visibleId } = drag;
+  const { offsets } = column;
   // Começa em 0 e a reação abaixo posiciona o cartão já na montagem (sem ler shared value no render).
   const top = useSharedValue(0);
   const reorderDuration = isReducedMotion ? duration.fast : duration.normal;
 
   // Os outros cartões deslizam até a nova vaga quando a ordem muda.
   useAnimatedReaction(
-    () => column.offsets.get()[id] ?? 0,
+    () => offsets.get()[id] ?? 0,
     (next, previous) => {
-      if (next === previous || drag.activeId.get() === id) return;
+      if (next === previous || activeId.get() === id) return;
       // Acabou de chegar de outra coluna: quem posiciona é a reação abaixo (assume do fantasma).
-      if (drag.landingId.get() === id && drag.landingColumnId.get() === columnId) return;
+      if (landingId.get() === id && landingColumnId.get() === columnId) return;
       // Na montagem e antes de todos os cartões serem medidos, vai direto ao lugar (sem deslizar).
       const shouldSlide = previous !== null && column.isLaidOut.get();
       top.set(shouldSlide ? withTiming(next, { duration: reorderDuration }) : next);
@@ -81,13 +86,14 @@ export const SortableCard = memo(function SortableCard({
   };
 
   const bounce = useInListBounce({ id, drag, top, isReducedMotion });
+  const { left: bounceLeft, lift: bounceLift, rotation, scale } = bounce;
 
   // Solto em outra coluna: este cartão é o novo, nesta coluna, e assume de onde o fantasma parou.
   useAnimatedReaction(
-    () => drag.landingId.get() === id && drag.landingColumnId.get() === columnId,
+    () => landingId.get() === id && landingColumnId.get() === columnId,
     (isLanding) => {
       if (!isLanding) return;
-      settle(drag.takeOver(column.scrollY.get()), column.offsets.get()[id] ?? 0);
+      settle(drag.takeOver(column.scrollY.get()), offsets.get()[id] ?? 0);
     },
   );
 
@@ -130,28 +136,21 @@ export const SortableCard = memo(function SortableCard({
 
   // Invisível enquanto o fantasma o representa (arraste e quique).
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: drag.visibleId.get() === id ? 0 : 1,
-    zIndex: bounce.lift.get() > 0 ? 1 : 0,
+    opacity: visibleId.get() === id ? 0 : 1,
+    zIndex: bounceLift.get() > 0 ? 1 : 0,
     transform: [
-      { translateX: bounce.left.get() },
+      { translateX: bounceLeft.get() },
       { translateY: top.get() },
-      { rotate: `${interpolate(bounce.lift.get(), [0, 1], [0, bounce.rotation])}deg` },
-      { scale: interpolate(bounce.lift.get(), [0, 1], [1, bounce.scale]) },
+      { rotate: `${interpolate(bounceLift.get(), [0, 1], [0, rotation])}deg` },
+      { scale: interpolate(bounceLift.get(), [0, 1], [1, scale]) },
     ],
   }));
-  const shadowStyle = useAnimatedStyle(() => ({ opacity: bounce.lift.get() }));
+  const shadowStyle = useAnimatedStyle(() => ({ opacity: bounceLift.get() }));
 
-  const measure = useCallback(
-    (event: LayoutChangeEvent) => {
-      const { height } = event.nativeEvent.layout;
-      // modify roda na UI thread: vários cartões medindo ao mesmo tempo não apagam a medida um do outro.
-      drag.heights.modify((current) => {
-        'worklet';
-        return current[id] === height ? current : { ...current, [id]: height };
-      });
-    },
-    [drag.heights, id],
-  );
+  const { reportHeight } = drag;
+  const measure = (event: LayoutChangeEvent) => {
+    reportHeight(id, event.nativeEvent.layout.height);
+  };
 
   const accessibility = useCardAccessibilityActions({
     cardId: id,

@@ -89,8 +89,9 @@ export function useSortableColumn({
   const isLaidOut = useDerivedValue(() =>
     order.get().every((id) => heights.get()[id] !== undefined),
   );
+  const { startY, translationY, listOriginY } = drag;
   const dragTop = useDerivedValue(
-    () => drag.startY.get() + drag.translationY.get() - drag.listOriginY.get() + scrollY.get(),
+    () => startY.get() + translationY.get() - listOriginY.get() + scrollY.get(),
   );
 
   // Vaga do cartão nesta coluna: entra quando a coluna fica sob o dedo, troca de lugar ao passar

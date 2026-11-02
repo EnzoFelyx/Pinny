@@ -25,9 +25,11 @@ export function useInListBounce({ id, drag, top, isReducedMotion }: InListBounce
   const left = useSharedValue(0);
   // 1 = girado, maior e elevado, como o fantasma.
   const lift = useSharedValue(0);
+  // Só o handoffId entra na reação (capturar `drag` inteiro a faria rodar a cada quadro).
+  const { handoffId } = drag;
 
   useAnimatedReaction(
-    () => drag.handoffId.get() === id,
+    () => handoffId.get() === id,
     (isHandoff) => {
       if (!isHandoff) return;
       const target = top.get();

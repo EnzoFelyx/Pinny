@@ -17,6 +17,7 @@ import { ADD_COLUMN_SLOT, type BoardDrag } from './boardDrag.types';
 import { useBoardScroll } from './useBoardScroll';
 import { useDragSettle } from './useDragSettle';
 import { useDragValues } from './useDragValues';
+import { useHeightBatch } from './useHeightBatch';
 
 export type { BoardDrag } from './boardDrag.types';
 
@@ -53,10 +54,14 @@ export function useBoardDrag({
   // Camada do fantasma (origem das medidas) e rolagem do quadro.
   originRef: AnimatedRef<View>;
   boardScrollRef: AnimatedRef<Animated.ScrollView>;
+  // Qual cartão desenhar na camada (estado do React, só para o conteúdo). Fora de `drag`: mudar
+  // ao segurar e ao soltar não pode trocar o objeto que todas as colunas e cartões recebem.
+  activeCardId: string | null;
 } {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const originRef = useAnimatedRef<View>();
   const values = useDragValues();
+  const reportHeight = useHeightBatch(values.heights);
   const {
     activeId,
     fromColumnId,
@@ -226,10 +231,11 @@ export function useBoardDrag({
     boardScrollHandler,
     originRef,
     boardScrollRef: board.scrollRef,
+    activeCardId,
     drag: {
       ...values,
       ...settle.state,
-      activeCardId,
+      reportHeight,
       boardViewportWidth: board.viewportWidth,
       boardContentWidth: board.contentWidth,
       begin,

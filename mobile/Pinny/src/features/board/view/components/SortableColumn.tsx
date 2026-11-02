@@ -65,8 +65,10 @@ export const SortableColumnView = memo(function SortableColumnView({
   const emptyArea = useEmptyColumnArea({ isEmpty, drag, order: sortable.order });
 
   // Na coluna vazia, a vaga fica por cima da área do estado vazio: a lista não ocupa espaço.
+  // Lê só a altura (o objeto da coluna inteiro mudaria a cada quadro do arraste).
+  const { contentHeight } = sortable;
   const listStyle = useAnimatedStyle(() => ({
-    height: isEmpty ? 0 : sortable.contentHeight.get(),
+    height: isEmpty ? 0 : contentHeight.get(),
   }));
 
   const measureViewport = (event: LayoutChangeEvent) => {

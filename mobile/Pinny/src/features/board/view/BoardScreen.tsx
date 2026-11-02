@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, type LayoutChangeEvent, StyleSheet, Text } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -13,20 +13,24 @@ import { colors, duration, skeleton } from '@/theme';
 
 import { useBoardViewModel } from '../viewmodel/useBoardViewModel';
 import { AddColumnButton } from './components/AddColumnButton';
-import type { CardActions, ColumnActions } from './components/boardActions';
 import { BoardHeader } from './components/BoardHeader';
 import { BoardSkeleton } from './components/BoardSkeleton';
 import { BoardToolbar } from './components/BoardToolbar';
 import { DragOverlay } from './components/DragOverlay';
 import { SortableColumnView } from './components/SortableColumn';
+import { useBoardActions } from './components/useBoardActions';
 import { useBoardDrag } from './components/useBoardDrag';
 
 // ScrollView do Gesture Handler, animado: a rolagem do quadro é lida e comandada na UI thread.
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 const SCREEN_GUTTER = 24;
-// Colunas que aparecem na tela ao abrir (a terceira só aparece pela borda).
+// Colunas que aparecem na tela ao abrir (a terceira só aparece pela borda). As outras entram uma
+// por quadro de animação, fora da vista.
 const FIRST_PAINT_COLUMNS = 2;
+// Montagem progressiva concluída: daí em diante, toda coluna nova (inclusive no meio do quadro,
+// como a duplicada) entra direto, sem cortar a lista.
+const ALL_COLUMNS = Number.POSITIVE_INFINITY;
 const text = ptBR.board;
 
 interface BoardScreenProps {
@@ -39,50 +43,38 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   const vm = useBoardViewModel(boardId);
   // Skeleton enquanto carrega, por no mínimo skeleton.minDurationMs (sem piscar).
   const showSkeleton = useMinimumDuration(vm.isLoading, skeleton.minDurationMs);
-  // Ao sair do skeleton, monta primeiro só as colunas que aparecem na tela e o resto no quadro
-  // seguinte (fora da vista): montar tudo de uma vez travava a transição por alguns décimos.
-  const [isFullyMounted, setIsFullyMounted] = useState(false);
+  // Ao sair do skeleton, monta primeiro só as colunas que aparecem na tela e depois uma coluna
+  // por quadro: montar tudo de uma vez travava a transição (num quadro cheio, por segundos).
+  const [mountedCount, setMountedCount] = useState(FIRST_PAINT_COLUMNS);
+  const columnTotal = vm.columns.length;
   useEffect(() => {
-    if (showSkeleton || isFullyMounted) return;
-    const frame = requestAnimationFrame(() => setIsFullyMounted(true));
+    if (showSkeleton || mountedCount === ALL_COLUMNS) return;
+    const frame = requestAnimationFrame(() =>
+      setMountedCount((count) => (count + 1 >= columnTotal ? ALL_COLUMNS : count + 1)),
+    );
     return () => cancelAnimationFrame(frame);
-  }, [showSkeleton, isFullyMounted]);
-  const mountedColumns = isFullyMounted ? vm.columns : vm.columns.slice(0, FIRST_PAINT_COLUMNS);
+  }, [showSkeleton, mountedCount, columnTotal]);
+  const isFullyMounted = mountedCount === ALL_COLUMNS;
+  const mountedColumns = vm.columns.slice(0, mountedCount);
   const haptics = useHaptics();
   const isReducedMotion = useReducedMotion();
   const { columnWidth, snapInterval } = useBoardColumnLayout();
-  const { drag, boardScrollHandler, originRef, boardScrollRef } = useBoardDrag({
+  const { cardActions, columnActions } = useBoardActions(vm);
+  const { drag, activeCardId, boardScrollHandler, originRef, boardScrollRef } = useBoardDrag({
     columnIds: vm.columns.map((column) => column.id),
     pitch: snapInterval,
     gap: COLUMN_GAP,
     gutter: SCREEN_GUTTER,
-    onMove: vm.moveCard,
+    onMove: cardActions.move,
     onDrop: haptics.drop,
     onDropOnNewColumn: vm.createColumnWithCard,
   });
   // Conteúdo do cartão segurado, desenhado na camada de arraste.
-  const draggedCard =
-    vm.columns.flatMap((column) => column.cards).find((card) => card.id === drag.activeCardId) ??
-    null;
-  // Ações repassadas às colunas e aos cartões (objetos estáveis: as colunas são memo).
-  const cardActions = useMemo<CardActions>(
-    () => ({
-      move: vm.moveCard,
-      moveToAdjacentColumn: vm.moveCardToAdjacentColumn,
-      openMoveCard: vm.openMoveCard,
-    }),
-    [vm.moveCard, vm.moveCardToAdjacentColumn, vm.openMoveCard],
-  );
-  const columnActions = useMemo<ColumnActions>(
-    () => ({
-      addCard: vm.addCard,
-      move: vm.moveColumn,
-      duplicate: vm.duplicateColumn,
-      rename: vm.renameColumn,
-      requestDelete: vm.requestDeleteColumn,
-    }),
-    [vm.addCard, vm.moveColumn, vm.duplicateColumn, vm.renameColumn, vm.requestDeleteColumn],
-  );
+  const draggedCard = activeCardId
+    ? (vm.columns
+        .find((column) => column.cards.some((card) => card.id === activeCardId))
+        ?.cards.find((card) => card.id === activeCardId) ?? null)
+    : null;
 
   // Larguras da janela e do conteúdo do quadro, para a rolagem automática lateral.
   const measureBoard = (event: LayoutChangeEvent) => {

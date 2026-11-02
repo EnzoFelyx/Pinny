@@ -24,8 +24,9 @@ interface EmptyColumnAreaOptions {
 // "Adicionar cartão": a coluna não muda de tamanho. A troca é na UI thread, no mesmo quadro em
 // que a vaga aparece (pelo React, os dois ficariam na tela por um instante).
 export function useEmptyColumnArea({ isEmpty, drag, order }: EmptyColumnAreaOptions) {
+  const { activeId } = drag;
   const isReceiving = useDerivedValue(() => {
-    const id = drag.activeId.get();
+    const id = activeId.get();
     return id !== null && order.get().includes(id);
   });
   const emptyHeight = useSharedValue(0);
