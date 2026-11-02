@@ -107,6 +107,7 @@ export const ptBR = {
     subtitle: (folderTitle: string, count: number) =>
       `${folderTitle} / ${count === 1 ? '1 cartão' : `${count} cartões`}`,
     loadError: 'Não conseguimos abrir este quadro agora. Tente de novo em instantes.',
+    loading: 'Carregando o quadro',
     cardMoved: 'Cartão movido',
     moveUp: 'Mover para cima',
     moveDown: 'Mover para baixo',

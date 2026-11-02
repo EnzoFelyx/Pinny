@@ -151,6 +151,8 @@ export function useBoardViewModel(boardId: string) {
     title: data?.board.title ?? '',
     subtitle: data ? text.subtitle(data.folderTitle, cardCount) : '',
     columns,
+    // Ainda sem os dados do quadro (nem erro): a tela mostra o skeleton.
+    isLoading: data === null && errorText === null,
     errorText,
     focusRequest,
     moveCard,

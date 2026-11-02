@@ -6,5 +6,6 @@ export {
   dragSpring,
   duration,
   pullToDelete,
+  skeleton,
 } from './motion';
 export { fontFamily, LINE_HEIGHT_RATIO, textScale, type TextScaleToken } from './typography';

@@ -1,19 +1,21 @@
-import { useEffect, useMemo } from 'react';
-import { Alert, type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, type LayoutChangeEvent, StyleSheet, Text } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { COLUMN_GAP, useBoardColumnLayout } from '@/hooks/useBoardColumnLayout';
 import { useHaptics } from '@/hooks/useHaptics';
+import { useMinimumDuration } from '@/hooks/useMinimumDuration';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { ptBR } from '@/i18n/pt-BR';
-import { colors } from '@/theme';
+import { colors, duration, skeleton } from '@/theme';
 
 import { useBoardViewModel } from '../viewmodel/useBoardViewModel';
 import { AddColumnButton } from './components/AddColumnButton';
 import type { CardActions, ColumnActions } from './components/boardActions';
 import { BoardHeader } from './components/BoardHeader';
+import { BoardSkeleton } from './components/BoardSkeleton';
 import { BoardToolbar } from './components/BoardToolbar';
 import { DragOverlay } from './components/DragOverlay';
 import { SortableColumnView } from './components/SortableColumn';
@@ -23,6 +25,8 @@ import { useBoardDrag } from './components/useBoardDrag';
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 const SCREEN_GUTTER = 24;
+// Colunas que aparecem na tela ao abrir (a terceira só aparece pela borda).
+const FIRST_PAINT_COLUMNS = 2;
 const text = ptBR.board;
 
 interface BoardScreenProps {
@@ -33,6 +37,17 @@ interface BoardScreenProps {
 // a ordem ou a coluna dele.
 export function BoardScreen({ boardId }: BoardScreenProps) {
   const vm = useBoardViewModel(boardId);
+  // Skeleton enquanto carrega, por no mínimo skeleton.minDurationMs (sem piscar).
+  const showSkeleton = useMinimumDuration(vm.isLoading, skeleton.minDurationMs);
+  // Ao sair do skeleton, monta primeiro só as colunas que aparecem na tela e o resto no quadro
+  // seguinte (fora da vista): montar tudo de uma vez travava a transição por alguns décimos.
+  const [isFullyMounted, setIsFullyMounted] = useState(false);
+  useEffect(() => {
+    if (showSkeleton || isFullyMounted) return;
+    const frame = requestAnimationFrame(() => setIsFullyMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, [showSkeleton, isFullyMounted]);
+  const mountedColumns = isFullyMounted ? vm.columns : vm.columns.slice(0, FIRST_PAINT_COLUMNS);
   const haptics = useHaptics();
   const isReducedMotion = useReducedMotion();
   const { columnWidth, snapInterval } = useBoardColumnLayout();
@@ -106,12 +121,13 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
       <BoardHeader
         title={vm.title}
         subtitle={vm.subtitle}
+        isLoading={showSkeleton}
         errorText={vm.errorText}
         onBack={vm.goBack}
         onOpenMenu={vm.openBoardMenu}
       />
 
-      <BoardToolbar />
+      <BoardToolbar isLoading={showSkeleton} />
 
       <AnimatedScrollView
         ref={boardScrollRef}
@@ -126,21 +142,36 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
         style={styles.board}
         contentContainerStyle={styles.columnsRow}
       >
-        {vm.columns.map((column, index) => (
-          <View key={column.id} style={columnStyle}>
-            <SortableColumnView
-              column={column}
-              columnIndex={index}
-              columnCount={vm.columns.length}
-              isReducedMotion={isReducedMotion}
-              drag={drag}
-              cardActions={cardActions}
-              columnActions={columnActions}
-              haptics={haptics}
-            />
-          </View>
-        ))}
-        <AddColumnButton style={columnStyle} drag={drag} onPress={vm.createColumn} />
+        {showSkeleton ? (
+          // Transição cruzada: o skeleton sai com fade enquanto as colunas entram com fade.
+          <Animated.View exiting={FadeOut.duration(duration.normal)}>
+            <BoardSkeleton columnStyle={columnStyle} />
+          </Animated.View>
+        ) : (
+          <>
+            {mountedColumns.map((column, index) => (
+              <Animated.View
+                key={column.id}
+                entering={FadeIn.duration(duration.normal)}
+                style={columnStyle}
+              >
+                <SortableColumnView
+                  column={column}
+                  columnIndex={index}
+                  columnCount={vm.columns.length}
+                  isReducedMotion={isReducedMotion}
+                  drag={drag}
+                  cardActions={cardActions}
+                  columnActions={columnActions}
+                  haptics={haptics}
+                />
+              </Animated.View>
+            ))}
+            {isFullyMounted ? (
+              <AddColumnButton style={columnStyle} drag={drag} onPress={vm.createColumn} />
+            ) : null}
+          </>
+        )}
       </AnimatedScrollView>
 
       <Text className="px-6 pt-3 text-caption text-text-secondary">{ptBR.board.dragHint}</Text>

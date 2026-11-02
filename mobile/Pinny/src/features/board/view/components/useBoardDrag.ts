@@ -79,7 +79,16 @@ export function useBoardDrag({
     fingerX,
   } = values;
 
-  const board = useBoardScroll({ columnIds, pitch, gap, gutter, activeId, fingerX });
+  // O manipulador de rolagem fica fora de `board`: os worklets abaixo capturam esse objeto, e o
+  // manipulador não pode ser copiado para a UI thread.
+  const { scrollHandler: boardScrollHandler, ...board } = useBoardScroll({
+    columnIds,
+    pitch,
+    gap,
+    gutter,
+    activeId,
+    fingerX,
+  });
 
   // O fantasma some e o cartão da lista volta a aparecer.
   const hide = () => {
@@ -214,7 +223,7 @@ export function useBoardDrag({
   const markVisible = useCallback((id: string) => visibleId.set(id), [visibleId]);
 
   return {
-    boardScrollHandler: board.scrollHandler,
+    boardScrollHandler,
     originRef,
     boardScrollRef: board.scrollRef,
     drag: {

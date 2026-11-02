@@ -5,6 +5,8 @@
 > Marque as tarefas com `[x]` conforme forem concluídas. Uma etapa só termina quando todos os critérios de "pronto quando" forem atendidos.
 > Toda tarefa segue as regras do `REGRAS.md` e o escopo do `CLAUDE.md`.
 
+> 🔁 **Lembrete fixo (2026-11-02):** em toda tela nova que carrega dados (lista, quadro, detalhe, calendário...), perguntar ao autor **se ela vai ter skeleton loading** antes de implementar. O padrão é o do quadro (etapa 6.4): formas nas medidas do conteúdo real, shimmer no estilo do YouTube (parado com "Reduzir movimento", base em `src/components/Skeleton.tsx`) e só enquanto os dados não chegam (sem tempo mínimo: `skeleton.minDurationMs` em 0, decisão do autor).
+
 **Legenda de status:** ⬜ não iniciada · 🟨 em andamento · ✅ concluída
 
 | # | Etapa | Status |
@@ -183,6 +185,7 @@
 - [x] Conferir no iPhone
 
 ### 6.4 — Reordenar colunas
+- [x] Skeleton loading do quadro (enquanto carrega): 2 colunas com 4 e 3 cartões, shimmer no estilo do YouTube, sem tempo mínimo.
 - [ ] Menu "…" do topo do quadro (com "Nova coluna"), adiado da 6.3
 - [ ] Reordenar colunas segurando e arrastando
 - [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)

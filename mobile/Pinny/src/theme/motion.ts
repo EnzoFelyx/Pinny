@@ -43,3 +43,12 @@ export const pullToDelete = {
   // Tempo segurando puxado até pedir a confirmação.
   holdMs: 500,
 } as const;
+
+// Skeleton loading (estilo do YouTube): uma faixa de brilho de shimmerBandWidth pontos atravessa a
+// tela a cada shimmerMs, em velocidade constante. minDurationMs segura o skeleton na tela por um
+// tempo mínimo; em 0 (decisão do autor, 2026-11-02), ele aparece só enquanto os dados não chegam.
+export const skeleton = {
+  minDurationMs: 0,
+  shimmerMs: 1400,
+  shimmerBandWidth: 160,
+} as const;

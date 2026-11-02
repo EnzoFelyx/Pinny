@@ -6,6 +6,7 @@ const palette = {
   cream0: '#FFFEFB',
   sand100: '#EFECE5',
   sand200: '#E8E2D8',
+  sand300: '#E0D9CD',
   stone500: '#8B867E',
   stone600: '#6F6A62',
   ink900: '#39352F',
@@ -63,6 +64,11 @@ export const colors = {
   dropZoneBorder: palette.violet600,
   dropZoneOriginBackground: palette.clear,
   dropZoneTargetBackground: palette.lavender100,
+
+  // Barras do skeleton loading (decorativas): um tom acima do fundo da coluna e do cartão, com a
+  // faixa de brilho do shimmer passando por cima.
+  skeleton: palette.sand300,
+  skeletonHighlight: palette.cream50,
 
   // Coluna "Adicionar coluna" no fim do quadro: borda decorativa (quem identifica o botão é o
   // ícone, em onSecondary, 6,5:1 ou mais).
