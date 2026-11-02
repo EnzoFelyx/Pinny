@@ -16,30 +16,31 @@ interface InputProps extends NativeInputProps {
 
 const ICON_SIZE = 19;
 
+// Campo com rótulo e ícone. Em foco, a borda do campo e o ícone ficam em primary (a borda tem a
+// mesma espessura nos dois estados, para o layout não pular).
 export function Input({ label, icon: Icon, ...inputProps }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    // A moldura existe sempre (transparente) para o layout não pular ao focar.
-    <View
-      className={`w-full rounded-[18px] border-2 p-1 ${
-        isFocused ? 'border-border-selected' : 'border-transparent'
-      }`}
-    >
-      <View className="gap-2">
-        <Text className="text-label text-text-primary">{label}</Text>
-        <View className="min-h-[52px] flex-row items-center gap-[10px] rounded-[18px] border border-border-strong bg-surface px-[14px]">
-          {Icon ? <Icon size={ICON_SIZE} color={colors.textSecondary} /> : null}
-          <TextInput
-            {...inputProps}
-            accessibilityLabel={label}
-            placeholderTextColor={colors.textSecondary}
-            selectionColor={colors.primary}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className="flex-1 py-[14px] text-body text-text-primary"
-          />
-        </View>
+    <View className="w-full gap-2">
+      <Text className="text-label text-text-primary">{label}</Text>
+      <View
+        className={`min-h-[52px] flex-row items-center gap-[10px] rounded-[18px] border bg-surface px-[14px] ${
+          isFocused ? 'border-border-selected' : 'border-border-strong'
+        }`}
+      >
+        {Icon ? (
+          <Icon size={ICON_SIZE} color={isFocused ? colors.primary : colors.textSecondary} />
+        ) : null}
+        <TextInput
+          {...inputProps}
+          accessibilityLabel={label}
+          placeholderTextColor={colors.textSecondary}
+          selectionColor={colors.primary}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          className="flex-1 py-[14px] text-body text-text-primary"
+        />
       </View>
     </View>
   );

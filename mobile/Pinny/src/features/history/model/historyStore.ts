@@ -1,3 +1,4 @@
+import { columnRepository } from '@/features/board/model/columnRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { createId } from '@/utils/id';
 import { nowIso } from '@/utils/time';
@@ -18,7 +19,10 @@ let undoStack: readonly HistoryEntry[] = [];
 let redoStack: readonly HistoryEntry[] = [];
 let isBusy = false;
 
-const defaultRepositories: UndoRepositories = { cards: cardRepository };
+const defaultRepositories: UndoRepositories = {
+  cards: cardRepository,
+  columns: columnRepository,
+};
 
 // Tira a última entrada de uma pilha, aplica e guarda a inversa na outra.
 async function transfer(

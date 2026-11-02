@@ -7,30 +7,52 @@ import { historyStore } from '@/features/history/model/historyStore';
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
 
-import { type BoardData, loadBoard, withCardMoved } from '../model/boardData';
+import { type BoardData, emptyColumnIdsOf, loadBoard, withCardMoved } from '../model/boardData';
 import { moveCardWithHistory } from '../model/cardMove';
+import { assignEmptyVariants, type EmptyVariantMap } from '../model/emptyVariants';
 import { toPlacement } from '../model/reorder';
 import { toColumnItem } from './boardItems';
+import { useColumnActions } from './useColumnActions';
 
 const text = ptBR.board;
 
 function noop() {}
 
 export function useBoardViewModel(boardId: string) {
-  const [data, setData] = useState<BoardData | null>(null);
+  // Dados do quadro e o estado vazio sorteado de cada coluna vazia, atualizados juntos: a coluna
+  // que esvazia já aparece com a variação dela, e quem já tinha uma continua com a mesma.
+  const [board, setBoard] = useState<{ data: BoardData | null; emptyVariants: EmptyVariantMap }>({
+    data: null,
+    emptyVariants: {},
+  });
+  const { data, emptyVariants } = board;
+  const setData = useCallback((next: BoardData | null) => {
+    setBoard((current) => ({
+      data: next,
+      emptyVariants: assignEmptyVariants(emptyColumnIdsOf(next), current.emptyVariants),
+    }));
+  }, []);
   const [errorText, setErrorText] = useState<string | null>(null);
   const notifyUndoable = useUndoNotice();
-  const [columnToDelete, setColumnToDelete] = useState<{ id: string; title: string } | null>(null);
+  // Coluna que acabou de aparecer (criada ou devolvida pelo "Desfazer"): o quadro rola até ela.
+  // Um objeto novo a cada pedido, para a mesma coluna poder ser focada de novo (desfazer e refazer).
+  const [focusRequest, setFocusRequest] = useState<{ columnId: string } | null>(null);
 
   // Carrega ao abrir e recarrega a cada mudança no banco (inclusive as feitas por esta tela).
   useEffect(() => {
     let isActive = true;
+    // Colunas da última carga (null = ainda não carregou: na abertura, nada é "novo").
+    let knownColumnIds: ReadonlySet<string> | null = null;
     const reload = () => {
       loadBoard(boardId)
         .then((result) => {
           if (!isActive) return;
+          const ids = result?.columns.map((item) => item.column.id) ?? [];
+          const added = knownColumnIds ? ids.find((id) => !knownColumnIds?.has(id)) : undefined;
+          knownColumnIds = new Set(ids);
           setData(result);
           setErrorText(null);
+          if (added) setFocusRequest({ columnId: added });
         })
         .catch((error: unknown) => {
           console.warn('Falha ao carregar o quadro.', error);
@@ -44,12 +66,14 @@ export function useBoardViewModel(boardId: string) {
       isActive = false;
       unsubscribe();
     };
-  }, [boardId]);
+  }, [boardId, setData]);
 
   const columns = useMemo(() => {
     const now = new Date();
-    return (data?.columns ?? []).map((column) => toColumnItem(column, now));
-  }, [data]);
+    return (data?.columns ?? []).map((column) =>
+      toColumnItem(column, now, emptyVariants[column.column.id]),
+    );
+  }, [data, emptyVariants]);
 
   const cardCount = columns.reduce((total, column) => total + column.cards.length, 0);
 
@@ -77,7 +101,7 @@ export function useBoardViewModel(boardId: string) {
         setErrorText(ptBR.common.saveError);
       }
     },
-    [data, notifyUndoable],
+    [data, notifyUndoable, setData],
   );
 
   // Alternativa sem gesto (CLAUDE.md, regra 15): leva o cartão ao topo da coluna vizinha e devolve
@@ -113,29 +137,28 @@ export function useBoardViewModel(boardId: string) {
     }
   }, []);
 
+  const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
+  const columnActions = useColumnActions({
+    boardId,
+    data,
+    notifyUndoable,
+    onFocusColumn: setFocusRequest,
+    onSaveError: reportSaveError,
+  });
+
   return {
     title: data?.board.title ?? '',
     subtitle: data ? text.subtitle(data.folderTitle, cardCount) : '',
     columns,
     errorText,
+    focusRequest,
     moveCard,
     moveCardToAdjacentColumn,
     openMoveCard,
     addCard,
     goBack: router.back,
-    // Os menus do quadro e da coluna chegam numa etapa futura. Por enquanto não fazem nada.
+    // O menu do quadro chega numa etapa futura. Por enquanto não faz nada.
     openBoardMenu: noop,
-    openColumnMenu: noop,
-    // Puxar e segurar a coluna pede a confirmação. Por enquanto só visual: os dois botões
-    // fecham o alerta, e a exclusão de verdade chega na etapa 6.3.
-    columnToDelete,
-    requestDeleteColumn: useCallback(
-      (columnId: string) => {
-        const target = data?.columns.find((item) => item.column.id === columnId);
-        if (target) setColumnToDelete({ id: columnId, title: target.column.title });
-      },
-      [data],
-    ),
-    closeDeleteColumn: useCallback(() => setColumnToDelete(null), []),
+    ...columnActions,
   };
 }

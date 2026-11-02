@@ -175,14 +175,17 @@
 - [x] Conferir no iPhone
 
 ### 6.3 — Colunas
-- [ ] Criar, renomear e excluir colunas (com confirmação e desfazer)
-- [x] Visual do "puxar para excluir" (adiantado em 2026-10-29): puxar a coluna para baixo e segurar 1 s enche um anel vermelho na lixeira e abre o alerta nativo. Os dois botões só fecham por enquanto
-- [ ] Ligar o "Excluir" do alerta à exclusão de verdade (com desfazer) e oferecer a mesma opção no menu da coluna (alternativa sem gesto)
-- [ ] Contador de cards por coluna e "+ Adicionar coluna"
+- [x] Criar, renomear e excluir colunas (com confirmação e desfazer)
+- [x] Visual do "puxar para excluir" (adiantado em 2026-10-29): puxar a coluna para baixo e segurar 0,5 s enche um anel vermelho na lixeira e abre o alerta nativo. (exclusão de verdade ligada em 2026-11-02)
+- [x] Ligar o "Excluir" do alerta à exclusão de verdade (com desfazer)
+- [x] Menu nativo da coluna ("…"): Adicionar cartão, Mover para trás/frente, Duplicar e Excluir coluna (alternativa sem gesto)
+- [x] Contador de cards por coluna e "+ Adicionar coluna"
+- [x] Conferir no iPhone
 
 ### 6.4 — Reordenar colunas
+- [ ] Menu "…" do topo do quadro (com "Nova coluna"), adiado da 6.3
 - [ ] Reordenar colunas segurando e arrastando
-- [ ] Alternativa acessível para reordenar colunas
+- [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)
 
 ### 6.5 — Seleção em lote
 - [ ] Modo de seleção múltipla e arraste em lote

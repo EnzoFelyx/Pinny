@@ -1,16 +1,18 @@
-import { FolderPlus } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { Text } from 'react-native';
 
-import { Button } from '@/components/Button';
-import { Input } from '@/components/Input';
-import { SheetLayout } from '@/components/SheetLayout';
-import { ptBR } from '@/i18n/pt-BR';
+import { Button } from './Button';
+import { Input } from './Input';
+import { SheetLayout } from './SheetLayout';
 
-const text = ptBR.folders;
-
-interface FolderNameSheetProps {
+interface NameSheetProps {
   title: string;
+  label: string;
+  icon: LucideIcon;
+  placeholder: string;
   submitLabel: string;
+  // Nota discreta abaixo do botão (Figma: "Depois você pode mudar o nome.").
+  hint?: string;
   name: string;
   canSubmit: boolean;
   errorText: string | null;
@@ -18,22 +20,27 @@ interface FolderNameSheetProps {
   onSubmit: () => void;
 }
 
-// Formulário de nome de pasta, usado pelas folhas "Nova pasta" e "Renomear pasta".
-export function FolderNameSheet({
+// Folha com um campo de nome e o botão de confirmar (Figma "Bottom sheet / Nova pasta"). Usada
+// para criar e renomear pastas e colunas.
+export function NameSheet({
   title,
+  label,
+  icon,
+  placeholder,
   submitLabel,
+  hint,
   name,
   canSubmit,
   errorText,
   onChangeName,
   onSubmit,
-}: FolderNameSheetProps) {
+}: NameSheetProps) {
   return (
     <SheetLayout title={title}>
       <Input
-        label={text.folderNameLabel}
-        icon={FolderPlus}
-        placeholder={text.folderNamePlaceholder}
+        label={label}
+        icon={icon}
+        placeholder={placeholder}
         value={name}
         onChangeText={onChangeName}
         returnKeyType="done"
@@ -46,6 +53,7 @@ export function FolderNameSheet({
         </Text>
       ) : null}
       <Button label={submitLabel} disabled={!canSubmit} onPress={onSubmit} />
+      {hint ? <Text className="text-caption text-text-secondary">{hint}</Text> : null}
     </SheetLayout>
   );
 }

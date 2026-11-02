@@ -1,6 +1,12 @@
 import { HISTORY_LIMIT } from '@/constants/limits';
 import type { Card, CardSnapshot } from '@/features/card/model/card.schema';
 import type { CardPatch, CardRepository } from '@/features/card/model/cardRepository';
+import {
+  type ColumnSnapshot,
+  removeColumnWithCards,
+  restoreColumnWithCards,
+} from '@/features/board/model/columnRemoval';
+import type { ColumnRepository } from '@/features/board/model/columnRepository';
 
 // Histórico de ações (base do "Desfazer"). Cada entrada guarda como voltar ao estado anterior.
 // Novos tipos entram conforme as ações chegam (ex.: excluir coluna na etapa 6).
@@ -13,7 +19,15 @@ export type UndoOperation =
   // Desfaz uma edição: regrava os valores anteriores dos campos alterados.
   | { kind: 'updateCard'; cardId: string; previous: CardPatch }
   // Desfaz uma exclusão: recria o cartão com etiquetas, checklist e anexos.
-  | { kind: 'restoreCard'; snapshot: CardSnapshot };
+  | { kind: 'restoreCard'; snapshot: CardSnapshot }
+  // Desfaz a criação de uma coluna: exclui a coluna e os cartões dela, guardando o retrato.
+  | { kind: 'deleteColumn'; columnId: string }
+  // Desfaz uma exclusão de coluna: recria a coluna e os cartões com os mesmos ids e posições.
+  | { kind: 'restoreColumn'; snapshot: ColumnSnapshot }
+  // Desfaz um movimento de coluna: volta à posição exata de antes.
+  | { kind: 'moveColumn'; columnId: string; position: number }
+  // Desfaz uma renomeação: volta ao nome anterior.
+  | { kind: 'renameColumn'; columnId: string; title: string };
 
 export interface HistoryEntry {
   id: string;
@@ -43,6 +57,7 @@ export function popEntry(history: readonly HistoryEntry[]): {
 
 export interface UndoRepositories {
   cards: CardRepository;
+  columns: ColumnRepository;
 }
 
 // Campos do patch com os valores atuais do cartão: o que é preciso para voltar uma edição.
@@ -57,7 +72,7 @@ export async function applyUndo(
   operation: UndoOperation,
   repositories: UndoRepositories,
 ): Promise<UndoOperation | null> {
-  const { cards } = repositories;
+  const { cards, columns } = repositories;
   switch (operation.kind) {
     case 'deleteCard': {
       const snapshot = await cards.remove(operation.cardId);
@@ -89,5 +104,24 @@ export async function applyUndo(
     case 'restoreCard':
       await cards.restore(operation.snapshot);
       return { kind: 'deleteCard', cardId: operation.snapshot.card.id };
+    case 'deleteColumn': {
+      const snapshot = await removeColumnWithCards(operation.columnId, { columns, cards });
+      return snapshot ? { kind: 'restoreColumn', snapshot } : null;
+    }
+    case 'restoreColumn':
+      await restoreColumnWithCards(operation.snapshot, { columns, cards });
+      return { kind: 'deleteColumn', columnId: operation.snapshot.column.id };
+    case 'moveColumn': {
+      const before = await columns.getById(operation.columnId);
+      if (!before) return null;
+      await columns.moveToPosition(operation.columnId, operation.position);
+      return { kind: 'moveColumn', columnId: before.id, position: before.position };
+    }
+    case 'renameColumn': {
+      const before = await columns.getById(operation.columnId);
+      if (!before) return null;
+      await columns.rename(operation.columnId, operation.title);
+      return { kind: 'renameColumn', columnId: before.id, title: before.title };
+    }
   }
 }

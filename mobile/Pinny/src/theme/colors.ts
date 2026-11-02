@@ -24,7 +24,9 @@ const palette = {
   shadowCard: 'rgba(81, 68, 53, 0.05)',
   shadowLifted: 'rgba(81, 68, 53, 0.15)',
   inkOverlay: 'rgba(57, 53, 47, 0.4)',
-  // lavender200 (#EAE1F4) translúcido: fundo do espaço tracejado do arraste.
+  // violet600 (#776098) a 55%: borda da coluna "Adicionar coluna" (Figma "Ghost column").
+  violet600Soft: 'rgba(119, 96, 152, 0.55)',
+  // Fundo vazio (ex.: espaço tracejado na coluna de origem do arraste).
   clear: 'rgba(0, 0, 0, 0)',
 } as const;
 
@@ -61,6 +63,10 @@ export const colors = {
   dropZoneBorder: palette.violet600,
   dropZoneOriginBackground: palette.clear,
   dropZoneTargetBackground: palette.lavender100,
+
+  // Coluna "Adicionar coluna" no fim do quadro: borda decorativa (quem identifica o botão é o
+  // ícone, em onSecondary, 6,5:1 ou mais).
+  addColumnBorder: palette.violet600Soft,
 
   lavender: palette.lavender200,
   mint: palette.mint200,

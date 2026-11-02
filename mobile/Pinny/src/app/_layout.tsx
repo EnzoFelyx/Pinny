@@ -44,6 +44,7 @@ export default function RootLayout() {
             <Stack.Screen name="folder/new" options={sheetScreenOptions} />
             <Stack.Screen name="folder/[folderId]/rename" options={sheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/move" options={sheetScreenOptions} />
+            <Stack.Screen name="column/new" options={sheetScreenOptions} />
           </Stack>
           {/* Chacoalhar para desfazer e o snackbar global valem para todas as telas. */}
           <ShakeToUndoListener />

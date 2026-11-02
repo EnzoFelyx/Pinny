@@ -92,6 +92,8 @@ export interface BoardDrag {
   ) => void;
   trackSettle: (listRef: AnimatedRef<View>) => void;
   markVisible: (id: string) => void;
+  // Rola o quadro até a coluna (ex.: recém-criada), assim que ela estiver na tela.
+  focusColumn: (columnId: string) => void;
 }
 
 // Arraste no nível do quadro, todo na UI thread: a camada com o cartão segurado (por cima de
@@ -361,6 +363,28 @@ export function useBoardDrag({ columnIds, pitch, gap, gutter, onMove, onDrop }: 
 
   const markVisible = useCallback((id: string) => visibleId.set(id), [visibleId]);
 
+  // A coluna pedida pode ainda não estar no layout (o React desenha depois): espera ela entrar
+  // nas colunas e o conteúdo crescer o bastante, e então encaixa o quadro nela.
+  const pendingFocusId = useSharedValue<string | null>(null);
+  useAnimatedReaction(
+    () => {
+      const id = pendingFocusId.get();
+      if (id === null) return null;
+      const index = layout.get().columnIds.indexOf(id);
+      const maxScroll = Math.max(0, boardContentWidth.get() - boardViewportWidth.get());
+      return index >= 0 && maxScroll >= index * layout.get().pitch ? id : null;
+    },
+    (id) => {
+      if (id === null) return;
+      pendingFocusId.set(null);
+      snapBoard(id);
+    },
+  );
+  const focusColumn = useCallback(
+    (columnId: string) => pendingFocusId.set(columnId),
+    [pendingFocusId],
+  );
+
   return {
     boardScrollHandler,
     originRef,
@@ -400,6 +424,7 @@ export function useBoardDrag({ columnIds, pitch, gap, gutter, onMove, onDrop }: 
       settle,
       trackSettle,
       markVisible,
+      focusColumn,
     },
   };
 }

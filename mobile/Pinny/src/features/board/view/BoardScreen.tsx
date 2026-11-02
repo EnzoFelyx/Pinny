@@ -11,6 +11,7 @@ import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
 import { useBoardViewModel } from '../viewmodel/useBoardViewModel';
+import { AddColumnButton } from './components/AddColumnButton';
 import { BoardHeader } from './components/BoardHeader';
 import { BoardToolbar } from './components/BoardToolbar';
 import { DragOverlay } from './components/DragOverlay';
@@ -56,20 +57,27 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   // Largura vem da tela em tempo de execução: caso permitido de style (REGRAS.md, regra 5).
   const columnStyle = { width: columnWidth };
 
-  // Confirmação nativa do iOS ao puxar e segurar uma coluna (por enquanto só fecha).
-  const { columnToDelete, closeDeleteColumn } = vm;
+  // Coluna nova (ou devolvida pelo "Desfazer"): o quadro rola até ela, como ao soltar um cartão.
+  const { focusRequest } = vm;
+  const { focusColumn } = drag;
+  useEffect(() => {
+    if (focusRequest) focusColumn(focusRequest.columnId);
+  }, [focusRequest, focusColumn]);
+
+  // Confirmação nativa do iOS ao puxar e segurar uma coluna.
+  const { columnToDelete, closeDeleteColumn, confirmDeleteColumn } = vm;
   useEffect(() => {
     if (!columnToDelete) return;
     Alert.alert(
       text.deleteColumnTitle(columnToDelete.title),
-      text.deleteColumnMessage,
+      columnToDelete.message,
       [
         { text: text.deleteColumnCancel, style: 'cancel', onPress: closeDeleteColumn },
-        { text: text.deleteColumnConfirm, style: 'destructive', onPress: closeDeleteColumn },
+        { text: text.deleteColumnConfirm, style: 'destructive', onPress: confirmDeleteColumn },
       ],
       { cancelable: true, onDismiss: closeDeleteColumn },
     );
-  }, [columnToDelete, closeDeleteColumn]);
+  }, [columnToDelete, closeDeleteColumn, confirmDeleteColumn]);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
@@ -107,7 +115,9 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
               onMoveToAdjacentColumn={vm.moveCardToAdjacentColumn}
               onOpenMoveCard={vm.openMoveCard}
               onAddCard={vm.addCard}
-              onOpenMenu={vm.openColumnMenu}
+              onMoveColumn={vm.moveColumn}
+              onDuplicateColumn={vm.duplicateColumn}
+              onRenameColumn={vm.renameColumn}
               onRequestDelete={vm.requestDeleteColumn}
               drag={drag}
               onLift={haptics.lift}
@@ -116,6 +126,7 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
             />
           </View>
         ))}
+        <AddColumnButton style={columnStyle} onPress={vm.createColumn} />
       </AnimatedScrollView>
 
       <Text className="px-6 pt-3 text-caption text-text-secondary">{ptBR.board.dragHint}</Text>

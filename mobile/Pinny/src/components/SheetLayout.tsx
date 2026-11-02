@@ -10,7 +10,7 @@ interface SheetLayoutProps {
 // A altura da folha acompanha este conteúdo; o arraste para fechar e o puxador são do sistema.
 export function SheetLayout({ title, children }: SheetLayoutProps) {
   return (
-    <View className="gap-[18px] px-6 pb-9 pt-7">
+    <View className="gap-[18px] px-6 pb-3 pt-7">
       <Text accessibilityRole="header" className="text-title text-text-primary">
         {title}
       </Text>

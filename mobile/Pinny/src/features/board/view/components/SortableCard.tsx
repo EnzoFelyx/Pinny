@@ -43,6 +43,8 @@ interface SortableCardProps {
   total: number;
   column: SortableColumn;
   drag: BoardDrag;
+  // Desligado enquanto o título da coluna é editado.
+  isDragEnabled: boolean;
   isReducedMotion: boolean;
   onMove: (cardId: string, toColumnId: string, toIndex: number) => void;
   onMoveToAdjacentColumn: (cardId: string, step: -1 | 1) => string | null;
@@ -62,6 +64,7 @@ export const SortableCard = memo(function SortableCard({
   total,
   column,
   drag,
+  isDragEnabled,
   isReducedMotion,
   onMove,
   onMoveToAdjacentColumn,
@@ -103,6 +106,7 @@ export const SortableCard = memo(function SortableCard({
   );
 
   const gesture = usePanGesture({
+    enabled: isDragEnabled,
     activateAfterLongPress: DRAG_ACTIVATION_MS,
     onActivate: (event) => {
       'worklet';

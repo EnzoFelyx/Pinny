@@ -5,6 +5,7 @@ export const ptBR = {
   common: {
     undo: 'Desfazer',
     back: 'Voltar',
+    renameLaterHint: 'Depois você pode mudar o nome.',
     databaseError:
       'Não conseguimos abrir seus quadros agora. Feche o Pinny e abra de novo, por favor.',
     loadError: 'Não conseguimos carregar suas pastas. Tente de novo em instantes.',
@@ -52,6 +53,11 @@ export const ptBR = {
     actions: {
       moveCard: 'Movimento',
       createCard: 'Criação',
+      createColumn: 'Nova Coluna',
+      deleteColumn: 'Exclusão de Coluna',
+      moveColumn: 'Movimento de Coluna',
+      duplicateColumn: 'Duplicação de Coluna',
+      renameColumn: 'Renomeação de Coluna',
     },
     undoAction: (actionName: string) => `Desfazer ${actionName}`,
     redoAction: (actionName: string) => `Refazer ${actionName}`,
@@ -62,8 +68,36 @@ export const ptBR = {
   },
   board: {
     addCard: 'Adicionar cartão',
+    addColumn: 'Adicionar coluna',
+    newColumn: {
+      title: 'Uma nova etapa para seus cartões',
+      label: 'Nome da coluna',
+      placeholder: 'Em revisão',
+      submit: 'Criar coluna',
+    },
+    addColumnHint: 'Toque para adicionar\numa nova coluna',
     emptyColumn: 'Todo plano começa com uma notinha.',
+    // Uma frase por variação do estado vazio da coluna (mesma ordem das ilustrações). Curtas, para
+    // caber numa linha na largura da coluna.
+    emptyColumnMessages: [
+      'Todo plano começa com uma notinha.',
+      'Espaço livre para a próxima ideia.',
+      'Nada aqui ainda. Bora começar?',
+      'Uma coluna novinha em folha!',
+      'Silêncio por aqui… por enquanto.',
+    ],
     columnOptions: 'Opções da coluna',
+    renameColumn: 'Renomear coluna',
+    renameColumnHint: 'Toque duas vezes para renomear.',
+    columnNameLabel: 'Nome da coluna',
+    columnMenu: {
+      addCard: 'Adicionar cartão',
+      moveForward: 'Mover para frente',
+      moveBackward: 'Mover para trás',
+      duplicate: 'Duplicar',
+      delete: 'Excluir coluna',
+    },
+    columnCopyTitle: (title: string) => `${title} (cópia)`,
     boardOptions: 'Opções do quadro',
     dropToReorder: 'Solte para reorganizar',
     columnSummary: (title: string, count: number) =>
@@ -95,9 +129,13 @@ export const ptBR = {
     filterAll: 'Todos os cartões',
     filterByDeadline: 'Por prazo',
     deleteColumnTitle: (title: string) => `Excluir a coluna "${title}"?`,
-    deleteColumnMessage: 'Os cartões dela também vão embora.',
+    deleteColumnMessage: (count: number) =>
+      count === 1
+        ? 'O cartão dela também vai embora.'
+        : `Os ${count} cartões dela também vão embora.`,
     deleteColumnConfirm: 'Excluir',
     deleteColumnCancel: 'Cancelar',
+    columnDeleted: 'Coluna excluída',
   },
   card: {
     priority: {

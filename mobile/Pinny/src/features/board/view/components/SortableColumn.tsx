@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, {
@@ -12,6 +12,7 @@ import { ColumnFooter, ColumnHeader } from '@/components/Column';
 import { colors, duration } from '@/theme';
 
 import type { BoardColumnItem } from '../../viewmodel/boardItems';
+import { ColumnMenu } from './ColumnMenu';
 import { DropPlaceholder } from './DropPlaceholder';
 import { PullToDeleteIndicator } from './PullToDeleteIndicator';
 import { SortableCard } from './SortableCard';
@@ -35,7 +36,9 @@ interface SortableColumnViewProps {
   onMoveToAdjacentColumn: (cardId: string, step: -1 | 1) => string | null;
   onOpenMoveCard: (cardId: string) => void;
   onAddCard: (columnId: string) => void;
-  onOpenMenu: (columnId: string) => void;
+  onMoveColumn: (columnId: string, step: -1 | 1) => void;
+  onDuplicateColumn: (columnId: string) => void;
+  onRenameColumn: (columnId: string, title: string) => void;
   drag: BoardDrag;
   onRequestDelete: (columnId: string) => void;
   onLift: () => void;
@@ -55,7 +58,9 @@ export const SortableColumnView = memo(function SortableColumnView({
   onMoveToAdjacentColumn,
   onOpenMoveCard,
   onAddCard,
-  onOpenMenu,
+  onMoveColumn,
+  onDuplicateColumn,
+  onRenameColumn,
   drag,
   onRequestDelete,
   onLift,
@@ -128,7 +133,20 @@ export const SortableColumnView = memo(function SortableColumnView({
   });
 
   const addCard = useCallback(() => onAddCard(column.id), [onAddCard, column.id]);
-  const openMenu = useCallback(() => onOpenMenu(column.id), [onOpenMenu, column.id]);
+  const moveBackward = useCallback(() => onMoveColumn(column.id, -1), [onMoveColumn, column.id]);
+  const moveForward = useCallback(() => onMoveColumn(column.id, 1), [onMoveColumn, column.id]);
+  const duplicate = useCallback(() => onDuplicateColumn(column.id), [onDuplicateColumn, column.id]);
+  const rename = useCallback(
+    (title: string) => onRenameColumn(column.id, title),
+    [onRenameColumn, column.id],
+  );
+  // Enquanto o título é editado, a coluna não rola (nem o "puxar para excluir") e os cartões não
+  // arrastam: um gesto sem querer não tira o foco do campo.
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const deleteFromMenu = useCallback(
+    () => onRequestDelete(column.id),
+    [onRequestDelete, column.id],
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -142,6 +160,7 @@ export const SortableColumnView = memo(function SortableColumnView({
         ref={scrollRef}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        scrollEnabled={!isEditingTitle}
         onLayout={measureViewport}
         onContentSizeChange={measureContent}
         stickyHeaderIndices={[0]}
@@ -149,7 +168,23 @@ export const SortableColumnView = memo(function SortableColumnView({
         style={styles.scroll}
         contentContainerStyle={styles.content}
       >
-        <ColumnHeader title={column.title} cardCount={cardCount} onOpenMenu={openMenu} />
+        <ColumnHeader
+          title={column.title}
+          cardCount={cardCount}
+          onRename={rename}
+          onEditingChange={setIsEditingTitle}
+          menu={
+            <ColumnMenu
+              canMoveBackward={columnIndex > 0}
+              canMoveForward={columnIndex < columnCount - 1}
+              onAddCard={addCard}
+              onMoveBackward={moveBackward}
+              onMoveForward={moveForward}
+              onDuplicate={duplicate}
+              onDelete={deleteFromMenu}
+            />
+          }
+        />
 
         {/* Sempre montada (altura 0 sem cartões): a vaga também aparece numa coluna vazia. */}
         <Animated.View ref={sortable.listRef} onLayout={measureList} style={listStyle}>
@@ -171,6 +206,7 @@ export const SortableColumnView = memo(function SortableColumnView({
               total={cardCount}
               column={sortable}
               drag={drag}
+              isDragEnabled={!isEditingTitle}
               isReducedMotion={isReducedMotion}
               onMove={onMove}
               onMoveToAdjacentColumn={onMoveToAdjacentColumn}
@@ -182,7 +218,12 @@ export const SortableColumnView = memo(function SortableColumnView({
         {isEmpty ? (
           <View onLayout={measureEmpty}>
             <Animated.View style={emptyStateStyle}>
-              <ColumnFooter isEmpty onAddCard={addCard} />
+              <ColumnFooter
+                isEmpty
+                onAddCard={addCard}
+                emptyMessage={column.emptyMessage}
+                emptyVariant={column.emptyVariant}
+              />
             </Animated.View>
             {/* Só visual durante o arraste (nessa hora não dá para tocar em nada). */}
             <Animated.View

@@ -84,6 +84,13 @@ export async function loadBoard(
   };
 }
 
+// Colunas sem nenhum cartão (para sortear o estado vazio de cada uma).
+export function emptyColumnIdsOf(data: BoardData | null): string[] {
+  return (data?.columns ?? [])
+    .filter((item) => item.cards.length === 0)
+    .map((item) => item.column.id);
+}
+
 export interface CardMoveResult {
   data: BoardData;
   // Ordem final dos ids na coluna de destino (para calcular os vizinhos ao gravar).

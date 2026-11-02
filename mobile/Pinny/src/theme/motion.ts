@@ -41,5 +41,5 @@ export const pullToDelete = {
   // Quanto puxar, em pontos, para começar a contar.
   distance: 90,
   // Tempo segurando puxado até pedir a confirmação.
-  holdMs: 1000,
+  holdMs: 500,
 } as const;

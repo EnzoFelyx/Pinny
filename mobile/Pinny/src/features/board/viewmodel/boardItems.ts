@@ -7,6 +7,7 @@ import { ptBR } from '@/i18n/pt-BR';
 import { formatDueDate } from '@/utils/date';
 
 import type { BoardCard, BoardColumn } from '../model/boardData';
+import type { EmptyVariant } from '../model/emptyVariants';
 
 const text = ptBR.card;
 const STATUS_SEPARATOR = ' · ';
@@ -26,6 +27,9 @@ export interface BoardColumnItem {
   id: string;
   title: string;
   cards: BoardCardItem[];
+  // Estado vazio sorteado para esta coluna (frase + ilustração), sem repetir entre as vazias.
+  emptyMessage: string;
+  emptyVariant: EmptyVariant;
 }
 
 // "Hoje, 10h · Em breve", "17 mai · Atrasado" ou só "20 mai" (prazo normal).
@@ -74,10 +78,16 @@ export function toCardItem(item: BoardCard, now: Date): BoardCardItem {
   };
 }
 
-export function toColumnItem({ column, cards }: BoardColumn, now: Date): BoardColumnItem {
+export function toColumnItem(
+  { column, cards }: BoardColumn,
+  now: Date,
+  emptyVariant: EmptyVariant = 0,
+): BoardColumnItem {
   return {
     id: column.id,
     title: column.title,
     cards: cards.map((card) => toCardItem(card, now)),
+    emptyMessage: ptBR.board.emptyColumnMessages[emptyVariant],
+    emptyVariant,
   };
 }

@@ -42,7 +42,34 @@ export interface CardRepository {
   moveToPosition(id: string, columnId: string, position: number): Promise<void>;
   // Exclui e devolve o retrato completo, para o "Desfazer".
   remove(id: string): Promise<CardSnapshot>;
+  // Exclui todos os cartões da coluna (inclusive arquivados) e devolve os retratos, em ordem.
+  removeByColumn(columnId: string): Promise<CardSnapshot[]>;
+  // Copia os cartões ativos de uma coluna para outra (vazia), na mesma ordem, com etiquetas e
+  // checklist ("Duplicar coluna"). Os anexos não vão junto: a foto continuaria sendo do original.
+  copyToColumn(fromColumnId: string, toColumnId: string): Promise<void>;
   restore(snapshot: CardSnapshot): Promise<void>;
+}
+
+type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
+type CardRow = typeof cards.$inferSelect;
+
+// Retrato completo do cartão (etiquetas, checklist e anexos), para o "Desfazer" recriá-lo igual.
+function snapshotOf(tx: Transaction, card: CardRow): CardSnapshot {
+  return parseRow(
+    cardSnapshotSchema,
+    {
+      card,
+      labelIds: tx
+        .select({ labelId: cardLabels.labelId })
+        .from(cardLabels)
+        .where(eq(cardLabels.cardId, card.id))
+        .all()
+        .map((row) => row.labelId),
+      checklist: tx.select().from(checklistItems).where(eq(checklistItems.cardId, card.id)).all(),
+      attachments: tx.select().from(attachments).where(eq(attachments.cardId, card.id)).all(),
+    },
+    'cards',
+  );
 }
 
 export function createCardRepository(database: Database = db): CardRepository {
@@ -129,26 +156,62 @@ export function createCardRepository(database: Database = db): CardRepository {
       return database.transaction((tx) => {
         const card = tx.select().from(cards).where(eq(cards.id, id)).get();
         if (!card) throw new Error(`Cartão "${id}" não encontrado.`);
-
-        const snapshot = parseRow(
-          cardSnapshotSchema,
-          {
-            card,
-            labelIds: tx
-              .select({ labelId: cardLabels.labelId })
-              .from(cardLabels)
-              .where(eq(cardLabels.cardId, id))
-              .all()
-              .map((row) => row.labelId),
-            checklist: tx.select().from(checklistItems).where(eq(checklistItems.cardId, id)).all(),
-            attachments: tx.select().from(attachments).where(eq(attachments.cardId, id)).all(),
-          },
-          'cards',
-        );
-
+        const snapshot = snapshotOf(tx, card);
         // Etiquetas, checklist e anexos saem junto (cascata).
         tx.delete(cards).where(eq(cards.id, id)).run();
         return snapshot;
+      });
+    },
+
+    async removeByColumn(columnId) {
+      return database.transaction((tx) => {
+        // Todos, inclusive os arquivados: a exclusão da coluna levaria todos eles (cascata).
+        const rows = tx
+          .select()
+          .from(cards)
+          .where(eq(cards.columnId, columnId))
+          .orderBy(asc(cards.position))
+          .all();
+        const snapshots = rows.map((card) => snapshotOf(tx, card));
+        tx.delete(cards).where(eq(cards.columnId, columnId)).run();
+        return snapshots;
+      });
+    },
+
+    async copyToColumn(fromColumnId, toColumnId) {
+      database.transaction((tx) => {
+        const now = nowIso();
+        const rows = tx
+          .select()
+          .from(cards)
+          .where(and(eq(cards.columnId, fromColumnId), isNull(cards.archivedAt)))
+          .orderBy(asc(cards.position))
+          .all();
+        for (const card of rows) {
+          const { labelIds, checklist } = snapshotOf(tx, card);
+          const copyId = createId();
+          tx.insert(cards)
+            .values({ ...card, id: copyId, columnId: toColumnId, createdAt: now, updatedAt: now })
+            .run();
+          if (labelIds.length > 0) {
+            tx.insert(cardLabels)
+              .values(labelIds.map((labelId) => ({ cardId: copyId, labelId })))
+              .run();
+          }
+          if (checklist.length > 0) {
+            tx.insert(checklistItems)
+              .values(
+                checklist.map((item) => ({
+                  ...item,
+                  id: createId(),
+                  cardId: copyId,
+                  createdAt: now,
+                  updatedAt: now,
+                })),
+              )
+              .run();
+          }
+        }
       });
     },
 
