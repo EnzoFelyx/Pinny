@@ -2,12 +2,8 @@ import { useEffect } from 'react';
 import type { View } from 'react-native';
 import Animated, {
   type AnimatedRef,
-  type DerivedValue,
-  scrollTo,
-  type SharedValue,
   useAnimatedReaction,
   useDerivedValue,
-  useFrameCallback,
   useAnimatedRef,
   useAnimatedScrollHandler,
   useSharedValue,
@@ -15,13 +11,10 @@ import Animated, {
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
 import { computeOffsets, indexFromCenter, moveIndex, totalHeight } from '../../model/reorder';
-import { autoScroll } from '@/theme';
 
+import { CARD_GAP, ESTIMATED_CARD_HEIGHT, type SortableColumn } from './sortableColumn.types';
 import type { BoardDrag } from './useBoardDrag';
-
-// Espaço entre os cartões e altura usada antes de o cartão ser medido (Figma: 110 + 10).
-export const CARD_GAP = 10;
-export const ESTIMATED_CARD_HEIGHT = 110;
+import { useColumnAutoScroll } from './useColumnAutoScroll';
 
 // Resultado da vaga do cartão arrastado nesta coluna: fora de um arraste ou fora da coluna.
 const NO_DRAG = -2;
@@ -36,28 +29,6 @@ interface SortableColumnOptions {
   onLift: () => void;
   onTick: () => void;
   onDrop: () => void;
-}
-
-export interface SortableColumn {
-  order: SharedValue<string[]>;
-  offsets: DerivedValue<Record<string, number>>;
-  contentHeight: DerivedValue<number>;
-  // true quando todos os cartões já foram medidos (a partir daí, mudanças deslizam).
-  isLaidOut: DerivedValue<boolean>;
-  // Topo do cartão arrastado nas coordenadas desta lista (acompanha o dedo e as rolagens).
-  dragTop: DerivedValue<number>;
-  viewportHeight: SharedValue<number>;
-  // Onde a lista começa dentro da coluna (abaixo do cabeçalho fixo) e a altura de todo o conteúdo.
-  listTop: SharedValue<number>;
-  scrollContentHeight: SharedValue<number>;
-  // Rolagem da coluna (negativa quando puxada para baixo além do topo).
-  scrollY: SharedValue<number>;
-  isUserScrolling: SharedValue<boolean>;
-  // Lista dos cartões (sem transform), medida para posicionar o cartão na camada de arraste.
-  listRef: AnimatedRef<View>;
-  startDrag: (id: string) => void;
-  // Solta o cartão na própria coluna e devolve o topo da vaga final.
-  endDrag: () => number;
 }
 
 // Ordem visual de uma coluna, toda na UI thread. Durante o arraste, o cartão entra na ordem da
@@ -171,29 +142,17 @@ export function useSortableColumn({
     },
   );
 
-  // Rola a coluna sob o dedo quando o cartão chega perto da borda: mais rápido quanto mais perto.
-  // A borda de cima fica logo abaixo do cabeçalho fixo (listTop), que cobre o topo da coluna.
-  // Também mantém o quique do cartão que assenta nesta coluna grudado na lista (rolagens incluídas).
-  useFrameCallback(() => {
-    if (drag.settleColumnId.get() === columnId) drag.trackSettle(listRef);
-    const id = activeId.get();
-    if (id === null || drag.overColumnId.get() !== columnId || viewportHeight.get() === 0) return;
-
-    const top = listTop.get() + dragTop.get() - scrollY.get();
-    const bottom = top + (heights.get()[id] ?? ESTIMATED_CARD_HEIGHT);
-    const upperEdge = listTop.get() + autoScroll.edge;
-    const lowerEdge = viewportHeight.get() - autoScroll.edge;
-    let delta = 0;
-    if (top < upperEdge) {
-      delta = -autoScroll.maxSpeed * Math.min(1, (upperEdge - top) / autoScroll.edge);
-    } else if (bottom > lowerEdge) {
-      delta = autoScroll.maxSpeed * Math.min(1, (bottom - lowerEdge) / autoScroll.edge);
-    }
-    if (delta === 0) return;
-
-    const maxScroll = Math.max(0, scrollContentHeight.get() - viewportHeight.get());
-    const next = Math.min(maxScroll, Math.max(0, scrollY.get() + delta));
-    if (next !== scrollY.get()) scrollTo(scrollRef, 0, next, false);
+  useColumnAutoScroll({
+    columnId,
+    drag,
+    scrollRef,
+    listRef,
+    dragTop,
+    viewportHeight,
+    listTop,
+    scrollContentHeight,
+    scrollY,
+    isUserScrolling,
   });
 
   const startDrag = (id: string) => {

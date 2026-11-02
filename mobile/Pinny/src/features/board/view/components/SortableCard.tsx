@@ -1,12 +1,8 @@
-import { memo, useCallback, useMemo } from 'react';
-import {
-  AccessibilityInfo,
-  type AccessibilityActionEvent,
-  type LayoutChangeEvent,
-  StyleSheet,
-} from 'react-native';
+import { memo, useCallback } from 'react';
+import { type LayoutChangeEvent, StyleSheet } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
+  interpolate,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
@@ -14,25 +10,17 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Card } from '@/components/Card';
-import { ptBR } from '@/i18n/pt-BR';
-import { DRAG_ACTIVATION_MS, duration } from '@/theme';
+import { colors, DRAG_ACTIVATION_MS, duration, shadows } from '@/theme';
 
 import type { BoardCardItem } from '../../viewmodel/boardItems';
+import type { CardActions } from './boardActions';
+import { ADD_COLUMN_SLOT } from './boardDrag.types';
 import type { BoardDrag } from './useBoardDrag';
-import type { SortableColumn } from './useSortableColumn';
+import { useCardAccessibilityActions } from './useCardAccessibilityActions';
+import { useInListBounce } from './useInListBounce';
+import type { SortableColumn } from './sortableColumn.types';
 
-const text = ptBR.board;
 const CARD_RADIUS = 18;
-
-type MoveAction = 'moveUp' | 'moveDown' | 'moveToPreviousColumn' | 'moveToNextColumn' | 'moveTo';
-
-const actionLabels: Record<MoveAction, string> = {
-  moveUp: text.moveUp,
-  moveDown: text.moveDown,
-  moveToPreviousColumn: text.moveToPreviousColumn,
-  moveToNextColumn: text.moveToNextColumn,
-  moveTo: text.moveTo,
-};
 
 interface SortableCardProps {
   card: BoardCardItem;
@@ -46,9 +34,7 @@ interface SortableCardProps {
   // Desligado enquanto o título da coluna é editado.
   isDragEnabled: boolean;
   isReducedMotion: boolean;
-  onMove: (cardId: string, toColumnId: string, toIndex: number) => void;
-  onMoveToAdjacentColumn: (cardId: string, step: -1 | 1) => string | null;
-  onOpenMoveCard: (cardId: string) => void;
+  actions: CardActions;
 }
 
 // Cartão do quadro: segurar e arrastar muda a ordem ou a coluna. Enquanto o dedo segura e
@@ -66,9 +52,7 @@ export const SortableCard = memo(function SortableCard({
   drag,
   isDragEnabled,
   isReducedMotion,
-  onMove,
-  onMoveToAdjacentColumn,
-  onOpenMoveCard,
+  actions,
 }: SortableCardProps) {
   const { id } = card;
   // Começa em 0 e a reação abaixo posiciona o cartão já na montagem (sem ler shared value no render).
@@ -95,6 +79,8 @@ export const SortableCard = memo(function SortableCard({
     top.set(target);
     drag.settle(id, columnId, column.listRef, from, target, isReducedMotion);
   };
+
+  const bounce = useInListBounce({ id, drag, top, isReducedMotion });
 
   // Solto em outra coluna: este cartão é o novo, nesta coluna, e assume de onde o fantasma parou.
   useAnimatedReaction(
@@ -131,11 +117,13 @@ export const SortableCard = memo(function SortableCard({
         drag.dropInOtherColumn();
         return;
       }
-      // Assume do mesmo ponto e jeito da cópia e assenta na vaga dentro da lista.
+      // Assume do mesmo ponto e jeito da cópia e assenta na vaga dentro da lista. Solto na coluna
+      // "Adicionar coluna", volta para a vaga de antes e a folha "Nova coluna" abre com ele.
       const fromTop = column.dragTop.get();
       const fromLeft = drag.horizontalOffset();
       const target = column.endDrag();
-      drag.release();
+      if (over === ADD_COLUMN_SLOT) drag.releaseToNewColumn();
+      else drag.release();
       settle({ top: fromTop, left: fromLeft }, target);
     },
   });
@@ -143,8 +131,15 @@ export const SortableCard = memo(function SortableCard({
   // Invisível enquanto o fantasma o representa (arraste e quique).
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: drag.visibleId.get() === id ? 0 : 1,
-    transform: [{ translateY: top.get() }],
+    zIndex: bounce.lift.get() > 0 ? 1 : 0,
+    transform: [
+      { translateX: bounce.left.get() },
+      { translateY: top.get() },
+      { rotate: `${interpolate(bounce.lift.get(), [0, 1], [0, bounce.rotation])}deg` },
+      { scale: interpolate(bounce.lift.get(), [0, 1], [1, bounce.scale]) },
+    ],
   }));
+  const shadowStyle = useAnimatedStyle(() => ({ opacity: bounce.lift.get() }));
 
   const measure = useCallback(
     (event: LayoutChangeEvent) => {
@@ -158,39 +153,20 @@ export const SortableCard = memo(function SortableCard({
     [drag.heights, id],
   );
 
-  // Alternativas sem gesto (CLAUDE.md, regra 15): mover uma vaga, mudar de coluna ou escolher
-  // coluna e posição na folha "Mover para...". O leitor de tela anuncia o resultado.
-  const accessibilityActions = useMemo(() => {
-    const names: MoveAction[] = ['moveUp', 'moveDown'];
-    if (columnIndex > 0) names.push('moveToPreviousColumn');
-    if (columnIndex < columnCount - 1) names.push('moveToNextColumn');
-    names.push('moveTo');
-    return names.map((name) => ({ name, label: actionLabels[name] }));
-  }, [columnIndex, columnCount]);
-
-  const handleAccessibilityAction = useCallback(
-    (event: AccessibilityActionEvent) => {
-      const action = event.nativeEvent.actionName;
-      if (action === 'moveTo') {
-        onOpenMoveCard(id);
-        return;
-      }
-      if (action === 'moveToPreviousColumn' || action === 'moveToNextColumn') {
-        const announcement = onMoveToAdjacentColumn(id, action === 'moveToNextColumn' ? 1 : -1);
-        if (announcement) AccessibilityInfo.announceForAccessibility(announcement);
-        return;
-      }
-      const target = index + (action === 'moveUp' ? -1 : 1);
-      if (target < 0 || target >= total) return;
-      onMove(id, columnId, target);
-      AccessibilityInfo.announceForAccessibility(text.movedTo(target + 1, total));
-    },
-    [columnId, id, index, total, onMove, onMoveToAdjacentColumn, onOpenMoveCard],
-  );
+  const accessibility = useCardAccessibilityActions({
+    cardId: id,
+    columnId,
+    columnIndex,
+    columnCount,
+    index,
+    total,
+    actions,
+  });
 
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View onLayout={measure} style={[styles.card, animatedStyle]}>
+        <Animated.View style={[styles.liftedShadow, shadowStyle]} />
         <Card
           title={card.title}
           accessibilityLabel={card.accessibilityLabel}
@@ -198,8 +174,8 @@ export const SortableCard = memo(function SortableCard({
           priority={card.priority}
           deadline={card.deadline}
           checklistText={card.checklistText}
-          accessibilityActions={accessibilityActions}
-          onAccessibilityAction={handleAccessibilityAction}
+          accessibilityActions={accessibility.accessibilityActions}
+          onAccessibilityAction={accessibility.onAccessibilityAction}
         />
       </Animated.View>
     </GestureDetector>
@@ -214,5 +190,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     borderRadius: CARD_RADIUS,
+  },
+  // Sombra elevada numa camada própria, para sumir com fade no fim do quique.
+  liftedShadow: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: CARD_RADIUS,
+    backgroundColor: colors.surface,
+    boxShadow: shadows.lifted,
   },
 });

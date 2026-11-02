@@ -7,6 +7,8 @@ import { SheetLayout } from './SheetLayout';
 
 interface NameSheetProps {
   title: string;
+  // Aviso logo abaixo do título (ex.: o cartão que vai para a coluna nova).
+  description?: string;
   label: string;
   icon: LucideIcon;
   placeholder: string;
@@ -24,6 +26,7 @@ interface NameSheetProps {
 // para criar e renomear pastas e colunas.
 export function NameSheet({
   title,
+  description,
   label,
   icon,
   placeholder,
@@ -37,6 +40,7 @@ export function NameSheet({
 }: NameSheetProps) {
   return (
     <SheetLayout title={title}>
+      {description ? <Text className="text-body text-text-secondary">{description}</Text> : null}
       <Input
         label={label}
         icon={icon}

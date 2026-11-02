@@ -9,14 +9,16 @@ const text = ptBR.board.newColumn;
 
 interface NewColumnScreenProps {
   boardId: string;
+  cardId?: string;
 }
 
-export function NewColumnScreen({ boardId }: NewColumnScreenProps) {
-  const vm = useNewColumnViewModel(boardId);
+export function NewColumnScreen({ boardId, cardId }: NewColumnScreenProps) {
+  const vm = useNewColumnViewModel(boardId, cardId);
 
   return (
     <NameSheet
       title={text.title}
+      description={vm.cardNotice ?? undefined}
       label={text.label}
       icon={Columns3}
       placeholder={text.placeholder}

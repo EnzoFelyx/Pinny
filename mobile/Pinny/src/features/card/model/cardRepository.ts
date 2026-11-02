@@ -2,20 +2,14 @@ import { and, asc, eq, isNull, ne } from 'drizzle-orm';
 
 import { type Database, db } from '@/db/client';
 import { applyPlacement } from '@/db/ordering';
-import { attachments, cardLabels, cards, checklistItems } from '@/db/schema';
+import { cards } from '@/db/schema';
 import { parseRow, parseRows } from '@/db/validation';
 import { createId } from '@/utils/id';
 import { type Placement, positionAtEnd } from '@/utils/position';
 import { nowIso } from '@/utils/time';
 
-import {
-  type Card,
-  type CardSnapshot,
-  attachmentSchema,
-  cardSchema,
-  cardSnapshotSchema,
-  checklistItemSchema,
-} from './card.schema';
+import { type Card, type CardSnapshot, cardSchema } from './card.schema';
+import { copySnapshot, insertSnapshot, snapshotOf } from './cardSnapshots';
 import type { Priority } from './card.types';
 
 export interface NewCardInput {
@@ -48,28 +42,6 @@ export interface CardRepository {
   // checklist ("Duplicar coluna"). Os anexos não vão junto: a foto continuaria sendo do original.
   copyToColumn(fromColumnId: string, toColumnId: string): Promise<void>;
   restore(snapshot: CardSnapshot): Promise<void>;
-}
-
-type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
-type CardRow = typeof cards.$inferSelect;
-
-// Retrato completo do cartão (etiquetas, checklist e anexos), para o "Desfazer" recriá-lo igual.
-function snapshotOf(tx: Transaction, card: CardRow): CardSnapshot {
-  return parseRow(
-    cardSnapshotSchema,
-    {
-      card,
-      labelIds: tx
-        .select({ labelId: cardLabels.labelId })
-        .from(cardLabels)
-        .where(eq(cardLabels.cardId, card.id))
-        .all()
-        .map((row) => row.labelId),
-      checklist: tx.select().from(checklistItems).where(eq(checklistItems.cardId, card.id)).all(),
-      attachments: tx.select().from(attachments).where(eq(attachments.cardId, card.id)).all(),
-    },
-    'cards',
-  );
 }
 
 export function createCardRepository(database: Database = db): CardRepository {
@@ -188,54 +160,13 @@ export function createCardRepository(database: Database = db): CardRepository {
           .orderBy(asc(cards.position))
           .all();
         for (const card of rows) {
-          const { labelIds, checklist } = snapshotOf(tx, card);
-          const copyId = createId();
-          tx.insert(cards)
-            .values({ ...card, id: copyId, columnId: toColumnId, createdAt: now, updatedAt: now })
-            .run();
-          if (labelIds.length > 0) {
-            tx.insert(cardLabels)
-              .values(labelIds.map((labelId) => ({ cardId: copyId, labelId })))
-              .run();
-          }
-          if (checklist.length > 0) {
-            tx.insert(checklistItems)
-              .values(
-                checklist.map((item) => ({
-                  ...item,
-                  id: createId(),
-                  cardId: copyId,
-                  createdAt: now,
-                  updatedAt: now,
-                })),
-              )
-              .run();
-          }
+          insertSnapshot(tx, copySnapshot(snapshotOf(tx, card), toColumnId, now));
         }
       });
     },
 
-    async restore({ card, labelIds, checklist, attachments: cardAttachments }) {
-      database.transaction((tx) => {
-        tx.insert(cards)
-          .values(parseRow(cardSchema, card, 'cards'))
-          .run();
-        if (labelIds.length > 0) {
-          tx.insert(cardLabels)
-            .values(labelIds.map((labelId) => ({ cardId: card.id, labelId })))
-            .run();
-        }
-        if (checklist.length > 0) {
-          tx.insert(checklistItems)
-            .values(parseRows(checklistItemSchema, checklist, 'checklist_items'))
-            .run();
-        }
-        if (cardAttachments.length > 0) {
-          tx.insert(attachments)
-            .values(parseRows(attachmentSchema, cardAttachments, 'attachments'))
-            .run();
-        }
-      });
+    async restore(snapshot) {
+      database.transaction((tx) => insertSnapshot(tx, snapshot));
     },
   };
 }

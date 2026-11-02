@@ -141,6 +141,7 @@ export function useBoardViewModel(boardId: string) {
   const columnActions = useColumnActions({
     boardId,
     data,
+    onDataChange: setData,
     notifyUndoable,
     onFocusColumn: setFocusRequest,
     onSaveError: reportSaveError,

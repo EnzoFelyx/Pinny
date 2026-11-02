@@ -5,7 +5,7 @@ import { cardRepository } from '@/features/card/model/cardRepository';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
 
-import type { BoardData } from '../model/boardData';
+import { type BoardData, withColumnRenamed } from '../model/boardData';
 import { duplicateColumn } from '../model/columnCopy';
 import { removeColumnWithCards } from '../model/columnRemoval';
 import { columnRepository } from '../model/columnRepository';
@@ -16,6 +16,8 @@ const repositories = { columns: columnRepository, cards: cardRepository };
 interface ColumnActionsOptions {
   boardId: string;
   data: BoardData | null;
+  // Troca o retrato do quadro na tela antes de gravar (atualização otimista).
+  onDataChange: (data: BoardData) => void;
   notifyUndoable: (description: string) => Promise<void>;
   // O quadro rola até a coluna (ex.: depois de movê-la).
   onFocusColumn: (request: { columnId: string }) => void;
@@ -34,6 +36,7 @@ export interface ColumnToDelete {
 export function useColumnActions({
   boardId,
   data,
+  onDataChange,
   notifyUndoable,
   onFocusColumn,
   onSaveError,
@@ -44,6 +47,14 @@ export function useColumnActions({
   const createColumn = useCallback(() => {
     router.push({ pathname: '/column/new', params: { boardId } });
   }, [boardId]);
+
+  // Cartão solto na coluna "Adicionar coluna": a mesma folha, avisando que ele vai para a coluna.
+  const createColumnWithCard = useCallback(
+    (cardId: string) => {
+      router.push({ pathname: '/column/new', params: { boardId, cardId } });
+    },
+    [boardId],
+  );
 
   // Menu da coluna: mover para trás (-1) ou para frente (+1), trocando com a vizinha. O quadro
   // acompanha a coluna até o novo lugar.
@@ -73,11 +84,13 @@ export function useColumnActions({
     [data, onFocusColumn, onSaveError],
   );
 
-  // Título da coluna editado ali mesmo (lápis ou nome).
+  // Título da coluna editado ali mesmo (lápis ou nome). O nome novo aparece na hora (sem piscar
+  // o antigo até o banco recarregar); se a gravação falhar, o antigo volta.
   const renameColumn = useCallback(
     async (columnId: string, title: string) => {
       const target = data?.columns.find((item) => item.column.id === columnId);
-      if (!target || target.column.title === title) return;
+      if (!data || !target || target.column.title === title) return;
+      onDataChange(withColumnRenamed(data, columnId, title));
       try {
         await columnRepository.rename(columnId, title);
         historyStore.record(ptBR.history.actions.renameColumn, {
@@ -87,10 +100,11 @@ export function useColumnActions({
         });
       } catch (error: unknown) {
         console.warn('Falha ao renomear a coluna.', error);
+        onDataChange(data);
         onSaveError();
       }
     },
-    [data, onSaveError],
+    [data, onDataChange, onSaveError],
   );
 
   // Menu da coluna: cópia logo depois da original, com os cartões. O quadro rola até ela (a
@@ -156,6 +170,7 @@ export function useColumnActions({
 
   return {
     createColumn,
+    createColumnWithCard,
     moveColumn,
     renameColumn,
     duplicateColumn: duplicate,

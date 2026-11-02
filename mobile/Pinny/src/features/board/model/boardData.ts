@@ -91,6 +91,16 @@ export function emptyColumnIdsOf(data: BoardData | null): string[] {
     .map((item) => item.column.id);
 }
 
+// Novo retrato do quadro com a coluna renomeada (para mostrar o nome novo antes de gravar).
+export function withColumnRenamed(data: BoardData, columnId: string, title: string): BoardData {
+  return {
+    ...data,
+    columns: data.columns.map((item) =>
+      item.column.id === columnId ? { ...item, column: { ...item.column, title } } : item,
+    ),
+  };
+}
+
 export interface CardMoveResult {
   data: BoardData;
   // Ordem final dos ids na coluna de destino (para calcular os vizinhos ao gravar).

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Alert, type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -12,6 +12,7 @@ import { colors } from '@/theme';
 
 import { useBoardViewModel } from '../viewmodel/useBoardViewModel';
 import { AddColumnButton } from './components/AddColumnButton';
+import type { CardActions, ColumnActions } from './components/boardActions';
 import { BoardHeader } from './components/BoardHeader';
 import { BoardToolbar } from './components/BoardToolbar';
 import { DragOverlay } from './components/DragOverlay';
@@ -42,11 +43,32 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
     gutter: SCREEN_GUTTER,
     onMove: vm.moveCard,
     onDrop: haptics.drop,
+    onDropOnNewColumn: vm.createColumnWithCard,
   });
   // Conteúdo do cartão segurado, desenhado na camada de arraste.
   const draggedCard =
     vm.columns.flatMap((column) => column.cards).find((card) => card.id === drag.activeCardId) ??
     null;
+  // Ações repassadas às colunas e aos cartões (objetos estáveis: as colunas são memo).
+  const cardActions = useMemo<CardActions>(
+    () => ({
+      move: vm.moveCard,
+      moveToAdjacentColumn: vm.moveCardToAdjacentColumn,
+      openMoveCard: vm.openMoveCard,
+    }),
+    [vm.moveCard, vm.moveCardToAdjacentColumn, vm.openMoveCard],
+  );
+  const columnActions = useMemo<ColumnActions>(
+    () => ({
+      addCard: vm.addCard,
+      move: vm.moveColumn,
+      duplicate: vm.duplicateColumn,
+      rename: vm.renameColumn,
+      requestDelete: vm.requestDeleteColumn,
+    }),
+    [vm.addCard, vm.moveColumn, vm.duplicateColumn, vm.renameColumn, vm.requestDeleteColumn],
+  );
+
   // Larguras da janela e do conteúdo do quadro, para a rolagem automática lateral.
   const measureBoard = (event: LayoutChangeEvent) => {
     drag.boardViewportWidth.set(event.nativeEvent.layout.width);
@@ -111,22 +133,14 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
               columnIndex={index}
               columnCount={vm.columns.length}
               isReducedMotion={isReducedMotion}
-              onMove={vm.moveCard}
-              onMoveToAdjacentColumn={vm.moveCardToAdjacentColumn}
-              onOpenMoveCard={vm.openMoveCard}
-              onAddCard={vm.addCard}
-              onMoveColumn={vm.moveColumn}
-              onDuplicateColumn={vm.duplicateColumn}
-              onRenameColumn={vm.renameColumn}
-              onRequestDelete={vm.requestDeleteColumn}
               drag={drag}
-              onLift={haptics.lift}
-              onTick={haptics.tick}
-              onDrop={haptics.drop}
+              cardActions={cardActions}
+              columnActions={columnActions}
+              haptics={haptics}
             />
           </View>
         ))}
-        <AddColumnButton style={columnStyle} onPress={vm.createColumn} />
+        <AddColumnButton style={columnStyle} drag={drag} onPress={vm.createColumn} />
       </AnimatedScrollView>
 
       <Text className="px-6 pt-3 text-caption text-text-secondary">{ptBR.board.dragHint}</Text>

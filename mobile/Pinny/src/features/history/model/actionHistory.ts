@@ -27,7 +27,10 @@ export type UndoOperation =
   // Desfaz um movimento de coluna: volta à posição exata de antes.
   | { kind: 'moveColumn'; columnId: string; position: number }
   // Desfaz uma renomeação: volta ao nome anterior.
-  | { kind: 'renameColumn'; columnId: string; title: string };
+  | { kind: 'renameColumn'; columnId: string; title: string }
+  // Várias operações como uma ação só (ex.: criar a coluna e levar o cartão para ela). Desfaz na
+  // ordem dada; a inversa refaz na ordem contrária.
+  | { kind: 'sequence'; operations: UndoOperation[] };
 
 export interface HistoryEntry {
   id: string;
@@ -116,6 +119,14 @@ export async function applyUndo(
       if (!before) return null;
       await columns.moveToPosition(operation.columnId, operation.position);
       return { kind: 'moveColumn', columnId: before.id, position: before.position };
+    }
+    case 'sequence': {
+      const inverses: UndoOperation[] = [];
+      for (const step of operation.operations) {
+        const inverse = await applyUndo(step, repositories);
+        if (inverse) inverses.unshift(inverse);
+      }
+      return { kind: 'sequence', operations: inverses };
     }
     case 'renameColumn': {
       const before = await columns.getById(operation.columnId);

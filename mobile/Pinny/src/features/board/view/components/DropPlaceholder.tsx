@@ -12,7 +12,7 @@ import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
 import type { BoardDrag } from './useBoardDrag';
-import { ESTIMATED_CARD_HEIGHT, type SortableColumn } from './useSortableColumn';
+import { ESTIMATED_CARD_HEIGHT, type SortableColumn } from './sortableColumn.types';
 
 interface DropPlaceholderProps {
   columnId: string;

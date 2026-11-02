@@ -1,21 +1,18 @@
 import { memo, useCallback, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedRef,
-  useAnimatedStyle,
-  useDerivedValue,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedRef, useAnimatedStyle } from 'react-native-reanimated';
 
-import { ColumnFooter, ColumnHeader } from '@/components/Column';
+import { ColumnHeader } from '@/components/Column';
 import { colors, duration } from '@/theme';
 
 import type { BoardColumnItem } from '../../viewmodel/boardItems';
+import { ColumnFooterArea, useEmptyColumnArea } from './ColumnFooterArea';
 import { ColumnMenu } from './ColumnMenu';
 import { DropPlaceholder } from './DropPlaceholder';
 import { PullToDeleteIndicator } from './PullToDeleteIndicator';
 import { SortableCard } from './SortableCard';
+import type { CardActions, ColumnActions, DragHaptics } from './boardActions';
 import type { BoardDrag } from './useBoardDrag';
 import { usePullToDelete } from './usePullToDelete';
 import { useSortableColumn } from './useSortableColumn';
@@ -25,25 +22,16 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 const COLUMN_RADIUS = 24;
 const COLUMN_PADDING = 16;
-const SECTION_GAP = 12;
 
 interface SortableColumnViewProps {
   column: BoardColumnItem;
   columnIndex: number;
   columnCount: number;
   isReducedMotion: boolean;
-  onMove: (cardId: string, toColumnId: string, toIndex: number) => void;
-  onMoveToAdjacentColumn: (cardId: string, step: -1 | 1) => string | null;
-  onOpenMoveCard: (cardId: string) => void;
-  onAddCard: (columnId: string) => void;
-  onMoveColumn: (columnId: string, step: -1 | 1) => void;
-  onDuplicateColumn: (columnId: string) => void;
-  onRenameColumn: (columnId: string, title: string) => void;
   drag: BoardDrag;
-  onRequestDelete: (columnId: string) => void;
-  onLift: () => void;
-  onTick: () => void;
-  onDrop: () => void;
+  cardActions: CardActions;
+  columnActions: ColumnActions;
+  haptics: DragHaptics;
 }
 
 // Coluna do quadro inteira rolável (como no kanban antigo): o cabeçalho fica preso no topo e o
@@ -54,18 +42,10 @@ export const SortableColumnView = memo(function SortableColumnView({
   columnIndex,
   columnCount,
   isReducedMotion,
-  onMove,
-  onMoveToAdjacentColumn,
-  onOpenMoveCard,
-  onAddCard,
-  onMoveColumn,
-  onDuplicateColumn,
-  onRenameColumn,
   drag,
-  onRequestDelete,
-  onLift,
-  onTick,
-  onDrop,
+  cardActions,
+  columnActions,
+  haptics,
 }: SortableColumnViewProps) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const { column: sortable, scrollHandler } = useSortableColumn({
@@ -73,37 +53,16 @@ export const SortableColumnView = memo(function SortableColumnView({
     ids: column.cards.map((card) => card.id),
     scrollRef,
     drag,
-    onMove,
-    onLift,
-    onTick,
-    onDrop,
+    onMove: cardActions.move,
+    onLift: haptics.lift,
+    onTick: haptics.tick,
+    onDrop: haptics.drop,
   });
   const reorderDuration = isReducedMotion ? duration.fast : duration.normal;
   const cardCount = column.cards.length;
 
-  // Coluna vazia: a área do estado vazio tem tamanho fixo. Com o cartão por cima, o estado vazio
-  // fica transparente (sem sair do lugar) e a vaga é desenhada dentro dessa área, acima do
-  // "Adicionar cartão": a coluna não muda de tamanho. A troca é na UI thread, no mesmo quadro em
-  // que a vaga aparece (pelo React, os dois ficariam na tela por um instante).
   const isEmpty = cardCount === 0;
-  const isReceiving = useDerivedValue(() => {
-    const id = drag.activeId.get();
-    return id !== null && sortable.order.get().includes(id);
-  });
-  const emptyHeight = useSharedValue(0);
-  const receivingFooterHeight = useSharedValue(0);
-  const measureEmpty = (event: LayoutChangeEvent) => {
-    emptyHeight.set(event.nativeEvent.layout.height);
-  };
-  const measureReceivingFooter = (event: LayoutChangeEvent) => {
-    receivingFooterHeight.set(event.nativeEvent.layout.height);
-  };
-  // Altura da vaga na coluna vazia: o espaço do estado vazio menos o rodapé (0 = altura do cartão).
-  const slotHeight = useDerivedValue(() =>
-    isEmpty ? Math.max(0, emptyHeight.get() - receivingFooterHeight.get() - SECTION_GAP) : 0,
-  );
-  const emptyStateStyle = useAnimatedStyle(() => ({ opacity: isReceiving.get() ? 0 : 1 }));
-  const receivingFooterStyle = useAnimatedStyle(() => ({ opacity: isReceiving.get() ? 1 : 0 }));
+  const emptyArea = useEmptyColumnArea({ isEmpty, drag, order: sortable.order });
 
   // Na coluna vazia, a vaga fica por cima da área do estado vazio: a lista não ocupa espaço.
   const listStyle = useAnimatedStyle(() => ({
@@ -121,32 +80,24 @@ export const SortableColumnView = memo(function SortableColumnView({
     sortable.scrollContentHeight.set(height);
   };
 
-  const requestDelete = useCallback(() => {
-    onLift();
-    onRequestDelete(column.id);
-  }, [onLift, onRequestDelete, column.id]);
+  const { lift, tick } = haptics;
+  const { addCard, rename, requestDelete } = columnActions;
+  const confirmPullToDelete = useCallback(() => {
+    lift();
+    requestDelete(column.id);
+  }, [lift, requestDelete, column.id]);
   const pullToDelete = usePullToDelete({
     scrollY: sortable.scrollY,
     isUserScrolling: sortable.isUserScrolling,
-    onArmed: onTick,
-    onComplete: requestDelete,
+    onArmed: tick,
+    onComplete: confirmPullToDelete,
   });
 
-  const addCard = useCallback(() => onAddCard(column.id), [onAddCard, column.id]);
-  const moveBackward = useCallback(() => onMoveColumn(column.id, -1), [onMoveColumn, column.id]);
-  const moveForward = useCallback(() => onMoveColumn(column.id, 1), [onMoveColumn, column.id]);
-  const duplicate = useCallback(() => onDuplicateColumn(column.id), [onDuplicateColumn, column.id]);
-  const rename = useCallback(
-    (title: string) => onRenameColumn(column.id, title),
-    [onRenameColumn, column.id],
-  );
+  const addCardHere = useCallback(() => addCard(column.id), [addCard, column.id]);
+  const renameHere = useCallback((title: string) => rename(column.id, title), [rename, column.id]);
   // Enquanto o título é editado, a coluna não rola (nem o "puxar para excluir") e os cartões não
   // arrastam: um gesto sem querer não tira o foco do campo.
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const deleteFromMenu = useCallback(
-    () => onRequestDelete(column.id),
-    [onRequestDelete, column.id],
-  );
 
   return (
     <View style={styles.wrapper}>
@@ -171,17 +122,17 @@ export const SortableColumnView = memo(function SortableColumnView({
         <ColumnHeader
           title={column.title}
           cardCount={cardCount}
-          onRename={rename}
+          onRename={renameHere}
           onEditingChange={setIsEditingTitle}
           menu={
             <ColumnMenu
+              columnId={column.id}
               canMoveBackward={columnIndex > 0}
               canMoveForward={columnIndex < columnCount - 1}
               onAddCard={addCard}
-              onMoveBackward={moveBackward}
-              onMoveForward={moveForward}
-              onDuplicate={duplicate}
-              onDelete={deleteFromMenu}
+              onMove={columnActions.move}
+              onDuplicate={columnActions.duplicate}
+              onDelete={requestDelete}
             />
           }
         />
@@ -193,7 +144,7 @@ export const SortableColumnView = memo(function SortableColumnView({
             column={sortable}
             drag={drag}
             reorderDuration={reorderDuration}
-            fixedHeight={slotHeight}
+            fixedHeight={emptyArea.slotHeight}
           />
           {column.cards.map((card, index) => (
             <SortableCard
@@ -208,39 +159,18 @@ export const SortableColumnView = memo(function SortableColumnView({
               drag={drag}
               isDragEnabled={!isEditingTitle}
               isReducedMotion={isReducedMotion}
-              onMove={onMove}
-              onMoveToAdjacentColumn={onMoveToAdjacentColumn}
-              onOpenMoveCard={onOpenMoveCard}
+              actions={cardActions}
             />
           ))}
         </Animated.View>
 
-        {isEmpty ? (
-          <View onLayout={measureEmpty}>
-            <Animated.View style={emptyStateStyle}>
-              <ColumnFooter
-                isEmpty
-                onAddCard={addCard}
-                emptyMessage={column.emptyMessage}
-                emptyVariant={column.emptyVariant}
-              />
-            </Animated.View>
-            {/* Só visual durante o arraste (nessa hora não dá para tocar em nada). */}
-            <Animated.View
-              pointerEvents="none"
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              onLayout={measureReceivingFooter}
-              style={[styles.receivingFooter, receivingFooterStyle]}
-            >
-              <ColumnFooter isEmpty={false} onAddCard={addCard} />
-            </Animated.View>
-          </View>
-        ) : (
-          <View style={styles.footerAfterList}>
-            <ColumnFooter isEmpty={false} onAddCard={addCard} />
-          </View>
-        )}
+        <ColumnFooterArea
+          isEmpty={isEmpty}
+          area={emptyArea}
+          emptyMessage={column.emptyMessage}
+          emptyVariant={column.emptyVariant}
+          onAddCard={addCardHere}
+        />
       </AnimatedScrollView>
     </View>
   );
@@ -268,14 +198,5 @@ const styles = StyleSheet.create({
     borderRadius: COLUMN_RADIUS,
     paddingHorizontal: COLUMN_PADDING,
     paddingBottom: COLUMN_PADDING,
-  },
-  footerAfterList: {
-    marginTop: SECTION_GAP,
-  },
-  receivingFooter: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 });
