@@ -6,3 +6,7 @@ export const SNACKBAR_DURATION_MS = 5000;
 
 // Quantas ações o "Desfazer" (chacoalhar ou snackbar) consegue voltar.
 export const HISTORY_LIMIT = 20;
+
+// O banco avisa uma vez por linha alterada: avisos seguidos com menos que este intervalo entre
+// eles viram uma recarga só das telas (ex.: duplicar uma coluna de 40 cartões gera ~80 avisos).
+export const DATA_CHANGE_SETTLE_MS = 50;

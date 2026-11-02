@@ -9,7 +9,7 @@ import { type Placement, positionAtEnd } from '@/utils/position';
 import { nowIso } from '@/utils/time';
 
 import { type Card, type CardSnapshot, cardSchema } from './card.schema';
-import { copySnapshot, insertSnapshot, snapshotOf } from './cardSnapshots';
+import { copySnapshot, insertSnapshots, snapshotsOf } from './cardSnapshots';
 import type { Priority } from './card.types';
 
 export interface NewCardInput {
@@ -42,6 +42,8 @@ export interface CardRepository {
   // checklist ("Duplicar coluna"). Os anexos não vão junto: a foto continuaria sendo do original.
   copyToColumn(fromColumnId: string, toColumnId: string): Promise<void>;
   restore(snapshot: CardSnapshot): Promise<void>;
+  // Recria vários cartões numa transação só (ex.: desfazer a exclusão de uma coluna).
+  restoreAll(snapshots: readonly CardSnapshot[]): Promise<void>;
 }
 
 export function createCardRepository(database: Database = db): CardRepository {
@@ -128,7 +130,8 @@ export function createCardRepository(database: Database = db): CardRepository {
       return database.transaction((tx) => {
         const card = tx.select().from(cards).where(eq(cards.id, id)).get();
         if (!card) throw new Error(`Cartão "${id}" não encontrado.`);
-        const snapshot = snapshotOf(tx, card);
+        const [snapshot] = snapshotsOf(tx, [card]);
+        if (!snapshot) throw new Error(`Cartão "${id}" sem retrato.`);
         // Etiquetas, checklist e anexos saem junto (cascata).
         tx.delete(cards).where(eq(cards.id, id)).run();
         return snapshot;
@@ -144,7 +147,7 @@ export function createCardRepository(database: Database = db): CardRepository {
           .where(eq(cards.columnId, columnId))
           .orderBy(asc(cards.position))
           .all();
-        const snapshots = rows.map((card) => snapshotOf(tx, card));
+        const snapshots = snapshotsOf(tx, rows);
         tx.delete(cards).where(eq(cards.columnId, columnId)).run();
         return snapshots;
       });
@@ -159,14 +162,19 @@ export function createCardRepository(database: Database = db): CardRepository {
           .where(and(eq(cards.columnId, fromColumnId), isNull(cards.archivedAt)))
           .orderBy(asc(cards.position))
           .all();
-        for (const card of rows) {
-          insertSnapshot(tx, copySnapshot(snapshotOf(tx, card), toColumnId, now));
-        }
+        insertSnapshots(
+          tx,
+          snapshotsOf(tx, rows).map((snapshot) => copySnapshot(snapshot, toColumnId, now)),
+        );
       });
     },
 
     async restore(snapshot) {
-      database.transaction((tx) => insertSnapshot(tx, snapshot));
+      database.transaction((tx) => insertSnapshots(tx, [snapshot]));
+    },
+
+    async restoreAll(snapshots) {
+      database.transaction((tx) => insertSnapshots(tx, snapshots));
     },
   };
 }

@@ -33,5 +33,5 @@ export async function restoreColumnWithCards(
   { columns, cards }: ColumnRemovalRepositories,
 ): Promise<void> {
   await columns.restore(column);
-  for (const snapshot of cardSnapshots) await cards.restore(snapshot);
+  await cards.restoreAll(cardSnapshots);
 }

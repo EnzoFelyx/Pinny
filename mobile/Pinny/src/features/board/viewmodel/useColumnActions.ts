@@ -5,7 +5,7 @@ import { cardRepository } from '@/features/card/model/cardRepository';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
 
-import { type BoardData, withColumnRenamed } from '../model/boardData';
+import { type BoardData, withColumnRemoved, withColumnRenamed } from '../model/boardData';
 import { duplicateColumn } from '../model/columnCopy';
 import { removeColumnWithCards } from '../model/columnRemoval';
 import { columnRepository } from '../model/columnRepository';
@@ -153,10 +153,12 @@ export function useColumnActions({
   const closeDeleteColumn = useCallback(() => setColumnToDelete(null), []);
 
   // "Excluir" do alerta: apaga a coluna e os cartões dela, com desfazer (chacoalhar ou snackbar).
+  // A coluna some da tela na hora (sem esperar a gravação e a recarga); se falhar, ela volta.
   const confirmDeleteColumn = useCallback(async () => {
     const target = columnToDelete;
     setColumnToDelete(null);
     if (!target) return;
+    if (data) onDataChange(withColumnRemoved(data, target.id));
     try {
       const snapshot = await removeColumnWithCards(target.id, repositories);
       if (!snapshot) return;
@@ -164,9 +166,10 @@ export function useColumnActions({
       await notifyUndoable(text.columnDeleted);
     } catch (error: unknown) {
       console.warn('Falha ao excluir a coluna.', error);
+      if (data) onDataChange(data);
       onSaveError();
     }
-  }, [columnToDelete, notifyUndoable, onSaveError]);
+  }, [columnToDelete, data, onDataChange, notifyUndoable, onSaveError]);
 
   return {
     createColumn,
