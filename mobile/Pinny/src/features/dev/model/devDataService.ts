@@ -1,7 +1,15 @@
 import { count } from 'drizzle-orm';
 
 import { db } from '@/db/client';
-import { boards, cards, checklistItems, columns, folders, preferences } from '@/db/schema';
+import {
+  boards,
+  cardLabels,
+  cards,
+  checklistItems,
+  columns,
+  folders,
+  preferences,
+} from '@/db/schema';
 import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { labelRepository } from '@/features/board/model/labelRepository';
@@ -9,6 +17,7 @@ import type { Card } from '@/features/card/model/card.schema';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { checklistRepository } from '@/features/card/model/checklistRepository';
 import { folderRepository } from '@/features/folders/model/folderRepository';
+import { createId } from '@/utils/id';
 
 // Operações de teste, usadas só pela galeria de desenvolvimento.
 
@@ -143,4 +152,92 @@ export async function createSampleCard(columnId: string): Promise<Card> {
     priority: pick(SAMPLE_PRIORITIES),
     dueAt: hasDueDate ? daysFromNow(Math.round(Math.random() * SAMPLE_MAX_DAYS_AHEAD)) : null,
   });
+}
+
+// Quadro superlotado para testar performance (Ajustes, só em desenvolvimento).
+export interface StressSize {
+  columns: number;
+  cardsPerColumn: number;
+}
+
+export const STRESS_SIZES = {
+  heavy: { columns: 10, cardsPerColumn: 40 },
+  extreme: { columns: 20, cardsPerColumn: 100 },
+} as const satisfies Record<string, StressSize>;
+
+const STRESS_LABEL_EVERY = 3;
+const STRESS_CHECKLIST_EVERY = 5;
+const STRESS_CHECKLIST_ITEMS = 3;
+const STRESS_DUE_DAYS_RANGE = 10;
+
+// Grava tudo numa transação só, com as posições já em ordem (1, 2, 3...): pelo repositório, cada
+// cartão recalcularia os vizinhos e centenas deles levariam muito tempo. Devolve quantos cartões.
+export async function seedStressBoard({ columns: columnCount, cardsPerColumn }: StressSize) {
+  const folder = await folderRepository.create({ title: 'Testes de performance', color: 'peach' });
+  const board = await boardRepository.create(
+    folder.id,
+    `Superlotado ${columnCount} × ${cardsPerColumn}`,
+  );
+  const boardLabels = await Promise.all([
+    labelRepository.create(board.id, { name: 'Estudos', color: 'lavender' }),
+    labelRepository.create(board.id, { name: 'Casa', color: 'mint' }),
+    labelRepository.create(board.id, { name: 'Trabalho', color: 'babyBlue' }),
+  ]);
+
+  const now = new Date().toISOString();
+  db.transaction((tx) => {
+    for (let columnIndex = 0; columnIndex < columnCount; columnIndex += 1) {
+      const columnId = createId();
+      tx.insert(columns)
+        .values({
+          id: columnId,
+          boardId: board.id,
+          title: `Coluna ${columnIndex + 1}`,
+          position: columnIndex + 1,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .run();
+
+      for (let cardIndex = 0; cardIndex < cardsPerColumn; cardIndex += 1) {
+        const cardId = createId();
+        const hasDueDate = Math.random() < 0.5;
+        tx.insert(cards)
+          .values({
+            id: cardId,
+            columnId,
+            title: `${pick(SAMPLE_TITLES)} #${cardIndex + 1}`,
+            priority: pick(SAMPLE_PRIORITIES),
+            dueAt: hasDueDate
+              ? daysFromNow(Math.round(Math.random() * STRESS_DUE_DAYS_RANGE) - 2)
+              : null,
+            position: cardIndex + 1,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .run();
+        if (cardIndex % STRESS_LABEL_EVERY === 0) {
+          tx.insert(cardLabels)
+            .values({ cardId, labelId: pick(boardLabels).id })
+            .run();
+        }
+        if (cardIndex % STRESS_CHECKLIST_EVERY === 0) {
+          for (let item = 0; item < STRESS_CHECKLIST_ITEMS; item += 1) {
+            tx.insert(checklistItems)
+              .values({
+                id: createId(),
+                cardId,
+                text: `Subtarefa ${item + 1}`,
+                isDone: item === 0,
+                position: item + 1,
+                createdAt: now,
+                updatedAt: now,
+              })
+              .run();
+          }
+        }
+      }
+    }
+  });
+  return columnCount * cardsPerColumn;
 }

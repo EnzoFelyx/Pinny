@@ -172,6 +172,13 @@ export const ptBR = {
   voice: {},
   automations: {},
   settings: {
+    // Ferramentas de desenvolvimento (só em __DEV__).
+    stressHeavy: 'Criar quadro superlotado (10 × 40)',
+    stressExtreme: 'Criar quadro superlotado extremo (20 × 100)',
+    stressCreating: 'Criando o quadro superlotado…',
+    stressCreated: (cards: number, seconds: string) =>
+      `Quadro superlotado criado com ${cards} cartões em ${seconds} s, na pasta "Testes de performance".`,
+    stressError: 'Não deu para criar o quadro superlotado. Veja o terminal do Metro.',
     title: 'Ajustes',
     componentGallery: 'Galeria de componentes (dev)',
   },
