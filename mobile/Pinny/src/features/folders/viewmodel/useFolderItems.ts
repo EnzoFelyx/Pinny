@@ -26,16 +26,17 @@ export interface HomeFolderItem {
   color: LabelColor;
   boardCountText: string;
   accessibilityLabel: string;
-  renameAccessibilityLabel: string;
+  optionsAccessibilityLabel: string;
   createBoardAccessibilityLabel: string;
   // Texto do "+" quando a pasta está vazia (null = ela já tem quadros).
   createFirstBoardText: string | null;
   emptyText: string | null;
   boards: HomeBoardItem[];
-  // Na Início: os primeiros quadros e, se houver mais, o texto do "+N quadros".
+  // Na Início: os primeiros quadros e, se houver mais, o link para a tela da pasta.
   previewBoards: HomeBoardItem[];
-  moreBoardsText: string | null;
-  moreBoardsAccessibilityLabel: string;
+  // Texto do link "+N ›" (quadros que ficaram de fora; null = todos cabem).
+  seeAllText: string | null;
+  seeAllAccessibilityLabel: string;
 }
 
 export function toBoardItem(board: { id: string; title: string }, index: number): HomeBoardItem {
@@ -57,14 +58,14 @@ export function toFolderItem({ folder, boards }: FolderWithBoards): HomeFolderIt
     color: folder.color,
     boardCountText: text.boardCount(boards.length),
     accessibilityLabel: text.folderSummary(folder.title, boards.length),
-    renameAccessibilityLabel: text.renameFolderA11y(folder.title),
+    optionsAccessibilityLabel: text.folderOptionsA11y(folder.title),
     createBoardAccessibilityLabel: text.createBoardA11y(folder.title),
     createFirstBoardText: boards.length === 0 ? text.createFirstBoard : null,
     emptyText: boards.length === 0 ? text.emptyFolder : null,
     boards: boardItems,
     previewBoards: hasMore ? boardItems.slice(0, HOME_PREVIEW_BOARDS) : boardItems,
-    moreBoardsText: hasMore ? text.moreBoards(boards.length - HOME_PREVIEW_BOARDS) : null,
-    moreBoardsAccessibilityLabel: text.moreBoardsA11y(folder.title, boards.length),
+    seeAllText: hasMore ? text.seeAllBoards(boards.length - HOME_PREVIEW_BOARDS) : null,
+    seeAllAccessibilityLabel: text.moreBoardsA11y(folder.title, boards.length),
   };
 }
 

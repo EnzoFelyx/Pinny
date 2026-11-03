@@ -47,7 +47,7 @@ export function HomeScreen() {
               key={folder.id}
               folder={folder}
               onOpenBoard={vm.openBoard}
-              onRename={vm.renameFolder}
+              actions={vm.folderActions}
               onCreateBoard={vm.createBoard}
               onOpenFolder={vm.openFolder}
             />

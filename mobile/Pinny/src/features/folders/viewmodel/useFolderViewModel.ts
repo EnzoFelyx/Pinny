@@ -13,6 +13,8 @@ import { toBoardItem } from './useFolderItems';
 
 const text = ptBR.folders;
 
+function noop() {}
+
 // Tela da pasta ("+N quadros" na Início): todos os quadros dela, com busca pelo nome. Carrega ao
 // abrir e recarrega quando o banco muda (ex.: quadro criado pela folha "Novo quadro").
 export function useFolderViewModel(folderId: string) {
@@ -47,22 +49,6 @@ export function useFolderViewModel(folderId: string) {
     };
   }, [folderId]);
 
-  // Nome editado no título: aparece na hora; se a gravação falhar, o antigo volta.
-  const renameFolder = useCallback(
-    async (title: string) => {
-      if (!data || data.folder.title === title) return;
-      setData({ ...data, folder: { ...data.folder, title } });
-      try {
-        await folderRepository.rename(folderId, title);
-      } catch (error: unknown) {
-        console.warn('Falha ao renomear a pasta.', error);
-        setData(data);
-        setErrorText(ptBR.common.saveError);
-      }
-    },
-    [data, folderId],
-  );
-
   const boards = (data?.boards ?? []).map(toBoardItem);
   const search = normalizeForSearch(query);
   const visibleBoards = search
@@ -85,7 +71,6 @@ export function useFolderViewModel(folderId: string) {
     boards: visibleBoards,
     noResultsText: noResults ? text.folderScreen.noResults(query) : null,
     createBoardAccessibilityLabel: text.createBoardA11y(data?.folder.title ?? ''),
-    renameFolder,
     openBoard: useCallback((boardId: string) => {
       router.push({ pathname: '/board/[boardId]', params: { boardId } });
     }, []),
@@ -97,6 +82,13 @@ export function useFolderViewModel(folderId: string) {
         params: title ? { folderId, title } : { folderId },
       });
     },
+    // Tocar no nome ou "Personalizar" no "…": por enquanto, a folha de renomear (cor e ícone
+    // chegam na etapa 8).
+    customizeFolder: useCallback(() => {
+      router.push({ pathname: '/folder/[folderId]/rename', params: { folderId } });
+    }, [folderId]),
+    // Fixar no topo da Início: ainda não faz nada.
+    pinFolder: noop,
     goBack: router.back,
   };
 }

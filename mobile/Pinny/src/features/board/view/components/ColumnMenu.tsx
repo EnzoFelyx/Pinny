@@ -1,14 +1,9 @@
-import { Button, Divider, Host, Image, Menu } from '@expo/ui/swift-ui';
-import { accessibilityLabel, contentShape, frame, shapes } from '@expo/ui/swift-ui/modifiers';
-import { StyleSheet } from 'react-native';
+import { Button, Divider } from '@expo/ui/swift-ui';
 
+import { IconMenu } from '@/components/IconMenu';
 import { ptBR } from '@/i18n/pt-BR';
-import { colors } from '@/theme';
 
 const text = ptBR.board.columnMenu;
-const ICON_SIZE = 18;
-// Área de toque mínima do iOS.
-const TOUCH_SIZE = 44;
 
 interface ColumnMenuProps {
   columnId: string;
@@ -32,55 +27,35 @@ export function ColumnMenu({
   onDelete,
 }: ColumnMenuProps) {
   return (
-    <Host style={styles.host}>
-      <Menu
-        label={
-          <Image
-            systemName="ellipsis"
-            size={ICON_SIZE}
-            color={colors.textSecondary}
-            modifiers={[
-              frame({ width: TOUCH_SIZE, height: TOUCH_SIZE }),
-              contentShape(shapes.rectangle()),
-              accessibilityLabel(ptBR.board.columnOptions),
-            ]}
-          />
-        }
-      >
-        <Button label={text.addCard} systemImage="plus" onPress={() => onAddCard(columnId)} />
-        {canMoveBackward ? (
-          <Button
-            label={text.moveBackward}
-            systemImage="arrow.left"
-            onPress={() => onMove(columnId, -1)}
-          />
-        ) : null}
-        {canMoveForward ? (
-          <Button
-            label={text.moveForward}
-            systemImage="arrow.right"
-            onPress={() => onMove(columnId, 1)}
-          />
-        ) : null}
+    <IconMenu accessibilityLabel={ptBR.board.columnOptions}>
+      <Button label={text.addCard} systemImage="plus" onPress={() => onAddCard(columnId)} />
+      {canMoveBackward ? (
         <Button
-          label={text.duplicate}
-          systemImage="plus.square.on.square"
-          onPress={() => onDuplicate(columnId)}
+          label={text.moveBackward}
+          systemImage="arrow.left"
+          onPress={() => onMove(columnId, -1)}
         />
-        {/* Ação destrutiva separada das outras, como no iOS. */}
-        <Divider />
+      ) : null}
+      {canMoveForward ? (
         <Button
-          label={text.delete}
-          systemImage="trash"
-          role="destructive"
-          onPress={() => onDelete(columnId)}
+          label={text.moveForward}
+          systemImage="arrow.right"
+          onPress={() => onMove(columnId, 1)}
         />
-      </Menu>
-    </Host>
+      ) : null}
+      <Button
+        label={text.duplicate}
+        systemImage="plus.square.on.square"
+        onPress={() => onDuplicate(columnId)}
+      />
+      {/* Ação destrutiva separada das outras, como no iOS. */}
+      <Divider />
+      <Button
+        label={text.delete}
+        systemImage="trash"
+        role="destructive"
+        onPress={() => onDelete(columnId)}
+      />
+    </IconMenu>
   );
 }
-
-// Host do SwiftUI não aceita className (REGRAS.md, regra 5).
-const styles = StyleSheet.create({
-  host: { width: TOUCH_SIZE, height: TOUCH_SIZE },
-});

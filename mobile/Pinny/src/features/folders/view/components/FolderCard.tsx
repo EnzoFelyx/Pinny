@@ -1,19 +1,17 @@
-import { Pencil } from 'lucide-react-native';
 import { memo } from 'react';
-import { Pressable, Text, View } from 'react-native';
-
-import { colors } from '@/theme';
+import { Text, View } from 'react-native';
 
 import type { HomeFolderItem } from '../../viewmodel/useFolderItems';
 import { folderIcons, folderInkColors } from '../folderAppearance';
 import { AddBoardTile } from './AddBoardTile';
 import { BoardGrid } from './BoardGrid';
+import { type FolderCardActions, FolderCardMenu } from './FolderCardMenu';
 
 interface FolderCardProps {
   folder: HomeFolderItem;
   onOpenBoard: (boardId: string) => void;
-  // Sem onRename (ex.: na busca), o lápis não aparece.
-  onRename?: (folderId: string) => void;
+  // Sem actions (ex.: na busca), o "⋮" não aparece.
+  actions?: FolderCardActions;
   // Sem onCreateBoard (ex.: na busca), o "+" depois dos quadros não aparece.
   onCreateBoard?: (folderId: string) => void;
   // Com ele (Início), a pasta mostra só os primeiros quadros e "+N quadros" abre a pasta.
@@ -21,12 +19,11 @@ interface FolderCardProps {
 }
 
 const FOLDER_ICON_SIZE = 22;
-const PENCIL_SIZE = 15;
 
 export const FolderCard = memo(function FolderCard({
   folder,
   onOpenBoard,
-  onRename,
+  actions,
   onCreateBoard,
   onOpenFolder,
 }: FolderCardProps) {
@@ -39,13 +36,15 @@ export const FolderCard = memo(function FolderCard({
       }
     : undefined;
   const more =
-    onOpenFolder && folder.moreBoardsText
+    onOpenFolder && folder.seeAllText
       ? {
-          label: folder.moreBoardsText,
-          accessibilityLabel: folder.moreBoardsAccessibilityLabel,
+          label: folder.seeAllText,
+          accessibilityLabel: folder.seeAllAccessibilityLabel,
           onPress: () => onOpenFolder(folder.id),
         }
       : undefined;
+  // Na Início, o contador fica embaixo do nome (o nome usa a linha toda); na busca, à direita.
+  const isCountBelow = onOpenFolder !== undefined;
 
   return (
     <View className="gap-[11px] rounded-[24px] bg-surface p-4">
@@ -57,20 +56,31 @@ export const FolderCard = memo(function FolderCard({
           className="flex-1 flex-row items-center gap-[9px]"
         >
           <Icon size={FOLDER_ICON_SIZE} color={inkColor} />
-          <Text numberOfLines={1} className="flex-1 text-subtitle text-text-primary">
-            {folder.title}
-          </Text>
-          <Text className="text-caption text-text-secondary">{folder.boardCountText}</Text>
+          {isCountBelow ? (
+            <View className="flex-1">
+              <Text numberOfLines={1} className="text-subtitle text-text-primary">
+                {folder.title}
+              </Text>
+              <Text className="text-caption text-text-secondary">{folder.boardCountText}</Text>
+            </View>
+          ) : (
+            <>
+              <Text numberOfLines={1} className="flex-1 text-subtitle text-text-primary">
+                {folder.title}
+              </Text>
+              <Text className="text-caption text-text-secondary">{folder.boardCountText}</Text>
+            </>
+          )}
         </View>
-        {onRename ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={folder.renameAccessibilityLabel}
-            onPress={() => onRename(folder.id)}
-            className="-my-3 -mr-3 h-11 w-11 items-center justify-center rounded-full active:opacity-60"
-          >
-            <Pencil size={PENCIL_SIZE} color={colors.textSecondary} />
-          </Pressable>
+        {actions ? (
+          // Margens negativas: a área de toque de 44pt não aumenta a altura do cabeçalho.
+          <View className="-my-3 -mr-3">
+            <FolderCardMenu
+              folderId={folder.id}
+              accessibilityLabel={folder.optionsAccessibilityLabel}
+              actions={actions}
+            />
+          </View>
         ) : null}
       </View>
 

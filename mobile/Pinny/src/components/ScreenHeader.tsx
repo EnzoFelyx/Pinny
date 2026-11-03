@@ -17,8 +17,11 @@ interface ScreenHeaderProps {
   isLoading: boolean;
   errorText: string | null;
   onBack: () => void;
-  onRename: (title: string) => void;
-  // Textos do leitor de tela da edição do título (ex.: "Renomear quadro").
+  // Título editado ali mesmo (quadro). Sem ele, o título é só leitura ou usa onTitlePress.
+  onRename?: (title: string) => void;
+  // Toque no título faz outra coisa (ex.: a pasta abre a folha "Personalizar").
+  onTitlePress?: () => void;
+  // Textos do leitor de tela do toque no título (ex.: "Renomear quadro").
   renameLabels: { action: string; hint: string; input: string };
   // Antes do título (ex.: ícone e cor da pasta).
   leading?: ReactNode;
@@ -35,6 +38,7 @@ export function ScreenHeader({
   errorText,
   onBack,
   onRename,
+  onTitlePress,
   renameLabels,
   leading,
   renderMenu,
@@ -72,6 +76,7 @@ export function ScreenHeader({
               renameActionLabel={renameLabels.action}
               renameHint={renameLabels.hint}
               inputLabel={renameLabels.input}
+              onPress={onTitlePress}
             />
           </Animated.View>
         )}

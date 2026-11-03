@@ -20,11 +20,11 @@ interface BoardGridProps {
   onOpenBoard: (boardId: string) => void;
   // "+" sempre depois do último quadro (sem ele, não aparece).
   add?: TileAction;
-  // "+N quadros" (Início): divide a última vaga com o "+".
+  // "+N ›" (Início): divide a última vaga com o "+", depois dele.
   more?: TileAction & { label: string };
 }
 
-// Item da grade: um quadro, o "+" ou o "+N quadros" (com o "+" ao lado).
+// Item da grade: um quadro, o "+" ou o "+" seguido do "+N ›".
 type Tile = { kind: 'board'; board: HomeBoardItem } | { kind: 'add' } | { kind: 'more' };
 
 function tileKey(tile: Tile): string {
@@ -68,12 +68,12 @@ export function BoardGrid({ boards, noteColor, onOpenBoard, add, more }: BoardGr
     if (tile.kind === 'more' && more) {
       return (
         <View key="more" className="flex-1 flex-row gap-2.5">
+          {addTile}
           <MoreBoardsTile
             label={more.label}
             accessibilityLabel={more.accessibilityLabel}
             onPress={more.onPress}
           />
-          {addTile}
         </View>
       );
     }

@@ -13,7 +13,7 @@ import { colors, duration } from '@/theme';
 import { useFolderViewModel } from '../viewmodel/useFolderViewModel';
 import { BoardGrid } from './components/BoardGrid';
 import { FolderBadge } from './components/FolderBadge';
-import { folderRenameLabels, renderFolderMenu } from './components/FolderMenu';
+import { FolderMenu, folderTitleLabels } from './components/FolderMenu';
 import { FolderSkeleton } from './components/FolderSkeleton';
 import { folderInkColors } from './folderAppearance';
 
@@ -36,10 +36,16 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
         isLoading={vm.isLoading}
         errorText={vm.errorText}
         onBack={vm.goBack}
-        onRename={vm.renameFolder}
-        renameLabels={folderRenameLabels}
+        onTitlePress={vm.customizeFolder}
+        renameLabels={folderTitleLabels}
         leading={vm.isLoading ? null : <FolderBadge icon={vm.icon} color={vm.color} />}
-        renderMenu={renderFolderMenu}
+        renderMenu={() => (
+          <FolderMenu
+            onCustomize={vm.customizeFolder}
+            onCreateBoard={vm.createBoard}
+            onPin={vm.pinFolder}
+          />
+        )}
       />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-4 px-6 pb-12">
         {vm.isLoading ? (

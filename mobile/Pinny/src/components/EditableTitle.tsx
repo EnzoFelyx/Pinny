@@ -12,6 +12,8 @@ interface EditableTitleProps {
   renameActionLabel: string;
   renameHint: string;
   inputLabel: string;
+  // Toque no título faz outra coisa em vez de editar ali mesmo (ex.: pasta abre "Personalizar").
+  onPress?: () => void;
 }
 
 // Título e subtítulo do topo de uma tela (quadro, pasta). Tocar no nome edita ali mesmo, como
@@ -23,12 +25,15 @@ export function EditableTitle({
   renameActionLabel,
   renameHint,
   inputLabel,
+  onPress,
 }: EditableTitleProps) {
   const { draft, canRename, changeDraft, startEditing, finishEditing } = rename;
   const renameAction = [{ name: 'activate', label: renameActionLabel }];
+  // O que o toque no título faz: a ação da tela ou editar ali mesmo (sem nenhuma, só leitura).
+  const pressAction = onPress ?? (canRename ? startEditing : undefined);
 
   const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
-    if (event.nativeEvent.actionName === 'activate') startEditing();
+    if (event.nativeEvent.actionName === 'activate') pressAction?.();
   };
 
   return (
@@ -51,11 +56,11 @@ export function EditableTitle({
         <Pressable
           accessibilityRole="header"
           accessibilityLabel={title}
-          accessibilityHint={canRename ? renameHint : undefined}
-          accessibilityActions={canRename ? renameAction : undefined}
+          accessibilityHint={pressAction ? renameHint : undefined}
+          accessibilityActions={pressAction ? renameAction : undefined}
           onAccessibilityAction={handleAccessibilityAction}
-          disabled={!canRename}
-          onPress={startEditing}
+          disabled={!pressAction}
+          onPress={pressAction}
           className="active:opacity-60"
         >
           <Text numberOfLines={1} className="text-header-title text-text-primary">

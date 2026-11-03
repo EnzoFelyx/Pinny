@@ -28,11 +28,18 @@ export const ptBR = {
     boardCount: (count: number) => (count === 1 ? '1 quadro' : `${count} quadros`),
     folderSummary: (title: string, count: number) =>
       `Pasta ${title}, ${count === 1 ? '1 quadro' : `${count} quadros`}`,
-    renameFolderA11y: (title: string) => `Renomear a pasta ${title}`,
+    folderOptionsA11y: (title: string) => `Opções da pasta ${title}`,
+    folderMenu: {
+      customize: 'Personalizar',
+      newBoard: 'Novo quadro',
+      pin: 'Fixar no topo',
+      delete: 'Apagar pasta',
+    },
     openBoardA11y: (title: string) => `Abrir o quadro ${title}`,
     createBoardA11y: (folderTitle: string) => `Criar um quadro na pasta ${folderTitle}`,
     createFirstBoard: 'Criar o primeiro quadro',
-    moreBoards: (count: number) => (count === 1 ? '+1 quadro' : `+${count} quadros`),
+    // Quantos quadros ficaram de fora da Início (o resto está na tela da pasta).
+    seeAllBoards: (hidden: number) => `+${hidden}`,
     moreBoardsA11y: (title: string, total: number) => `Ver os ${total} quadros da pasta ${title}`,
     // Tela da pasta (todos os quadros).
     folderScreen: {
@@ -43,8 +50,8 @@ export const ptBR = {
       createBoard: 'Criar quadro',
       noResults: (query: string) => `Nenhum quadro com "${query}".`,
       options: 'Opções da pasta',
-      rename: 'Renomear pasta',
-      renameHint: 'Toque duas vezes para renomear.',
+      customize: 'Personalizar pasta',
+      customizeHint: 'Toque duas vezes para personalizar.',
       delete: 'Excluir pasta',
       loading: 'Carregando a pasta',
     },
