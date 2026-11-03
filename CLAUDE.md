@@ -143,7 +143,7 @@ Texto sobre os acentos pastéis usa sempre `textPrimary` (9,4 a 10,3:1).
 ### 5.1 Quadro kanban
 
 - **Colunas customizáveis:** criar, renomear (título editável) e excluir. Cada coluna mostra um contador de cards.
-- **Cards infinitos** por coluna, o que exige listas performáticas e virtualizadas.
+- **Muitos cartões por quadro**, com meta medível (decisão de 2026-11-03): fluido a 60fps até **~300 cartões por quadro** num aparelho intermediário e, com milhares (teste do quadro superlotado), sem travar nem fechar. O uso real de lembretes e rotina fica bem abaixo disso. Virtualização ficou para depois da v1 (seção 10).
 - **Arrastar cards** dentro da mesma coluna e entre colunas, com animação fluida.
 - **Reordenar colunas** com "hold & drop": segurar e arrastar.
 - **Arraste em lote:** modo de seleção múltipla para mover vários cards juntos.
@@ -315,7 +315,7 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
   - **Sem rótulos visíveis e ícones de 26pt**, decisão do autor em 2026-10-28: o Liquid Glass do iOS 26 ignora a cor de texto dos itens não focados. Cada aba tem `accessibilityLabel` para o VoiceOver.
   - Ícones: não focado = contorno em `textSecondary` (`#6F6A62`; o `#827C73` do Figma ficava apagado no vidro); focado = **versão preenchida** em `onSecondary` (`tab-x-active.svg`, com detalhes vazados em `surface`), para a aba ativa não depender só de cor. No iOS, os ícones são gerados **já coloridos** em modo `original` (`plugins/tabBarColors.js`, exceção `COR-HARDCODED`), porque o vidro ignora a cor de ícones `template`.
   - **Busca na aba separada (2026-10-28):** o círculo de vidro ao lado da barra é a aba `search` (`role="search"`, iOS 26.1+), com a barra de busca nativa (`Stack.SearchBar` em `(tabs)/search/`). Busca pastas e quadros sem diferenciar acentos. Em iOS mais antigo, aparece como mais um item da barra. A Início não tem mais campo de busca.
-  - **"+" no topo da Início (2026-10-28):** no lugar do avatar com as iniciais, um botão redondo de **45pt** (padrão de todos os botões de vidro do app desde 2026-10-30; antes 50pt) com Liquid Glass (`GlassIconButton`, `expo-glass-effect`; sem a expansão do vidro ao toque, só escurece) abre a folha "Nova pasta". Sem Liquid Glass, vira uma superfície clara com borda.
+  - **"+" no topo da Início (2026-10-28):** no lugar do avatar com as iniciais, um botão redondo de **40pt** (padrão de todos os botões de vidro do app desde 2026-11-03; antes 45pt e, até 2026-10-30, 50pt), com ícone de 20 e área de toque de 44pt completada por fora (`hitSlop`) com Liquid Glass (`GlassIconButton`, `expo-glass-effect`; sem a expansão do vidro ao toque, só escurece) abre a folha "Nova pasta". Sem Liquid Glass, vira uma superfície clara com borda.
   - **Folhas nativas do iOS (2026-10-28):** o `@gorhom/bottom-sheet` não abria dentro da navegação nativa e foi removido. Cada folha é uma rota do `Stack` raiz com `presentation: 'formSheet'` e altura pelo conteúdo (`sheetScreenOptions` em `app/_layout.tsx`), com o conteúdo em `SheetLayout`. Ex.: `/folder/new` e `/folder/[folderId]/rename`. O puxador, o arraste e o teclado são do sistema.
   - Telas por cima das abas usam o `Stack` raiz com só o botão de voltar. **Exceção: o quadro (2026-10-30)** esconde a barra nativa e desenha o próprio topo (`BoardHeader`), com voltar, título e "…" na mesma linha, como no Figma, usando o `GlassIconButton`. O gesto de voltar pela borda continua do sistema.
   - A galeria de componentes saiu da rota inicial: agora fica em `/dev/gallery`, aberta por Ajustes **só em `__DEV__`**.
@@ -340,7 +340,8 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
   - O objeto `drag` repassado às colunas e aos cartões tem identidade fixa: estado do React (ex.: `activeCardId`) fica fora dele, e as ações do ViewModel passam por `useBoardActions` (`useStableCallback`, em `src/hooks`).
   - **Worklets de mapper (`useAnimatedStyle`, `useDerivedValue`, preparo do `useAnimatedReaction`) nunca capturam o objeto `drag` ou `column` inteiro**: desestruture só os shared values lidos. O Reanimated torna dependência todo shared value dentro do objeto capturado, e o mapper rodaria a cada quadro do arraste em todos os cartões.
   - A recarga do banco reaproveita os itens que não mudaram (`toColumnItems`) e junta os avisos do banco numa carga só; as alturas entram em lote (`useHeightBatch`); as colunas montam uma por quadro depois das 2 primeiras.
-  - Próximo passo (lembrete na 6.4 do `todo.md`): virtualizar os cartões e as colunas.
+  - Virtualização dos cartões e das colunas: fora da v1 (seção 10).
+- **Menu e título do quadro (etapa 6.4, 2026-11-03):** o "…" do topo abre o menu nativo (`BoardMenu`, `@expo/ui`), em três grupos: Filtrar…, Selecionar cartões, Nova coluna, Reorganizar colunas · Renomear quadro, Duplicar quadro, Mover para outra pasta · Excluir quadro (vermelho). Só "Renomear quadro" funciona por enquanto. "Reorganizar colunas" (modo lista, colunas como linhas arrastáveis na vertical) e o arraste direto das colunas no quadro coexistem (decisão do autor). O título do quadro usa `text-header-title` (20) e é renomeado ali mesmo, como o da coluna (`useInlineRename`, em `src/hooks`, compartilhado pelos dois): tocar no nome ou "Renomear quadro" no menu; entra no histórico ("Renomeação de Quadro").
 - **Campo de texto (2026-11-02):** em foco, só a borda do campo e o ícone ficam em `primary` (sem a moldura em volta do componente).
 - **Puxar para excluir coluna (2026-10-29; exclusão de verdade em 2026-11-02):** puxar a coluna para baixo além de `pullToDelete.distance` e segurar `holdMs` (0,5 s) enche um anel vermelho (`alert`) em volta da lixeira, que fica atrás da coluna (`PullToDeleteIndicator`, `usePullToDelete`). Ao completar, abre o alerta nativo "Excluir a coluna?". "Excluir" apaga a coluna e todos os cartões dela, inclusive arquivados (`removeColumnWithCards`, com retrato de cada cartão: etiquetas, checklist e anexos), registra "Exclusão de Coluna" no histórico e mostra o aviso de desfazer. Desfazer recria tudo com os mesmos ids e posições, e o quadro rola até a coluna.
 - **Desfazer ao chacoalhar (antecipado na etapa 6.1, 2026-10-29):**
@@ -365,7 +366,7 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
 Pontos de partida para quando cada etapa chegar. Confirme com o autor antes de adotar qualquer um.
 
 - `react-native-reanimated` e `react-native-gesture-handler` para animações e arraste.
-- Lista virtualizada performática para os cards infinitos (ex.: FlashList).
+- Lista virtualizada para quadros muito grandes: adiada para depois da v1 (seção 10).
 - Gerenciamento de estado e persistência local (o app deve funcionar offline).
 - Notificações locais para lembretes.
 - Acesso ao calendário do aparelho, câmera e galeria.
@@ -382,6 +383,7 @@ Funcionalidades já desejadas, mas fora da primeira versão:
 - **Pet/mascote fofo** (animal ou robô) que reage às interações do usuário. Ele pode ter o mesmo nome do app.
 - **Tema claro/escuro.**
 - **Cores e tema personalizáveis**, incluindo cor por coluna.
+- **Virtualização do quadro** (adiada em 2026-11-03): montar só os cartões visíveis de cada coluna (mais uma margem), usando as posições absolutas e as alturas que o arraste já calcula, e só as colunas perto da tela (com um espaço do mesmo tamanho no lugar das outras). Alternativa mais simples: paginar a montagem (ex.: 30 cartões por vez, mais ao rolar). Os dados continuam carregados inteiros; só a montagem é limitada. Cuidados: o cartão segurado nunca é desmontado durante o arraste, e o VoiceOver só enxerga o que está montado.
 
 ---
 

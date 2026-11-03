@@ -186,7 +186,10 @@
 
 ### 6.4 — Reordenar colunas
 - [x] Skeleton loading do quadro (enquanto carrega): 2 colunas com 4 e 3 cartões, shimmer no estilo do YouTube, sem tempo mínimo.
-- [ ] Menu "…" do topo do quadro (com "Nova coluna"), adiado da 6.3
+- [ ] Menu "…" do topo do quadro (menu nativo, igual ao da coluna), adiado da 6.3. Ordem decidida (2026-11-02):
+  - Grupo 1: Filtrar… · Selecionar cartões · Nova coluna · Reorganizar colunas
+  - Grupo 2: Renomear quadro · Duplicar quadro · Mover para outra pasta
+  - Grupo 3: Excluir quadro (vermelho, com desfazer)
 - [ ] Reordenar colunas segurando e arrastando
 - [ ] Refatorar o `useBoardDrag.ts` (252 linhas) para ficar abaixo de ~200
 - [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)
@@ -196,15 +199,14 @@
   - [x] Alturas dos cartões gravadas em lote (uma vez por quadro de animação)
   - [x] Animações de cada cartão dependem só dos valores que leem (antes rodavam a cada quadro do arraste, em todos os cartões)
   - [x] Montagem progressiva: uma coluna por quadro depois das 2 primeiras
-  - [ ] Medir de novo no quadro superlotado (20 × 100) em build de release
-  - [ ] 🔁 **Lembrete (F): virtualizar os cartões de cada coluna** (montar só os visíveis + uma margem, usando as posições absolutas que já existem). Junto, avaliar a "paginação" de renderização: cartões por coluna (ex.: 30 por vez, mais ao rolar) e colunas (montar só as próximas da tela, com um espaço do mesmo tamanho no lugar das outras). Os dados continuam carregados inteiros; só a montagem é limitada
+  - [ ] Medir em build de release: fluido até ~300 cartões (10 × 40 superlotado) e sem travar nem fechar com 2.000 (20 × 100)
+  - Virtualização e paginação da montagem: fora da v1 (decisão do autor, 2026-11-03), ver Roadmap no CLAUDE.md
 
 ### 6.5 — Seleção em lote
 - [ ] Modo de seleção múltipla e arraste em lote
 
-### 6.6 — Virtualização e desempenho
-- [ ] Lista virtualizada de cards por coluna (montar só os cartões visíveis)
-- [ ] Medir 60fps em build de release
+### 6.6 — Desempenho
+- [ ] Medir 60fps em build de release com ~300 cartões num aparelho intermediário
 - [ ] Testes do ViewModel do quadro (quando os testes voltarem)
 
 **Pronto quando:** o arraste rodar a 60fps em build de release num Android intermediário, e todas as ações também funcionarem pelo VoiceOver e pelo TalkBack.

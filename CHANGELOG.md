@@ -7,6 +7,25 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-03 — Etapa 6.4 (menu e título do quadro)
+
+### Adicionado
+
+- Menu "…" do topo do quadro (menu nativo do iOS) em três grupos: Filtrar…, Selecionar cartões, Nova coluna, Reorganizar colunas · Renomear quadro, Duplicar quadro, Mover para outra pasta · Excluir quadro. Só "Renomear quadro" funciona por enquanto. (`f3aff4f`)
+- Renomear o quadro direto no título (tocar no nome ou "Renomear quadro" no menu), com desfazer ("Renomeação de Quadro"). (`f3aff4f`)
+
+### Alterado
+
+- Botões de vidro (voltar, "…" e o "+" da Início) com 40pt e ícone de 20 (antes 45 e 22), mantendo a área de toque de 44pt. (`f3aff4f`)
+- Título do quadro em 20 (token `header-title`, antes 22) e mais espaço entre o topo da tela e o cabeçalho (16pt, antes 8). (`f3aff4f`)
+- A edição de título no lugar virou um hook compartilhado (`useInlineRename`), usado pela coluna e pelo quadro. (`f3aff4f`)
+
+### Documentação
+
+- Meta de desempenho da v1 definida: fluido até ~300 cartões por quadro num aparelho intermediário e sem travar com milhares. A virtualização (cartões e colunas) saiu da v1 e foi para o Roadmap (`CLAUDE.md`, `REGRAS.md` e `todo.md`).
+
+---
+
 ## 2026-11-02 — Etapa 6.4 (performance)
 
 ### Adicionado
