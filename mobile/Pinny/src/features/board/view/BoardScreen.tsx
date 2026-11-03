@@ -116,7 +116,7 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
         isLoading={showSkeleton}
         errorText={vm.errorText}
         onBack={vm.goBack}
-        onOpenMenu={vm.openBoardMenu}
+        onRename={vm.renameBoard}
       />
 
       <BoardToolbar isLoading={showSkeleton} />

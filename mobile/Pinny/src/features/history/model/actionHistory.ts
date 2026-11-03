@@ -6,6 +6,7 @@ import {
   removeColumnWithCards,
   restoreColumnWithCards,
 } from '@/features/board/model/columnRemoval';
+import type { BoardRepository } from '@/features/board/model/boardRepository';
 import type { ColumnRepository } from '@/features/board/model/columnRepository';
 
 // Histórico de ações (base do "Desfazer"). Cada entrada guarda como voltar ao estado anterior.
@@ -28,6 +29,8 @@ export type UndoOperation =
   | { kind: 'moveColumn'; columnId: string; position: number }
   // Desfaz uma renomeação: volta ao nome anterior.
   | { kind: 'renameColumn'; columnId: string; title: string }
+  // Desfaz uma renomeação de quadro: volta ao nome anterior.
+  | { kind: 'renameBoard'; boardId: string; title: string }
   // Várias operações como uma ação só (ex.: criar a coluna e levar o cartão para ela). Desfaz na
   // ordem dada; a inversa refaz na ordem contrária.
   | { kind: 'sequence'; operations: UndoOperation[] };
@@ -61,6 +64,7 @@ export function popEntry(history: readonly HistoryEntry[]): {
 export interface UndoRepositories {
   cards: CardRepository;
   columns: ColumnRepository;
+  boards: BoardRepository;
 }
 
 // Campos do patch com os valores atuais do cartão: o que é preciso para voltar uma edição.
@@ -75,7 +79,7 @@ export async function applyUndo(
   operation: UndoOperation,
   repositories: UndoRepositories,
 ): Promise<UndoOperation | null> {
-  const { cards, columns } = repositories;
+  const { cards, columns, boards } = repositories;
   switch (operation.kind) {
     case 'deleteCard': {
       const snapshot = await cards.remove(operation.cardId);
@@ -133,6 +137,12 @@ export async function applyUndo(
       if (!before) return null;
       await columns.rename(operation.columnId, operation.title);
       return { kind: 'renameColumn', columnId: before.id, title: before.title };
+    }
+    case 'renameBoard': {
+      const before = await boards.getById(operation.boardId);
+      if (!before) return null;
+      await boards.rename(operation.boardId, operation.title);
+      return { kind: 'renameBoard', boardId: before.id, title: before.title };
     }
   }
 }

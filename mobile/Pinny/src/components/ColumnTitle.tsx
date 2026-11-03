@@ -1,7 +1,7 @@
 import { Pencil } from 'lucide-react-native';
-import { useState } from 'react';
 import { type AccessibilityActionEvent, Pressable, Text, TextInput, View } from 'react-native';
 
+import { useInlineRename } from '@/hooks/useInlineRename';
 import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
@@ -19,22 +19,11 @@ const renameAction = [{ name: 'activate', label: ptBR.board.renameColumn }] as c
 // Lápis, nome e contagem da coluna (Figma "Título editável da coluna"). Tocar no lápis ou no nome
 // edita ali mesmo: "OK" ou tocar fora salva, e nome vazio volta ao anterior.
 export function ColumnTitle({ title, cardCount, onRename, onEditingChange }: ColumnTitleProps) {
-  const [draft, setDraft] = useState<string | null>(null);
-  const isEditing = draft !== null;
-
-  const startEditing = () => {
-    if (!onRename) return;
-    setDraft(title);
-    onEditingChange?.(true);
-  };
-
-  // Só no blur: o "OK" do teclado também tira o foco, então salvar aqui evita salvar duas vezes.
-  const finishEditing = () => {
-    const next = draft?.trim() ?? '';
-    setDraft(null);
-    onEditingChange?.(false);
-    if (next && next !== title) onRename?.(next);
-  };
+  const { draft, changeDraft, startEditing, finishEditing } = useInlineRename({
+    title,
+    onRename,
+    onEditingChange,
+  });
 
   const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
     if (event.nativeEvent.actionName === 'activate') startEditing();
@@ -47,13 +36,13 @@ export function ColumnTitle({ title, cardCount, onRename, onEditingChange }: Col
     </View>
   );
 
-  if (isEditing) {
+  if (draft !== null) {
     return (
       <View className="flex-1 flex-row items-center gap-2">
         <Pencil size={PENCIL_ICON_SIZE} color={colors.primary} />
         <TextInput
           value={draft}
-          onChangeText={setDraft}
+          onChangeText={changeDraft}
           onBlur={finishEditing}
           autoFocus
           selectTextOnFocus

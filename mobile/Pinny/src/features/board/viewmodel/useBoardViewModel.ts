@@ -7,7 +7,14 @@ import { historyStore } from '@/features/history/model/historyStore';
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
 
-import { type BoardData, emptyColumnIdsOf, loadBoard, withCardMoved } from '../model/boardData';
+import {
+  type BoardData,
+  emptyColumnIdsOf,
+  loadBoard,
+  withBoardRenamed,
+  withCardMoved,
+} from '../model/boardData';
+import { boardRepository } from '../model/boardRepository';
 import { moveCardWithHistory } from '../model/cardMove';
 import { assignEmptyVariants, type EmptyVariantMap } from '../model/emptyVariants';
 import { toPlacement } from '../model/reorder';
@@ -15,8 +22,6 @@ import { type BoardColumnItem, toColumnItems } from './boardItems';
 import { useColumnActions } from './useColumnActions';
 
 const text = ptBR.board;
-
-function noop() {}
 
 export function useBoardViewModel(boardId: string) {
   // Dados do quadro, o estado vazio sorteado de cada coluna vazia e as colunas prontas para exibir,
@@ -137,6 +142,29 @@ export function useBoardViewModel(boardId: string) {
     }
   }, []);
 
+  // Título do quadro editado ali mesmo (toque no nome ou "Renomear quadro" no menu). O nome novo
+  // aparece na hora; se a gravação falhar, o antigo volta.
+  const renameBoard = useCallback(
+    async (title: string) => {
+      if (!data || data.board.title === title) return;
+      const { id, title: previousTitle } = data.board;
+      setData(withBoardRenamed(data, title));
+      try {
+        await boardRepository.rename(id, title);
+        historyStore.record(ptBR.history.actions.renameBoard, {
+          kind: 'renameBoard',
+          boardId: id,
+          title: previousTitle,
+        });
+      } catch (error: unknown) {
+        console.warn('Falha ao renomear o quadro.', error);
+        setData(data);
+        setErrorText(ptBR.common.saveError);
+      }
+    },
+    [data, setData],
+  );
+
   const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
   const columnActions = useColumnActions({
     boardId,
@@ -159,9 +187,8 @@ export function useBoardViewModel(boardId: string) {
     moveCardToAdjacentColumn,
     openMoveCard,
     addCard,
+    renameBoard,
     goBack: router.back,
-    // O menu do quadro chega numa etapa futura. Por enquanto não faz nada.
-    openBoardMenu: noop,
     ...columnActions,
   };
 }

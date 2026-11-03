@@ -101,6 +101,11 @@ export function withColumnRenamed(data: BoardData, columnId: string, title: stri
   };
 }
 
+// Novo retrato do quadro com o nome novo (para mostrar antes de gravar).
+export function withBoardRenamed(data: BoardData, title: string): BoardData {
+  return { ...data, board: { ...data.board, title } };
+}
+
 // Novo retrato do quadro sem a coluna (para ela sumir da tela antes de gravar a exclusão).
 export function withColumnRemoved(data: BoardData, columnId: string): BoardData {
   return { ...data, columns: data.columns.filter((item) => item.column.id !== columnId) };

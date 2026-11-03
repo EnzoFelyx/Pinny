@@ -1,3 +1,4 @@
+import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { createId } from '@/utils/id';
@@ -22,6 +23,7 @@ let isBusy = false;
 const defaultRepositories: UndoRepositories = {
   cards: cardRepository,
   columns: columnRepository,
+  boards: boardRepository,
 };
 
 // Tira a última entrada de uma pilha, aplica e guarda a inversa na outra.
