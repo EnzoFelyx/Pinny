@@ -32,6 +32,15 @@ export function SettingsScreen() {
             disabled={vm.isSeeding}
             onPress={vm.createExtremeBoard}
           />
+          {vm.largeFolderOptions.map((option) => (
+            <Button
+              key={option.boardCount}
+              label={option.label}
+              variant="secondary"
+              disabled={vm.isSeeding}
+              onPress={option.create}
+            />
+          ))}
           {vm.devFeedback ? (
             <Text
               accessibilityLiveRegion="polite"

@@ -12,18 +12,20 @@ type NativeInputProps = Pick<
 interface InputProps extends NativeInputProps {
   label: string;
   icon?: LucideIcon;
+  // Esconde o rótulo da tela (ex.: busca); o leitor de tela continua lendo.
+  isLabelHidden?: boolean;
 }
 
 const ICON_SIZE = 19;
 
 // Campo com rótulo e ícone. Em foco, a borda do campo e o ícone ficam em primary (a borda tem a
 // mesma espessura nos dois estados, para o layout não pular).
-export function Input({ label, icon: Icon, ...inputProps }: InputProps) {
+export function Input({ label, icon: Icon, isLabelHidden = false, ...inputProps }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View className="w-full gap-2">
-      <Text className="text-label text-text-primary">{label}</Text>
+      {isLabelHidden ? null : <Text className="text-label text-text-primary">{label}</Text>}
       <View
         className={`min-h-[52px] flex-row items-center gap-[10px] rounded-[18px] border bg-surface px-[14px] ${
           isFocused ? 'border-border-selected' : 'border-border-strong'

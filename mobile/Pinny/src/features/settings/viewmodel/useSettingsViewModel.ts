@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 
+import { LARGE_FOLDER_SIZES, seedLargeFolder } from '@/features/dev/model/devFolderSeed';
 import {
   seedStressBoard,
   STRESS_SIZES,
@@ -33,6 +34,20 @@ export function useSettingsViewModel() {
     }
   }, []);
 
+  // Pasta com muitos quadros, para ver o "+N quadros" da Início e a tela da pasta.
+  const createLargeFolder = useCallback(async (boardCount: number) => {
+    setIsSeeding(true);
+    try {
+      await seedLargeFolder(boardCount);
+      setDevFeedback(text.largeFolderCreated(boardCount));
+    } catch (error: unknown) {
+      console.warn('Falha ao criar a pasta grande.', error);
+      setDevFeedback(text.largeFolderError);
+    } finally {
+      setIsSeeding(false);
+    }
+  }, []);
+
   return {
     // A galeria de componentes e os testes de performance só existem em desenvolvimento.
     showDeveloperTools: __DEV__,
@@ -44,5 +59,10 @@ export function useSettingsViewModel() {
       () => createStressBoard(STRESS_SIZES.extreme),
       [createStressBoard],
     ),
+    largeFolderOptions: Object.values(LARGE_FOLDER_SIZES).map((boardCount) => ({
+      boardCount,
+      label: text.largeFolder(boardCount),
+      create: () => createLargeFolder(boardCount),
+    })),
   };
 }

@@ -1,21 +1,31 @@
 import { type AccessibilityActionEvent, Pressable, Text, TextInput, View } from 'react-native';
 
 import type { useInlineRename } from '@/hooks/useInlineRename';
-import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
-const renameAction = [{ name: 'activate', label: ptBR.board.renameBoard }] as const;
-
-interface BoardTitleProps {
+interface EditableTitleProps {
   title: string;
   subtitle: string;
-  // Estado da edição, no cabeçalho: o "Renomear quadro" do menu também começa a edição.
+  // Estado da edição, no cabeçalho: o "Renomear" do menu também começa a edição.
   rename: ReturnType<typeof useInlineRename>;
+  // Textos do leitor de tela: ação ("Renomear quadro"), dica e nome do campo.
+  renameActionLabel: string;
+  renameHint: string;
+  inputLabel: string;
 }
 
-// Título e subtítulo do quadro. Tocar no nome edita ali mesmo, como no título da coluna.
-export function BoardTitle({ title, subtitle, rename }: BoardTitleProps) {
+// Título e subtítulo do topo de uma tela (quadro, pasta). Tocar no nome edita ali mesmo, como
+// no título da coluna.
+export function EditableTitle({
+  title,
+  subtitle,
+  rename,
+  renameActionLabel,
+  renameHint,
+  inputLabel,
+}: EditableTitleProps) {
   const { draft, canRename, changeDraft, startEditing, finishEditing } = rename;
+  const renameAction = [{ name: 'activate', label: renameActionLabel }];
 
   const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
     if (event.nativeEvent.actionName === 'activate') startEditing();
@@ -31,7 +41,7 @@ export function BoardTitle({ title, subtitle, rename }: BoardTitleProps) {
           autoFocus
           selectTextOnFocus
           returnKeyType="done"
-          accessibilityLabel={ptBR.board.boardNameLabel}
+          accessibilityLabel={inputLabel}
           selectionColor={colors.primary}
           // Margens negativas do tamanho do recuo e da borda: o texto fica no mesmo lugar do título
           // e o cabeçalho não pula.
@@ -41,7 +51,7 @@ export function BoardTitle({ title, subtitle, rename }: BoardTitleProps) {
         <Pressable
           accessibilityRole="header"
           accessibilityLabel={title}
-          accessibilityHint={canRename ? ptBR.board.renameBoardHint : undefined}
+          accessibilityHint={canRename ? renameHint : undefined}
           accessibilityActions={canRename ? renameAction : undefined}
           onAccessibilityAction={handleAccessibilityAction}
           disabled={!canRename}

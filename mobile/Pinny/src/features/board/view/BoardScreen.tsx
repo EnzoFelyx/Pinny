@@ -5,6 +5,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { COLUMN_GAP, useBoardColumnLayout } from '@/hooks/useBoardColumnLayout';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useMinimumDuration } from '@/hooks/useMinimumDuration';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -14,7 +15,7 @@ import { colors, duration, skeleton } from '@/theme';
 import { useBoardViewModel } from '../viewmodel/useBoardViewModel';
 import { AddColumnButton } from './components/AddColumnButton';
 import { BoardFilterModal } from './components/BoardFilterModal';
-import { BoardHeader } from './components/BoardHeader';
+import { boardRenameLabels, renderBoardMenu } from './components/BoardMenu';
 import { BoardSkeleton } from './components/BoardSkeleton';
 import { BoardToolbar } from './components/BoardToolbar';
 import { DragOverlay } from './components/DragOverlay';
@@ -112,13 +113,15 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
-      <BoardHeader
+      <ScreenHeader
         title={vm.title}
         subtitle={vm.subtitle}
         isLoading={showSkeleton}
         errorText={vm.errorText}
         onBack={vm.goBack}
         onRename={vm.renameBoard}
+        renameLabels={boardRenameLabels}
+        renderMenu={renderBoardMenu}
       />
 
       <BoardToolbar isLoading={showSkeleton} filter={vm.filter} />

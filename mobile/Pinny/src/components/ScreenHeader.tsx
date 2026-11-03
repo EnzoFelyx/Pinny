@@ -1,36 +1,44 @@
 import { ChevronLeft } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { GlassIconButton } from '@/components/GlassIconButton';
+import { EditableTitle } from '@/components/EditableTitle';
 import { SkeletonBar, SkeletonGroup } from '@/components/Skeleton';
 import { useInlineRename } from '@/hooks/useInlineRename';
 import { ptBR } from '@/i18n/pt-BR';
 import { duration } from '@/theme';
 
-import { BoardMenu } from './BoardMenu';
-import { BoardTitle } from './BoardTitle';
-
-interface BoardHeaderProps {
+interface ScreenHeaderProps {
   title: string;
   subtitle: string;
-  // Enquanto o quadro carrega, título e subtítulo viram barras do skeleton.
+  // Enquanto a tela carrega, título e subtítulo viram barras do skeleton.
   isLoading: boolean;
   errorText: string | null;
   onBack: () => void;
   onRename: (title: string) => void;
+  // Textos do leitor de tela da edição do título (ex.: "Renomear quadro").
+  renameLabels: { action: string; hint: string; input: string };
+  // Antes do título (ex.: ícone e cor da pasta).
+  leading?: ReactNode;
+  // O "…" da tela; recebe a função que começa a edição do título (item "Renomear" do menu).
+  renderMenu: (startRename: () => void) => ReactNode;
 }
 
-// Topo do quadro (Figma "Cabeçalho"): voltar, título e menu na mesma linha. Substitui a barra
-// nativa; o gesto de voltar pela borda da tela continua sendo do sistema.
-export function BoardHeader({
+// Topo das telas com título editável (quadro, pasta; Figma "Cabeçalho"): voltar, título e menu
+// na mesma linha. Substitui a barra nativa; o gesto de voltar pela borda continua do sistema.
+export function ScreenHeader({
   title,
   subtitle,
   isLoading,
   errorText,
   onBack,
   onRename,
-}: BoardHeaderProps) {
+  renameLabels,
+  leading,
+  renderMenu,
+}: ScreenHeaderProps) {
   // Enquanto carrega, o título ainda não existe: nada para renomear.
   const rename = useInlineRename({ title, onRename: isLoading ? undefined : onRename });
 
@@ -42,6 +50,7 @@ export function BoardHeader({
           accessibilityLabel={ptBR.common.back}
           onPress={onBack}
         />
+        {leading}
         {isLoading ? (
           // Mesmas alturas das linhas do título e do subtítulo: nada pula quando eles chegam.
           <Animated.View exiting={FadeOut.duration(duration.normal)} style={styles.fill}>
@@ -56,10 +65,17 @@ export function BoardHeader({
           </Animated.View>
         ) : (
           <Animated.View entering={FadeIn.duration(duration.normal)} style={styles.fill}>
-            <BoardTitle title={title} subtitle={subtitle} rename={rename} />
+            <EditableTitle
+              title={title}
+              subtitle={subtitle}
+              rename={rename}
+              renameActionLabel={renameLabels.action}
+              renameHint={renameLabels.hint}
+              inputLabel={renameLabels.input}
+            />
           </Animated.View>
         )}
-        <BoardMenu onRename={rename.startEditing} />
+        {renderMenu(rename.startEditing)}
       </View>
       {errorText ? (
         <Text accessibilityLiveRegion="polite" className="text-body text-alert">

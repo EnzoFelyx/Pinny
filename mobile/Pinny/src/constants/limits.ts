@@ -4,6 +4,10 @@ export const DEADLINE_SOON_HOURS = 24;
 // Tempo que o snackbar de "Desfazer" fica na tela antes de sumir sozinho.
 export const SNACKBAR_DURATION_MS = 5000;
 
+// Quadros de cada pasta mostrados na Início: com mais que isso, o resto vira "+N quadros", que
+// abre a tela da pasta (a Início fica com altura previsível).
+export const HOME_PREVIEW_BOARDS = 3;
+
 // Quantas ações o "Desfazer" (chacoalhar ou snackbar) consegue voltar.
 export const HISTORY_LIMIT = 20;
 

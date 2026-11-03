@@ -41,8 +41,11 @@ export default function RootLayout() {
             {/* O quadro desenha o próprio topo (voltar, título e menu na mesma linha). */}
             <Stack.Screen name="board/[boardId]" />
             <Stack.Screen name="dev/gallery" options={pushedScreenOptions} />
+            {/* A pasta também desenha o próprio topo (como o quadro). */}
+            <Stack.Screen name="folder/[folderId]/index" />
             <Stack.Screen name="folder/new" options={sheetScreenOptions} />
             <Stack.Screen name="folder/[folderId]/rename" options={sheetScreenOptions} />
+            <Stack.Screen name="folder/[folderId]/new-board" options={sheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/move" options={sheetScreenOptions} />
             <Stack.Screen name="column/new" options={sheetScreenOptions} />
           </Stack>

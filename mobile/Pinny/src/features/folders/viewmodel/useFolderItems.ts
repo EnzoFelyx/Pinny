@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
 import type { LabelColor } from '@/features/card/model/card.types';
+import { HOME_PREVIEW_BOARDS } from '@/constants/limits';
 import { ptBR } from '@/i18n/pt-BR';
 
 import type { FolderIcon } from '../model/folder.schema';
@@ -26,11 +27,29 @@ export interface HomeFolderItem {
   boardCountText: string;
   accessibilityLabel: string;
   renameAccessibilityLabel: string;
+  createBoardAccessibilityLabel: string;
+  // Texto do "+" quando a pasta está vazia (null = ela já tem quadros).
+  createFirstBoardText: string | null;
   emptyText: string | null;
   boards: HomeBoardItem[];
+  // Na Início: os primeiros quadros e, se houver mais, o texto do "+N quadros".
+  previewBoards: HomeBoardItem[];
+  moreBoardsText: string | null;
+  moreBoardsAccessibilityLabel: string;
+}
+
+export function toBoardItem(board: { id: string; title: string }, index: number): HomeBoardItem {
+  return {
+    id: board.id,
+    title: board.title,
+    accessibilityLabel: text.openBoardA11y(board.title),
+    isHighlighted: index === 0,
+  };
 }
 
 export function toFolderItem({ folder, boards }: FolderWithBoards): HomeFolderItem {
+  const boardItems = boards.map(toBoardItem);
+  const hasMore = boards.length > HOME_PREVIEW_BOARDS;
   return {
     id: folder.id,
     title: folder.title,
@@ -39,13 +58,13 @@ export function toFolderItem({ folder, boards }: FolderWithBoards): HomeFolderIt
     boardCountText: text.boardCount(boards.length),
     accessibilityLabel: text.folderSummary(folder.title, boards.length),
     renameAccessibilityLabel: text.renameFolderA11y(folder.title),
+    createBoardAccessibilityLabel: text.createBoardA11y(folder.title),
+    createFirstBoardText: boards.length === 0 ? text.createFirstBoard : null,
     emptyText: boards.length === 0 ? text.emptyFolder : null,
-    boards: boards.map((board, index) => ({
-      id: board.id,
-      title: board.title,
-      accessibilityLabel: text.openBoardA11y(board.title),
-      isHighlighted: index === 0,
-    })),
+    boards: boardItems,
+    previewBoards: hasMore ? boardItems.slice(0, HOME_PREVIEW_BOARDS) : boardItems,
+    moreBoardsText: hasMore ? text.moreBoards(boards.length - HOME_PREVIEW_BOARDS) : null,
+    moreBoardsAccessibilityLabel: text.moreBoardsA11y(folder.title, boards.length),
   };
 }
 

@@ -48,6 +48,8 @@ export function HomeScreen() {
               folder={folder}
               onOpenBoard={vm.openBoard}
               onRename={vm.renameFolder}
+              onCreateBoard={vm.createBoard}
+              onOpenFolder={vm.openFolder}
             />
           ))}
         </View>

@@ -27,5 +27,13 @@ export function useHomeViewModel() {
     renameFolder: useCallback((folderId: string) => {
       router.push({ pathname: '/folder/[folderId]/rename', params: { folderId } });
     }, []),
+    // "+N quadros": abre a tela da pasta, com todos os quadros.
+    openFolder: useCallback((folderId: string) => {
+      router.push({ pathname: '/folder/[folderId]', params: { folderId } });
+    }, []),
+    // "+" depois dos quadros da pasta (ou "Criar o primeiro quadro"): folha "Novo quadro".
+    createBoard: useCallback((folderId: string) => {
+      router.push({ pathname: '/folder/[folderId]/new-board', params: { folderId } });
+    }, []),
   };
 }
