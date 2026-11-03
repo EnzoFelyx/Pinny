@@ -1,4 +1,4 @@
-import { asc, eq, ne } from 'drizzle-orm';
+import { asc, count, desc, eq, isNotNull, ne, sql } from 'drizzle-orm';
 
 import { type Database, db } from '@/db/client';
 import { folders } from '@/db/schema';
@@ -18,11 +18,15 @@ export interface NewFolderInput {
 }
 
 export interface FolderRepository {
+  // Fixadas primeiro (da fixada mais recente para a mais antiga), depois as outras pela posição.
   list(): Promise<Folder[]>;
   getById(id: string): Promise<Folder | null>;
   create(input: NewFolderInput): Promise<Folder>;
   rename(id: string, title: string): Promise<void>;
   move(id: string, placement: Placement): Promise<void>;
+  // Fixa no topo da Início (pinnedAt = agora) ou desafixa (null).
+  setPinnedAt(id: string, pinnedAt: string | null): Promise<void>;
+  countPinned(): Promise<number>;
   // Apaga a pasta e, em cascata, tudo o que está dentro dela.
   remove(id: string): Promise<void>;
 }
@@ -30,7 +34,11 @@ export interface FolderRepository {
 export function createFolderRepository(database: Database = db): FolderRepository {
   return {
     async list() {
-      const rows = database.select().from(folders).orderBy(asc(folders.position)).all();
+      const rows = database
+        .select()
+        .from(folders)
+        .orderBy(sql`${folders.pinnedAt} IS NULL`, desc(folders.pinnedAt), asc(folders.position))
+        .all();
       return parseRows(folderSchema, rows, 'folders');
     },
 
@@ -79,6 +87,23 @@ export function createFolderRepository(database: Database = db): FolderRepositor
         );
         tx.update(folders).set({ position, updatedAt: nowIso() }).where(eq(folders.id, id)).run();
       });
+    },
+
+    async setPinnedAt(id, pinnedAt) {
+      database
+        .update(folders)
+        .set({ pinnedAt, updatedAt: nowIso() })
+        .where(eq(folders.id, id))
+        .run();
+    },
+
+    async countPinned() {
+      const row = database
+        .select({ total: count() })
+        .from(folders)
+        .where(isNotNull(folders.pinnedAt))
+        .get();
+      return row?.total ?? 0;
     },
 
     async remove(id) {

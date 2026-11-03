@@ -26,16 +26,20 @@ export const ptBR = {
     sectionTitle: 'Minhas pastas',
     folderCount: (count: number) => (count === 1 ? '1 pasta' : `${count} pastas`),
     boardCount: (count: number) => (count === 1 ? '1 quadro' : `${count} quadros`),
-    folderSummary: (title: string, count: number) =>
-      `Pasta ${title}, ${count === 1 ? '1 quadro' : `${count} quadros`}`,
+    folderSummary: (title: string, count: number, isPinned: boolean) =>
+      `Pasta ${title}${isPinned ? ', fixada' : ''}, ${count === 1 ? '1 quadro' : `${count} quadros`}`,
     folderOptionsA11y: (title: string) => `Opções da pasta ${title}`,
     folderMenu: {
       customize: 'Personalizar',
       newBoard: 'Novo quadro',
       pin: 'Fixar no topo',
-      delete: 'Apagar pasta',
+      unpin: 'Desafixar',
+      delete: 'Excluir pasta',
     },
-    openBoardA11y: (title: string) => `Abrir o quadro ${title}`,
+    openBoardA11y: (title: string, isPinned: boolean) =>
+      `Abrir o quadro ${title}${isPinned ? ', fixado na Início' : ''}`,
+    pinBoard: 'Fixar na Início',
+    unpinBoard: 'Desafixar',
     createBoardA11y: (folderTitle: string) => `Criar um quadro na pasta ${folderTitle}`,
     createFirstBoard: 'Criar o primeiro quadro',
     // Quantos quadros ficaram de fora da Início (o resto está na tela da pasta).
@@ -51,6 +55,13 @@ export const ptBR = {
       noResults: (query: string) => `Nenhum quadro com "${query}".`,
       options: 'Opções da pasta',
       customize: 'Personalizar pasta',
+      // Modo de seleção "Fixar quadros" (até 3, como a seleção de fotos do iOS).
+      pinBoards: 'Fixar quadros',
+      pinSelectionTitle: (count: number) =>
+        count === 0 ? 'Fixar quadros' : count === 1 ? 'Fixar 1 quadro' : `Fixar ${count} quadros`,
+      pinSelectionHint: 'Escolha até 3 quadros para aparecer na Início.',
+      cancel: 'Cancelar',
+      done: 'Pronto',
       customizeHint: 'Toque duas vezes para personalizar.',
       delete: 'Excluir pasta',
       loading: 'Carregando a pasta',

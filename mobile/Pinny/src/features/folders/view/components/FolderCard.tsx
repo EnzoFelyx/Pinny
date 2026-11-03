@@ -1,5 +1,8 @@
+import { Pin } from 'lucide-react-native';
 import { memo } from 'react';
 import { Text, View } from 'react-native';
+
+import { colors } from '@/theme';
 
 import type { HomeFolderItem } from '../../viewmodel/useFolderItems';
 import { folderIcons, folderInkColors } from '../folderAppearance';
@@ -19,6 +22,7 @@ interface FolderCardProps {
 }
 
 const FOLDER_ICON_SIZE = 22;
+const PIN_ICON_SIZE = 14;
 
 export const FolderCard = memo(function FolderCard({
   folder,
@@ -45,6 +49,15 @@ export const FolderCard = memo(function FolderCard({
       : undefined;
   // Na Início, o contador fica embaixo do nome (o nome usa a linha toda); na busca, à direita.
   const isCountBelow = onOpenFolder !== undefined;
+  // Nome encolhe antes do alfinete: nome longo corta com "…" e o alfinete continua visível.
+  const title = (
+    <View className="flex-row items-center gap-1.5">
+      <Text numberOfLines={1} className="shrink text-subtitle text-text-primary">
+        {folder.title}
+      </Text>
+      {folder.isPinned ? <Pin size={PIN_ICON_SIZE} color={colors.textSecondary} /> : null}
+    </View>
+  );
 
   return (
     <View className="gap-[11px] rounded-[24px] bg-surface p-4">
@@ -58,16 +71,12 @@ export const FolderCard = memo(function FolderCard({
           <Icon size={FOLDER_ICON_SIZE} color={inkColor} />
           {isCountBelow ? (
             <View className="flex-1">
-              <Text numberOfLines={1} className="text-subtitle text-text-primary">
-                {folder.title}
-              </Text>
+              {title}
               <Text className="text-caption text-text-secondary">{folder.boardCountText}</Text>
             </View>
           ) : (
             <>
-              <Text numberOfLines={1} className="flex-1 text-subtitle text-text-primary">
-                {folder.title}
-              </Text>
+              <View className="flex-1">{title}</View>
               <Text className="text-caption text-text-secondary">{folder.boardCountText}</Text>
             </>
           )}
@@ -78,6 +87,8 @@ export const FolderCard = memo(function FolderCard({
             <FolderCardMenu
               folderId={folder.id}
               accessibilityLabel={folder.optionsAccessibilityLabel}
+              isPinned={folder.isPinned}
+              pinLabel={folder.canTogglePin ? folder.pinActionLabel : null}
               actions={actions}
             />
           </View>

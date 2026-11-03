@@ -30,6 +30,9 @@ export const folders = sqliteTable('folders', {
   icon: text('icon', { enum: FOLDER_ICONS }).notNull().default('folder'),
   color: text('color', { enum: LABEL_COLORS }).notNull().default('lavender'),
   position: real('position').notNull(),
+  // Quando a pasta foi fixada no topo da Início (null = não fixada). As fixadas vêm primeiro, da
+  // fixada mais recente para a mais antiga.
+  pinnedAt: text('pinned_at'),
   ...timestamps,
 });
 
@@ -42,6 +45,9 @@ export const boards = sqliteTable(
       .references(() => folders.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     position: real('position').notNull(),
+    // Quando o quadro foi fixado na Início (null = não fixado). A pasta mostra primeiro os
+    // fixados, do mais recente para o mais antigo, e completa com os outros.
+    pinnedAt: text('pinned_at'),
     ...timestamps,
   },
   (table) => [index('boards_folder_idx').on(table.folderId, table.position)],

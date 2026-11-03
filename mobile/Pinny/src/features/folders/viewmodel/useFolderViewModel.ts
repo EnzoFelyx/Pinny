@@ -1,24 +1,29 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
 import type { Board } from '@/features/board/model/board.schema';
 import { boardRepository } from '@/features/board/model/boardRepository';
+import { PINNED_BOARDS_PER_FOLDER } from '@/constants/limits';
+import { orderForPreview, togglePinnedBoard } from '@/features/board/model/boardPinning';
+import { snackbarStore } from '@/features/feedback/model/snackbarStore';
 import { ptBR } from '@/i18n/pt-BR';
 import { normalizeForSearch } from '@/utils/text';
 
 import type { Folder } from '../model/folder.schema';
 import { folderRepository } from '../model/folderRepository';
 import { toBoardItem } from './useFolderItems';
+import { usePinSelection } from './usePinSelection';
 
 const text = ptBR.folders;
-
-function noop() {}
 
 // Tela da pasta ("+N quadros" na Início): todos os quadros dela, com busca pelo nome. Carrega ao
 // abrir e recarrega quando o banco muda (ex.: quadro criado pela folha "Novo quadro").
 export function useFolderViewModel(folderId: string) {
-  const [data, setData] = useState<{ folder: Folder; boards: Board[] } | null>(null);
+  const [data, setData] = useState<{
+    folder: Folder;
+    boards: Board[];
+  } | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [query, setQuery] = useState('');
 
@@ -49,7 +54,20 @@ export function useFolderViewModel(folderId: string) {
     };
   }, [folderId]);
 
-  const boards = (data?.boards ?? []).map(toBoardItem);
+  const folderBoards = useMemo(() => data?.boards ?? [], [data]);
+  const pinSelection = usePinSelection(folderBoards);
+
+  // Segurar o quadro: "Fixar na Início" (até 3 por pasta) ou "Desafixar".
+  const pinnedBoardCount = (data?.boards ?? []).filter((board) => board.pinnedAt !== null).length;
+  const canPinMoreBoards = pinnedBoardCount < PINNED_BOARDS_PER_FOLDER;
+  // Os fixados na Início vêm primeiro (como na prévia da Início); depois, os outros na ordem da
+  // pasta. Durante o modo de seleção, a ordem não muda (a escolha só vale no "Pronto").
+  const boards = orderForPreview(folderBoards).map((board) =>
+    toBoardItem(
+      board,
+      board.pinnedAt !== null ? text.unpinBoard : canPinMoreBoards ? text.pinBoard : null,
+    ),
+  );
   const search = normalizeForSearch(query);
   const visibleBoards = search
     ? boards.filter((board) => normalizeForSearch(board.title).includes(search))
@@ -87,8 +105,13 @@ export function useFolderViewModel(folderId: string) {
     customizeFolder: useCallback(() => {
       router.push({ pathname: '/folder/[folderId]/rename', params: { folderId } });
     }, [folderId]),
-    // Fixar no topo da Início: ainda não faz nada.
-    pinFolder: noop,
+    pinSelection,
+    togglePinBoard: useCallback((boardId: string) => {
+      togglePinnedBoard(boardId, boardRepository).catch((error: unknown) => {
+        console.warn('Falha ao fixar o quadro.', error);
+        snackbarStore.show(ptBR.common.saveError);
+      });
+    }, []),
     goBack: router.back,
   };
 }

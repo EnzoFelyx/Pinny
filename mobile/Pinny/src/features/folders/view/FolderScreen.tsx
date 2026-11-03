@@ -15,6 +15,7 @@ import { BoardGrid } from './components/BoardGrid';
 import { FolderBadge } from './components/FolderBadge';
 import { FolderMenu, folderTitleLabels } from './components/FolderMenu';
 import { FolderSkeleton } from './components/FolderSkeleton';
+import { PinSelectionHeader } from './components/PinSelectionHeader';
 import { folderInkColors } from './folderAppearance';
 
 const text = ptBR.folders.folderScreen;
@@ -30,23 +31,31 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
 
   return (
     <SafeAreaView edges={['top']} style={styles.screen}>
-      <ScreenHeader
-        title={vm.title}
-        subtitle={vm.subtitle}
-        isLoading={vm.isLoading}
-        errorText={vm.errorText}
-        onBack={vm.goBack}
-        onTitlePress={vm.customizeFolder}
-        renameLabels={folderTitleLabels}
-        leading={vm.isLoading ? null : <FolderBadge icon={vm.icon} color={vm.color} />}
-        renderMenu={() => (
-          <FolderMenu
-            onCustomize={vm.customizeFolder}
-            onCreateBoard={vm.createBoard}
-            onPin={vm.pinFolder}
-          />
-        )}
-      />
+      {vm.pinSelection.isSelecting ? (
+        <PinSelectionHeader
+          title={vm.pinSelection.title}
+          onCancel={vm.pinSelection.cancel}
+          onDone={vm.pinSelection.confirm}
+        />
+      ) : (
+        <ScreenHeader
+          title={vm.title}
+          subtitle={vm.subtitle}
+          isLoading={vm.isLoading}
+          errorText={vm.errorText}
+          onBack={vm.goBack}
+          onTitlePress={vm.customizeFolder}
+          renameLabels={folderTitleLabels}
+          leading={vm.isLoading ? null : <FolderBadge icon={vm.icon} color={vm.color} />}
+          renderMenu={() => (
+            <FolderMenu
+              onCustomize={vm.customizeFolder}
+              onCreateBoard={vm.createBoard}
+              onPinBoards={vm.pinSelection.start}
+            />
+          )}
+        />
+      )}
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-4 px-6 pb-12">
         {vm.isLoading ? (
           <Animated.View exiting={FadeOut.duration(duration.normal)}>
@@ -73,11 +82,25 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
                   boards={vm.boards}
                   noteColor={folderInkColors[vm.color]}
                   onOpenBoard={vm.openBoard}
-                  add={{
-                    label: text.newBoard,
-                    accessibilityLabel: vm.createBoardAccessibilityLabel,
-                    onPress: vm.createBoard,
-                  }}
+                  onTogglePin={vm.togglePinBoard}
+                  // Escolhendo os fixados: círculo em cada quadro e sem o "Novo quadro".
+                  selection={
+                    vm.pinSelection.isSelecting
+                      ? {
+                          selectedIds: vm.pinSelection.selectedIds,
+                          onToggle: vm.pinSelection.toggle,
+                        }
+                      : undefined
+                  }
+                  add={
+                    vm.pinSelection.isSelecting
+                      ? undefined
+                      : {
+                          label: text.newBoard,
+                          accessibilityLabel: vm.createBoardAccessibilityLabel,
+                          onPress: vm.createBoard,
+                        }
+                  }
                 />
               </>
             ) : (

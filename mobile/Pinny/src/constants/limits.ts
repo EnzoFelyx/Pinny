@@ -8,6 +8,12 @@ export const SNACKBAR_DURATION_MS = 5000;
 // tela da pasta (a Início fica com altura previsível).
 export const HOME_PREVIEW_BOARDS = 3;
 
+// Quantos quadros de cada pasta podem ficar fixados na Início: o mesmo número que a Início mostra.
+export const PINNED_BOARDS_PER_FOLDER = HOME_PREVIEW_BOARDS;
+
+// Quantas pastas podem ficar fixadas no topo da Início ao mesmo tempo.
+export const PINNED_FOLDERS_LIMIT = 3;
+
 // Quantas ações o "Desfazer" (chacoalhar ou snackbar) consegue voltar.
 export const HISTORY_LIMIT = 20;
 

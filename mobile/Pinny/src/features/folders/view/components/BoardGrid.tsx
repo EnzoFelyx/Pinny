@@ -4,6 +4,7 @@ import type { HomeBoardItem } from '../../viewmodel/useFolderItems';
 import { AddBoardTile } from './AddBoardTile';
 import { BoardTile } from './BoardTile';
 import { MoreBoardsTile } from './MoreBoardsTile';
+import { PinnableBoardTile } from './PinnableBoardTile';
 
 const BOARDS_PER_ROW = 2;
 
@@ -22,6 +23,10 @@ interface BoardGridProps {
   add?: TileAction;
   // "+N ›" (Início): divide a última vaga com o "+", depois dele.
   more?: TileAction & { label: string };
+  // Tela da pasta: segurar o quadro fixa ou desafixa na Início.
+  onTogglePin?: (boardId: string) => void;
+  // Modo "Fixar quadros": círculo de seleção em cada quadro; o toque marca/desmarca.
+  selection?: { selectedIds: readonly string[]; onToggle: (boardId: string) => void };
 }
 
 // Item da grade: um quadro, o "+" ou o "+" seguido do "+N ›".
@@ -40,7 +45,15 @@ function toRows(tiles: readonly Tile[]): Tile[][] {
 }
 
 // Quadros de uma pasta em grade de 2 por linha (Início e tela da pasta).
-export function BoardGrid({ boards, noteColor, onOpenBoard, add, more }: BoardGridProps) {
+export function BoardGrid({
+  boards,
+  noteColor,
+  onOpenBoard,
+  add,
+  more,
+  onTogglePin,
+  selection,
+}: BoardGridProps) {
   const tiles: Tile[] = [
     ...boards.map((board) => ({ kind: 'board', board }) as const),
     ...(more ? [{ kind: 'more' } as const] : add ? [{ kind: 'add' } as const] : []),
@@ -56,6 +69,28 @@ export function BoardGrid({ boards, noteColor, onOpenBoard, add, more }: BoardGr
 
   const renderTile = (tile: Tile) => {
     if (tile.kind === 'board') {
+      if (selection) {
+        return (
+          <BoardTile
+            key={tile.board.id}
+            board={tile.board}
+            noteColor={noteColor}
+            onOpen={selection.onToggle}
+            isSelected={selection.selectedIds.includes(tile.board.id)}
+          />
+        );
+      }
+      if (onTogglePin) {
+        return (
+          <PinnableBoardTile
+            key={tile.board.id}
+            board={tile.board}
+            noteColor={noteColor}
+            onOpen={onOpenBoard}
+            onTogglePin={onTogglePin}
+          />
+        );
+      }
       return (
         <BoardTile
           key={tile.board.id}
