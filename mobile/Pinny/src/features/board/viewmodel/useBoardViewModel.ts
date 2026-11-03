@@ -19,6 +19,7 @@ import { moveCardWithHistory } from '../model/cardMove';
 import { assignEmptyVariants, type EmptyVariantMap } from '../model/emptyVariants';
 import { toPlacement } from '../model/reorder';
 import { type BoardColumnItem, toColumnItems } from './boardItems';
+import { useBoardFilter } from './useBoardFilter';
 import { useColumnActions } from './useColumnActions';
 
 const text = ptBR.board;
@@ -165,6 +166,8 @@ export function useBoardViewModel(boardId: string) {
     [data, setData],
   );
 
+  const filter = useBoardFilter(boardId, data);
+
   const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
   const columnActions = useColumnActions({
     boardId,
@@ -188,6 +191,7 @@ export function useBoardViewModel(boardId: string) {
     openMoveCard,
     addCard,
     renameBoard,
+    filter,
     goBack: router.back,
     ...columnActions,
   };

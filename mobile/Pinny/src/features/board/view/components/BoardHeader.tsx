@@ -19,6 +19,7 @@ interface BoardHeaderProps {
   errorText: string | null;
   onBack: () => void;
   onRename: (title: string) => void;
+  onFilter: () => void;
 }
 
 // Topo do quadro (Figma "Cabeçalho"): voltar, título e menu na mesma linha. Substitui a barra
@@ -30,6 +31,7 @@ export function BoardHeader({
   errorText,
   onBack,
   onRename,
+  onFilter,
 }: BoardHeaderProps) {
   // Enquanto carrega, o título ainda não existe: nada para renomear.
   const rename = useInlineRename({ title, onRename: isLoading ? undefined : onRename });
@@ -59,7 +61,7 @@ export function BoardHeader({
             <BoardTitle title={title} subtitle={subtitle} rename={rename} />
           </Animated.View>
         )}
-        <BoardMenu onRename={rename.startEditing} />
+        <BoardMenu onFilter={onFilter} onRename={rename.startEditing} />
       </View>
       {errorText ? (
         <Text accessibilityLiveRegion="polite" className="text-body text-alert">

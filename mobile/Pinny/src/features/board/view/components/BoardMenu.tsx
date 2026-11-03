@@ -33,13 +33,15 @@ const buttonSurface = isLiquidGlassAvailable()
 
 // "…" do topo do quadro com o menu suspenso nativo do iOS (SwiftUI Menu), em três grupos: o
 // conteúdo do quadro, o quadro em si e a exclusão (vermelha, papel destrutivo do sistema).
-// Por enquanto só "Renomear quadro" funciona; as outras opções ainda não fazem nada.
+// Por enquanto só "Filtrar…" e "Renomear quadro" funcionam; as outras ainda não fazem nada.
 interface BoardMenuProps {
+  // "Filtrar…": abre o modal de filtros.
+  onFilter: () => void;
   // "Renomear quadro": edita o título ali mesmo (o mesmo de tocar no nome).
   onRename: () => void;
 }
 
-export function BoardMenu({ onRename }: BoardMenuProps) {
+export function BoardMenu({ onFilter, onRename }: BoardMenuProps) {
   return (
     <Host style={styles.host}>
       <Menu
@@ -58,7 +60,7 @@ export function BoardMenu({ onRename }: BoardMenuProps) {
           />
         }
       >
-        <Button label={text.filter} systemImage="line.3.horizontal.decrease" onPress={noop} />
+        <Button label={text.filter} systemImage="line.3.horizontal.decrease" onPress={onFilter} />
         <Button label={text.selectCards} systemImage="checkmark.circle" onPress={noop} />
         <Button label={text.newColumn} systemImage="plus" onPress={noop} />
         <Button label={text.reorderColumns} systemImage="arrow.up.arrow.down" onPress={noop} />

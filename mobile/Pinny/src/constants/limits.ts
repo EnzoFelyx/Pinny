@@ -10,3 +10,6 @@ export const HISTORY_LIMIT = 20;
 // O banco avisa uma vez por linha alterada: avisos seguidos com menos que este intervalo entre
 // eles viram uma recarga só das telas (ex.: duplicar uma coluna de 40 cartões gera ~80 avisos).
 export const DATA_CHANGE_SETTLE_MS = 50;
+
+// Filtro "Próximos dias" do quadro: cartões com prazo de hoje até esta quantidade de dias.
+export const UPCOMING_DAYS = 7;

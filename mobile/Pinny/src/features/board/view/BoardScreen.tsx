@@ -13,6 +13,7 @@ import { colors, duration, skeleton } from '@/theme';
 
 import { useBoardViewModel } from '../viewmodel/useBoardViewModel';
 import { AddColumnButton } from './components/AddColumnButton';
+import { BoardFilterModal } from './components/BoardFilterModal';
 import { BoardHeader } from './components/BoardHeader';
 import { BoardSkeleton } from './components/BoardSkeleton';
 import { BoardToolbar } from './components/BoardToolbar';
@@ -117,6 +118,7 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
         errorText={vm.errorText}
         onBack={vm.goBack}
         onRename={vm.renameBoard}
+        onFilter={vm.filter.open}
       />
 
       <BoardToolbar isLoading={showSkeleton} />
@@ -167,6 +169,8 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
       </AnimatedScrollView>
 
       <Text className="px-6 pt-3 text-caption text-text-secondary">{ptBR.board.dragHint}</Text>
+
+      <BoardFilterModal filter={vm.filter} />
 
       {/* Por último: o cartão segurado fica por cima do título, das colunas e dos cabeçalhos. */}
       <DragOverlay
