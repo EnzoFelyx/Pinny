@@ -7,6 +7,16 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-03 — Pastas: menu de opções e prévia
+
+### Alterado
+
+- Card da pasta na Início: o lápis saiu e entrou o "⋮" com o menu nativo (Personalizar, Novo quadro, Fixar no topo e Apagar pasta, em vermelho). "Novo quadro" abre a mesma folha do "+". O "…" da tela da pasta ficou com as mesmas opções (Personalizar, Novo quadro, Fixar no topo e Excluir pasta); "Renomear pasta" saiu do menu. Tocar no nome da pasta no topo não edita mais ali mesmo: abre a mesma folha de "Personalizar" (futuro atalho para nome, cor e ícone). O título editável ganhou a opção de fazer outra ação no toque (`onTitlePress`); o quadro continua editando ali mesmo. Por enquanto, Personalizar abre a folha de renomear; Fixar e Apagar ainda não fazem nada. (`174e16d`)
+- Pastas grandes na Início: o "+N quadros" (que parecia mais um quadro) virou o link "+N ›" em roxo, sem fundo, depois do "+" tracejado; N é quantos quadros ficaram de fora. O contador de quadros foi para baixo do nome da pasta, que agora usa a linha toda. (`174e16d`)
+- O "…" simples da coluna virou o componente compartilhado `IconMenu` (também usado no "⋮" da pasta). (`174e16d`)
+
+---
+
 ## 2026-11-03 — Pastas: criar quadro e tela da pasta
 
 ### Adicionado
