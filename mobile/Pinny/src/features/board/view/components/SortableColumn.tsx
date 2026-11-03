@@ -50,7 +50,7 @@ export const SortableColumnView = memo(function SortableColumnView({
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const { column: sortable, scrollHandler } = useSortableColumn({
     columnId: column.id,
-    ids: column.cards.map((card) => card.id),
+    ids: column.visibleCards.map((card) => card.id),
     scrollRef,
     drag,
     onMove: cardActions.move,
@@ -59,7 +59,9 @@ export const SortableColumnView = memo(function SortableColumnView({
     onDrop: haptics.drop,
   });
   const reorderDuration = isReducedMotion ? duration.fast : duration.normal;
-  const cardCount = column.cards.length;
+  // Contagem, vagas e posições contam só os cartões que o filtro deixa à mostra.
+  const cardCount = column.visibleCards.length;
+  const visibleIndex = new Map(column.visibleCards.map((card, index) => [card.id, index]));
 
   const isEmpty = cardCount === 0;
   const emptyArea = useEmptyColumnArea({ isEmpty, drag, order: sortable.order });
@@ -148,14 +150,16 @@ export const SortableColumnView = memo(function SortableColumnView({
             reorderDuration={reorderDuration}
             fixedHeight={emptyArea.slotHeight}
           />
-          {column.cards.map((card, index) => (
+          {/* Todos montados: o escondido pelo filtro só some (display none), sem desmontar. */}
+          {column.cards.map((card) => (
             <SortableCard
               key={card.id}
               card={card}
               columnId={column.id}
               columnIndex={columnIndex}
               columnCount={columnCount}
-              index={index}
+              index={visibleIndex.get(card.id) ?? -1}
+              isHidden={!visibleIndex.has(card.id)}
               total={cardCount}
               column={sortable}
               drag={drag}

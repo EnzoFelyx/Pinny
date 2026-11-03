@@ -124,9 +124,20 @@ export const ptBR = {
       clear: 'Limpar',
       apply: (count: number) => (count === 1 ? 'Mostrar 1 cartão' : `Mostrar ${count} cartões`),
       labelA11y: (name: string) => `Etiqueta ${name}`,
+      // Linha de filtros do quadro (entre o título e as colunas).
+      quick: { today: 'Hoje', overdue: 'Atrasados', high: 'Alta' },
+      quickA11y: (label: string) => `Filtrar: ${label}`,
+      openFilters: 'Filtros',
+      openFiltersA11y: 'Abrir os filtros',
+      hideCompleted: 'Sem concluídos',
+      pendingChecklist: 'Checklist pendente',
+      removeA11y: (label: string) => `Remover o filtro ${label}`,
+      clearAllA11y: 'Limpar todos os filtros',
+      emptyColumn: 'Nenhum cartão com esses filtros.',
+      newCardHidden: 'Cartão criado, mas escondido pelos filtros',
     },
     boardMenu: {
-      filter: 'Filtrar…',
+      search: 'Buscar lembrete',
       selectCards: 'Selecionar cartões',
       newColumn: 'Nova coluna',
       reorderColumns: 'Reorganizar colunas',
@@ -138,6 +149,8 @@ export const ptBR = {
     dropToReorder: 'Solte para reorganizar',
     columnSummary: (title: string, count: number) =>
       `${title}, ${count === 1 ? '1 cartão' : `${count} cartões`}`,
+    subtitleFiltered: (folderTitle: string, visible: number, total: number) =>
+      `${folderTitle} / ${visible} de ${total === 1 ? '1 cartão' : `${total} cartões`}`,
     subtitle: (folderTitle: string, count: number) =>
       `${folderTitle} / ${count === 1 ? '1 cartão' : `${count} cartões`}`,
     loadError: 'Não conseguimos abrir este quadro agora. Tente de novo em instantes.',
@@ -163,8 +176,6 @@ export const ptBR = {
       loadError: 'Não conseguimos abrir as colunas agora. Tente de novo em instantes.',
     },
     dragHint: 'Segure um cartão para mudar a ordem.',
-    filterAll: 'Todos os cartões',
-    filterByDeadline: 'Por prazo',
     deleteColumnTitle: (title: string) => `Excluir a coluna "${title}"?`,
     deleteColumnMessage: (count: number) =>
       count === 1

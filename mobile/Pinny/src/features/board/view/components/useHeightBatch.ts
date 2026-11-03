@@ -9,6 +9,8 @@ export function useHeightBatch(heights: SharedValue<Record<string, number>>) {
 
   return useCallback(
     (id: string, height: number) => {
+      // Cartão escondido pelo filtro (display none) mede 0: mantém a altura de antes.
+      if (height === 0) return;
       if (pending.current === null) {
         pending.current = {};
         requestAnimationFrame(() => {

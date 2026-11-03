@@ -27,8 +27,11 @@ interface SortableCardProps {
   columnId: string;
   columnIndex: number;
   columnCount: number;
+  // Posição entre os cartões visíveis (-1 = escondido pelo filtro).
   index: number;
   total: number;
+  // Escondido pelo filtro: continua montado, sem aparecer nem ocupar espaço.
+  isHidden: boolean;
   column: SortableColumn;
   drag: BoardDrag;
   // Desligado enquanto o título da coluna é editado.
@@ -48,6 +51,7 @@ export const SortableCard = memo(function SortableCard({
   columnCount,
   index,
   total,
+  isHidden,
   column,
   drag,
   isDragEnabled,
@@ -58,7 +62,7 @@ export const SortableCard = memo(function SortableCard({
   // Só os valores que cada animação lê: um worklet que captura o objeto `drag` ou `column` inteiro
   // depende de todos os shared values dele e rodaria de novo a cada quadro do arraste, em todos
   // os cartões do quadro.
-  const { activeId, landingId, landingColumnId, visibleId } = drag;
+  const { activeId, landingId, landingColumnId, visibleId, settleId } = drag;
   const { offsets } = column;
   // Começa em 0 e a reação abaixo posiciona o cartão já na montagem (sem ler shared value no render).
   const top = useSharedValue(0);
@@ -66,13 +70,26 @@ export const SortableCard = memo(function SortableCard({
 
   // Os outros cartões deslizam até a nova vaga quando a ordem muda.
   useAnimatedReaction(
-    () => offsets.get()[id] ?? 0,
+    // null = fora da ordem da coluna (escondido pelo filtro).
+    () => offsets.get()[id] ?? null,
     (next, previous) => {
       if (next === previous || activeId.get() === id) return;
+      // A vaga mudou ou sumiu no meio do quique (ex.: troca de filtro): o quique acaba na hora.
+      // Escondido, o cartão some; senão, vai direto ao lugar novo (o fantasma iria ao antigo).
+      // A vaga igual ao destino do quique (top já está nele) é o próprio soltar, não uma troca.
+      const isSettling =
+        settleId.get() === id && previous !== null && previous !== undefined && next !== top.get();
+      if (isSettling) drag.cancelSettle(id);
+      if (next === null) return;
+      if (isSettling) {
+        top.set(next);
+        return;
+      }
       // Acabou de chegar de outra coluna: quem posiciona é a reação abaixo (assume do fantasma).
       if (landingId.get() === id && landingColumnId.get() === columnId) return;
-      // Na montagem e antes de todos os cartões serem medidos, vai direto ao lugar (sem deslizar).
-      const shouldSlide = previous !== null && column.isLaidOut.get();
+      // Na montagem, ao voltar de escondido e antes de todos os cartões serem medidos, vai direto
+      // ao lugar (sem deslizar).
+      const shouldSlide = previous !== null && previous !== undefined && column.isLaidOut.get();
       top.set(shouldSlide ? withTiming(next, { duration: reorderDuration }) : next);
     },
   );
@@ -164,7 +181,10 @@ export const SortableCard = memo(function SortableCard({
 
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.View onLayout={measure} style={[styles.card, animatedStyle]}>
+      <Animated.View
+        onLayout={measure}
+        style={[styles.card, animatedStyle, isHidden ? styles.hidden : null]}
+      >
         <Animated.View style={[styles.liftedShadow, shadowStyle]} />
         <Card
           title={card.title}
@@ -190,6 +210,7 @@ const styles = StyleSheet.create({
     right: 0,
     borderRadius: CARD_RADIUS,
   },
+  hidden: { display: 'none' },
   // Sombra elevada numa camada própria, para sumir com fade no fim do quique.
   liftedShadow: {
     ...StyleSheet.absoluteFill,

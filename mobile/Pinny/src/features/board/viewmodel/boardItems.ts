@@ -26,7 +26,10 @@ export interface BoardCardItem {
 export interface BoardColumnItem {
   id: string;
   title: string;
+  // Todos os cartões da coluna (ficam montados) e os que o filtro deixa à mostra. Sem filtro, é o
+  // mesmo array: o filtro só troca visibleCards, e esconder um cartão não o desmonta.
   cards: BoardCardItem[];
+  visibleCards: BoardCardItem[];
   // Estado vazio sorteado para esta coluna (frase + ilustração), sem repetir entre as vazias.
   emptyMessage: string;
   emptyVariant: EmptyVariant;
@@ -83,10 +86,12 @@ export function toColumnItem(
   now: Date,
   emptyVariant: EmptyVariant = 0,
 ): BoardColumnItem {
+  const items = cards.map((card) => toCardItem(card, now));
   return {
     id: column.id,
     title: column.title,
-    cards: cards.map((card) => toCardItem(card, now)),
+    cards: items,
+    visibleCards: items,
     emptyMessage: ptBR.board.emptyColumnMessages[emptyVariant],
     emptyVariant,
   };
@@ -142,7 +147,7 @@ export function toColumnItems(
       const old = previousCards.get(card.id);
       return old && isSameCardItem(old, card) ? old : card;
     });
-    const column = { ...next, cards };
+    const column = { ...next, cards, visibleCards: cards };
     const old = previousColumns.get(column.id);
     return old && isSameColumnItem(old, column) ? old : column;
   });

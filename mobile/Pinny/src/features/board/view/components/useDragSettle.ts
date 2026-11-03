@@ -109,6 +109,16 @@ export function useDragSettle({
     handoffId.set(id);
   };
 
+  // A vaga do cartão mudou (ou sumiu) no meio do quique, ex.: o filtro foi trocado. O fantasma
+  // iria até a posição antiga: o quique acaba na hora e o cartão da lista aparece no lugar certo
+  // (ou continua escondido, se o filtro o esconde).
+  const cancel = (id: string) => {
+    'worklet';
+    if (settleId.get() !== id) return;
+    stop();
+    onSettled();
+  };
+
   // O cartão da lista já pegou a posição: o quique do fantasma acaba e ele some.
   const finishHandoff = () => {
     'worklet';
@@ -132,6 +142,7 @@ export function useDragSettle({
       handoffId,
       handOff,
       finishHandoff,
+      cancelSettle: cancel,
     },
     stop,
   };

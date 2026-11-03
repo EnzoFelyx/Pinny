@@ -51,4 +51,7 @@ export const skeleton = {
   minDurationMs: 0,
   shimmerMs: 1400,
   shimmerBandWidth: 160,
+  // Troca de filtro no quadro: o skeleton só aparece se a montagem passar deste tempo (trocas
+  // rápidas não piscam).
+  filterDelayMs: 150,
 } as const;

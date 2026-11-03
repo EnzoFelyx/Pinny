@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, type LayoutChangeEvent, StyleSheet, Text } from 'react-native';
+import { Alert, type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import { BoardHeader } from './components/BoardHeader';
 import { BoardSkeleton } from './components/BoardSkeleton';
 import { BoardToolbar } from './components/BoardToolbar';
 import { DragOverlay } from './components/DragOverlay';
+import { FilterSkeletonOverlay } from './components/FilterSkeletonOverlay';
 import { SortableColumnView } from './components/SortableColumn';
 import { useBoardActions } from './components/useBoardActions';
 import { useBoardDrag } from './components/useBoardDrag';
@@ -118,55 +119,57 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
         errorText={vm.errorText}
         onBack={vm.goBack}
         onRename={vm.renameBoard}
-        onFilter={vm.filter.open}
       />
 
-      <BoardToolbar isLoading={showSkeleton} />
+      <BoardToolbar isLoading={showSkeleton} filter={vm.filter} />
 
-      <AnimatedScrollView
-        ref={boardScrollRef}
-        onScroll={boardScrollHandler}
-        scrollEventThrottle={16}
-        onLayout={measureBoard}
-        onContentSizeChange={measureBoardContent}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={snapInterval}
-        decelerationRate="fast"
-        style={styles.board}
-        contentContainerStyle={styles.columnsRow}
-      >
-        {showSkeleton ? (
-          // Transição cruzada: o skeleton sai com fade enquanto as colunas entram com fade.
-          <Animated.View exiting={FadeOut.duration(duration.normal)}>
-            <BoardSkeleton columnStyle={columnStyle} />
-          </Animated.View>
-        ) : (
-          <>
-            {mountedColumns.map((column, index) => (
-              <Animated.View
-                key={column.id}
-                entering={FadeIn.duration(duration.normal)}
-                style={columnStyle}
-              >
-                <SortableColumnView
-                  column={column}
-                  columnIndex={index}
-                  columnCount={vm.columns.length}
-                  isReducedMotion={isReducedMotion}
-                  drag={drag}
-                  cardActions={cardActions}
-                  columnActions={columnActions}
-                  haptics={haptics}
-                />
-              </Animated.View>
-            ))}
-            {isFullyMounted ? (
-              <AddColumnButton style={columnStyle} drag={drag} onPress={vm.createColumn} />
-            ) : null}
-          </>
-        )}
-      </AnimatedScrollView>
+      <View className="flex-1">
+        <AnimatedScrollView
+          ref={boardScrollRef}
+          onScroll={boardScrollHandler}
+          scrollEventThrottle={16}
+          onLayout={measureBoard}
+          onContentSizeChange={measureBoardContent}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={snapInterval}
+          decelerationRate="fast"
+          style={styles.board}
+          contentContainerStyle={styles.columnsRow}
+        >
+          {showSkeleton ? (
+            // Transição cruzada: o skeleton sai com fade enquanto as colunas entram com fade.
+            <Animated.View exiting={FadeOut.duration(duration.normal)}>
+              <BoardSkeleton columnStyle={columnStyle} />
+            </Animated.View>
+          ) : (
+            <>
+              {mountedColumns.map((column, index) => (
+                <Animated.View
+                  key={column.id}
+                  entering={FadeIn.duration(duration.normal)}
+                  style={columnStyle}
+                >
+                  <SortableColumnView
+                    column={column}
+                    columnIndex={index}
+                    columnCount={vm.columns.length}
+                    isReducedMotion={isReducedMotion}
+                    drag={drag}
+                    cardActions={cardActions}
+                    columnActions={columnActions}
+                    haptics={haptics}
+                  />
+                </Animated.View>
+              ))}
+              {isFullyMounted ? (
+                <AddColumnButton style={columnStyle} drag={drag} onPress={vm.createColumn} />
+              ) : null}
+            </>
+          )}
+        </AnimatedScrollView>
+        {vm.filter.isApplying ? <FilterSkeletonOverlay columnStyle={columnStyle} /> : null}
+      </View>
 
       <Text className="px-6 pt-3 text-caption text-text-secondary">{ptBR.board.dragHint}</Text>
 

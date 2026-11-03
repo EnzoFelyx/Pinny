@@ -76,6 +76,8 @@ export interface BoardDrag {
   handoffId: SharedValue<string | null>;
   handOff: () => void;
   finishHandoff: () => void;
+  // Encerra na hora o quique do cartão (a vaga dele mudou ou sumiu no meio, ex.: troca de filtro).
+  cancelSettle: (id: string) => void;
   markVisible: (id: string) => void;
   // Rola o quadro até a coluna (ex.: recém-criada), assim que ela estiver na tela.
   focusColumn: (columnId: string) => void;

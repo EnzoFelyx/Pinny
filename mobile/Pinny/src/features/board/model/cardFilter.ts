@@ -79,18 +79,90 @@ export function countMatchingCards(data: BoardData, filter: CardFilter, now: Dat
   );
 }
 
-// Quantas categorias estão filtrando (para o selo de filtro ativo e o "Limpar tudo").
-export function activeFilterCount(filter: CardFilter): number {
-  return [
-    filter.deadline !== EMPTY_CARD_FILTER.deadline,
-    filter.priorities.length > 0,
-    filter.labelIds.length > 0,
-    filter.showCompleted !== EMPTY_CARD_FILTER.showCompleted,
-    filter.onlyPendingChecklist,
-  ].filter(Boolean).length;
-}
-
 // Liga ou desliga um valor numa lista (seleção múltipla), sem alterar a original.
 export function toggleIn<T>(items: readonly T[], value: T): T[] {
   return items.includes(value) ? items.filter((item) => item !== value) : [...items, value];
+}
+
+// Atalhos da linha de filtros do quadro: um toque liga ou desliga, sem abrir o modal.
+export type QuickFilter = 'today' | 'overdue' | 'high';
+
+export const QUICK_FILTERS: readonly QuickFilter[] = ['today', 'overdue', 'high'];
+
+export function withQuickFilterToggled(filter: CardFilter, quick: QuickFilter): CardFilter {
+  if (quick === 'high') return { ...filter, priorities: toggleIn(filter.priorities, 'high') };
+  return { ...filter, deadline: filter.deadline === quick ? 'any' : quick };
+}
+
+// Cada parte ligada do filtro vira um chip removível na linha do quadro.
+export type ActiveFilterPart =
+  | { kind: 'deadline'; deadline: DeadlineFilter }
+  | { kind: 'priority'; priority: Priority }
+  | { kind: 'label'; labelId: string }
+  | { kind: 'hideCompleted' }
+  | { kind: 'pendingChecklist' };
+
+export function activeFilterParts(filter: CardFilter): ActiveFilterPart[] {
+  return [
+    ...(filter.deadline !== 'any'
+      ? [{ kind: 'deadline', deadline: filter.deadline } as const]
+      : []),
+    ...filter.priorities.map((priority) => ({ kind: 'priority', priority }) as const),
+    ...filter.labelIds.map((labelId) => ({ kind: 'label', labelId }) as const),
+    ...(filter.showCompleted ? [] : [{ kind: 'hideCompleted' } as const]),
+    ...(filter.onlyPendingChecklist ? [{ kind: 'pendingChecklist' } as const] : []),
+  ];
+}
+
+export function withoutFilterPart(filter: CardFilter, part: ActiveFilterPart): CardFilter {
+  switch (part.kind) {
+    case 'deadline':
+      return { ...filter, deadline: 'any' };
+    case 'priority':
+      return { ...filter, priorities: filter.priorities.filter((item) => item !== part.priority) };
+    case 'label':
+      return { ...filter, labelIds: filter.labelIds.filter((id) => id !== part.labelId) };
+    case 'hideCompleted':
+      return { ...filter, showCompleted: true };
+    case 'pendingChecklist':
+      return { ...filter, onlyPendingChecklist: false };
+  }
+}
+
+export function isFilterActive(filter: CardFilter): boolean {
+  return activeFilterParts(filter).length > 0;
+}
+
+// Ids dos cartões que passam no filtro. null = sem filtro (todos aparecem).
+export function visibleCardIds(
+  data: BoardData,
+  filter: CardFilter,
+  now: Date,
+): ReadonlySet<string> | null {
+  if (!isFilterActive(filter)) return null;
+  return new Set(
+    data.columns.flatMap((column) =>
+      column.cards
+        .filter((item) => matchesCardFilter(item, filter, now))
+        .map((item) => item.card.id),
+    ),
+  );
+}
+
+// Com filtro, a vaga do arraste conta só os cartões visíveis; o banco guarda a ordem de todos.
+// Converte a vaga visível (toIndex) no índice da lista completa da coluna, sem o cartão movido:
+// logo depois do vizinho visível de cima ou, na primeira vaga, logo antes do primeiro visível.
+// Os cartões escondidos mantêm a ordem entre si.
+export function toFullIndex(
+  columnIds: readonly string[],
+  movedId: string,
+  visible: ReadonlySet<string>,
+  toIndex: number,
+): number {
+  const others = columnIds.filter((id) => id !== movedId);
+  const visibleOthers = others.filter((id) => visible.has(id));
+  const first = visibleOthers[0];
+  if (toIndex <= 0 || first === undefined) return first === undefined ? 0 : others.indexOf(first);
+  const previous = visibleOthers[Math.min(toIndex, visibleOthers.length) - 1];
+  return previous === undefined ? 0 : others.indexOf(previous) + 1;
 }

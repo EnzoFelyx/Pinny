@@ -3,24 +3,20 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
 import { createSampleCard } from '@/features/dev/model/devDataService';
+import { snackbarStore } from '@/features/feedback/model/snackbarStore';
 import { historyStore } from '@/features/history/model/historyStore';
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
 
-import {
-  type BoardData,
-  emptyColumnIdsOf,
-  loadBoard,
-  withBoardRenamed,
-  withCardMoved,
-} from '../model/boardData';
-import { boardRepository } from '../model/boardRepository';
+import { type BoardData, emptyColumnIdsOf, loadBoard, withCardMoved } from '../model/boardData';
 import { moveCardWithHistory } from '../model/cardMove';
 import { assignEmptyVariants, type EmptyVariantMap } from '../model/emptyVariants';
 import { toPlacement } from '../model/reorder';
 import { type BoardColumnItem, toColumnItems } from './boardItems';
 import { useBoardFilter } from './useBoardFilter';
+import { useBoardRename } from './useBoardRename';
 import { useColumnActions } from './useColumnActions';
+import { useVisibleCards } from './useVisibleCards';
 
 const text = ptBR.board;
 
@@ -45,6 +41,9 @@ export function useBoardViewModel(boardId: string) {
       };
     });
   }, []);
+  // Filtro do quadro (só enquanto ele está aberto): todas as colunas, só os cartões que passam.
+  const filter = useBoardFilter(boardId, data);
+  const visible = useVisibleCards(data, columns, filter.applied);
   const [errorText, setErrorText] = useState<string | null>(null);
   const notifyUndoable = useUndoNotice();
   // Coluna que acabou de aparecer (criada ou devolvida pelo "Desfazer"): o quadro rola até ela.
@@ -81,14 +80,17 @@ export function useBoardViewModel(boardId: string) {
     };
   }, [boardId, setData]);
 
-  const cardCount = columns.reduce((total, column) => total + column.cards.length, 0);
-
   // Intenção final do arraste (ou das ações de acessibilidade): o cartão vai para toIndex na
   // coluna de destino, a mesma ou outra.
   const moveCard = useCallback(
     async (cardId: string, toColumnId: string, toIndex: number) => {
       if (!data) return;
-      const moved = withCardMoved(data, cardId, toColumnId, toIndex);
+      const moved = withCardMoved(
+        data,
+        cardId,
+        toColumnId,
+        visible.toFullIndex(cardId, toColumnId, toIndex),
+      );
       if (!moved) return;
 
       setData(moved.data);
@@ -107,68 +109,50 @@ export function useBoardViewModel(boardId: string) {
         setErrorText(ptBR.common.saveError);
       }
     },
-    [data, notifyUndoable, setData],
+    [data, notifyUndoable, setData, visible],
   );
 
   // Alternativa sem gesto (CLAUDE.md, regra 15): leva o cartão ao topo da coluna vizinha e devolve
   // o texto para o leitor de tela anunciar. null = não há coluna desse lado.
   const moveCardToAdjacentColumn = useCallback(
     (cardId: string, step: -1 | 1): string | null => {
-      const columnIndex = columns.findIndex((column) =>
-        column.cards.some((card) => card.id === cardId),
+      const shown = visible.columns;
+      const columnIndex = shown.findIndex((column) =>
+        column.visibleCards.some((card) => card.id === cardId),
       );
-      const target = columns[columnIndex + step];
+      const target = shown[columnIndex + step];
       if (columnIndex < 0 || !target) return null;
       void moveCard(cardId, target.id, 0);
-      return text.movedToColumn(target.title, 1, target.cards.length + 1);
+      return text.movedToColumn(target.title, 1, target.visibleCards.length + 1);
     },
-    [columns, moveCard],
+    [visible.columns, moveCard],
   );
 
   const openMoveCard = useCallback((cardId: string) => {
     router.push({ pathname: '/card/[cardId]/move', params: { cardId } });
   }, []);
 
-  // Provisório até a etapa 7: cria um cartão de exemplo no fim da coluna.
-  const addCard = useCallback(async (columnId: string) => {
-    try {
-      const card = await createSampleCard(columnId);
-      historyStore.record(ptBR.history.actions.createCard, {
-        kind: 'deleteCard',
-        cardId: card.id,
-      });
-    } catch (error: unknown) {
-      console.warn('Falha ao criar o cartão.', error);
-      setErrorText(ptBR.common.saveError);
-    }
-  }, []);
-
-  // Título do quadro editado ali mesmo (toque no nome ou "Renomear quadro" no menu). O nome novo
-  // aparece na hora; se a gravação falhar, o antigo volta.
-  const renameBoard = useCallback(
-    async (title: string) => {
-      if (!data || data.board.title === title) return;
-      const { id, title: previousTitle } = data.board;
-      setData(withBoardRenamed(data, title));
+  // Provisório até a etapa 7: cria um cartão de exemplo no fim da coluna. Se o filtro o esconder,
+  // avisa (senão pareceria que nada aconteceu).
+  const addCard = useCallback(
+    async (columnId: string) => {
       try {
-        await boardRepository.rename(id, title);
-        historyStore.record(ptBR.history.actions.renameBoard, {
-          kind: 'renameBoard',
-          boardId: id,
-          title: previousTitle,
+        const card = await createSampleCard(columnId);
+        historyStore.record(ptBR.history.actions.createCard, {
+          kind: 'deleteCard',
+          cardId: card.id,
         });
+        if (visible.hidesNewCard(card)) snackbarStore.show(text.filter.newCardHidden);
       } catch (error: unknown) {
-        console.warn('Falha ao renomear o quadro.', error);
-        setData(data);
+        console.warn('Falha ao criar o cartão.', error);
         setErrorText(ptBR.common.saveError);
       }
     },
-    [data, setData],
+    [visible],
   );
 
-  const filter = useBoardFilter(boardId, data);
-
   const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
+  const renameBoard = useBoardRename({ data, onDataChange: setData, onSaveError: reportSaveError });
   const columnActions = useColumnActions({
     boardId,
     data,
@@ -180,8 +164,8 @@ export function useBoardViewModel(boardId: string) {
 
   return {
     title: data?.board.title ?? '',
-    subtitle: data ? text.subtitle(data.folderTitle, cardCount) : '',
-    columns,
+    subtitle: visible.subtitle,
+    columns: visible.columns,
     // Ainda sem os dados do quadro (nem erro): a tela mostra o skeleton.
     isLoading: data === null && errorText === null,
     errorText,
