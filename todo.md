@@ -187,14 +187,16 @@
 ### 6.4 — Reordenar colunas
 - [x] Skeleton loading do quadro (enquanto carrega): 2 colunas com 4 e 3 cartões, shimmer no estilo do YouTube, sem tempo mínimo.
 - [ ] Menu "…" do topo do quadro (menu nativo, igual ao da coluna), adiado da 6.3. Ordem decidida (2026-11-02):
-  - Grupo 1: Filtrar… · Selecionar cartões · Nova coluna · Reorganizar colunas
+  - Grupo 1: Buscar lembrete · Selecionar cartões · Nova coluna · Reorganizar colunas (o "Filtrar…" saiu do menu em 2026-11-03: os filtros ficam na linha abaixo do título)
   - Grupo 2: Renomear quadro · Duplicar quadro · Mover para outra pasta
   - Grupo 3: Excluir quadro (vermelho, com desfazer)
   - [x] Renomear quadro (no título e no menu)
   - [x] Modal "Filtrar" (centralizado): prazo, prioridade, etiquetas, concluídos e checklist pendente, com contagem ao vivo
-  - [ ] Aplicar o filtro no quadro (esconder os cartões, selo de filtro ativo, decidir o arraste com filtro ligado)
+  - [ ] "Buscar lembrete" (lupa): definir como a busca funciona
+  - [x] Linha de filtros abaixo do título: atalhos (Hoje, Atrasados, Alta) e "Filtros"; com filtro, chips removíveis e "Limpar"
+  - [x] Aplicar o filtro no quadro: todas as colunas sempre visíveis, só os cartões que passam; arraste pelo vizinho visível; aviso de cartão novo escondido; contador e subtítulo com os visíveis
 - [ ] Reordenar colunas segurando e arrastando
-- [ ] Refatorar o `useBoardDrag.ts` (252 linhas) para ficar abaixo de ~200
+- [ ] Refatorar para ficar abaixo de ~200 linhas: `useBoardDrag.ts` (252), `SortableCard.tsx` (221) e `SortableColumn.tsx` (208)
 - [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)
 - [ ] Melhoria de performance do aplicativo
   - [x] Objeto do arraste estável (o cartão segurado saiu dele) e ações com identidade fixa: segurar e soltar não redesenham mais todas as colunas e cartões

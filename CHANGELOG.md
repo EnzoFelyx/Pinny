@@ -7,6 +7,20 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-03 — Etapa 6.4 (filtro no quadro)
+
+### Alterado
+
+- Linha de filtros do quadro (entre o título e as colunas): sem filtro, atalhos de um toque ("Hoje", "Atrasados", "Alta") e "Filtros", que abre o modal; com filtro, um chip removível ("x") por filtro ligado e "Limpar". Sai a lupa e os chips "Todos os cartões" e "Por prazo". Os chips já ligam e desligam o filtro guardado, mas o quadro ainda não esconde os cartões. (`e501f17`)
+- O filtro passou a valer no quadro: todas as colunas continuam, só com os cartões que passam; coluna esvaziada pelo filtro mostra "Nenhum cartão com esses filtros."; contador da coluna e subtítulo ("3 de 8 cartões") contam os visíveis. O arraste funciona com filtro ligado (a vaga visível vira a posição logo depois do vizinho visível). Cartão novo escondido pelo filtro mostra um aviso. O filtro vale só enquanto o quadro está aberto. (`e501f17`)
+- Performance do filtro: os cartões escondidos continuam montados (só ficam invisíveis), então ligar e limpar o filtro não monta nem desmonta centenas de cartões; a troca roda em segundo plano (transição do React), e o skeleton aparece por cima das colunas se ela demorar mais de 150 ms. (`e501f17`)
+- Trocar o filtro no meio do quique de um cartão: o quique acaba na hora; se o filtro esconde o cartão, ele some, senão vai direto para o lugar novo (antes aparecia no lugar errado e sumia). (`e501f17`)
+- Renomear quadro saiu do ViewModel do quadro para `useBoardRename` (arquivo abaixo de ~200 linhas). (`e501f17`)
+- Espaço entre o cabeçalho do quadro e a linha de filtros: 24pt (antes 20). (`e501f17`)
+- Menu "…" do quadro: "Filtrar…" saiu (os filtros ficam na linha abaixo do título) e entrou "Buscar lembrete", com lupa, ainda sem ação. (`e501f17`)
+
+---
+
 ## 2026-11-03 — Etapa 6.4 (modal de filtros)
 
 ### Adicionado
