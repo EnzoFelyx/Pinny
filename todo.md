@@ -246,6 +246,10 @@
   - [x] Tela da pasta (`/folder/[folderId]`, aberta pelo "+N quadros" da Início): todos os quadros em grade, busca pelo nome, "Novo quadro" no fim, renomear no título e no "…", estado vazio e skeleton (adiantado em 2026-11-03)
   - [ ] "Excluir pasta" no "…" da tela da pasta (confirmação e desfazer)
   - [ ] Segurar e arrastar para reordenar os quadros na tela da pasta
+- [ ] Pastas arquivadas (pedido do autor, 2026-11-03)
+  - [ ] Opção "Arquivar" no "⋮" da pasta (Início) e no "…" da tela da pasta; a pasta arquivada sai da Início (e das fixadas)
+  - [ ] Botão de arquivados na Início: ícone ao lado da contagem de pastas ("Minhas pastas · N pastas"), que abre a tela das pastas arquivadas
+  - [ ] Tela das pastas arquivadas: ver os quadros, desarquivar e excluir (perguntar sobre skeleton antes de implementar)
 - [ ] Criar, renomear, mover e excluir quadros
   - [x] Criar quadro pelo "+" da pasta (folha "Novo quadro", já com "Pendentes" e "Concluídas")
 - [ ] Templates prontos (Estudos, Tarefas da semana, Projeto pessoal, Viagem)

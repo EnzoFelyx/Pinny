@@ -7,6 +7,21 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-03 — Fixar pastas e quadros
+
+### Adicionado
+
+- Fixar pasta no topo da Início (no "⋮" da pasta, na Início): as fixadas vêm primeiro, da mais recente para a mais antiga, com um alfinete ao lado do nome (o nome longo corta antes dele); fixada, o menu mostra "Desafixar". No máximo 3 fixadas: com 3, o "Fixar no topo" some do menu das outras pastas. Nova coluna `pinned_at` em `folders` (migração `0003`). (`7966a5a`)
+- Modo "Fixar quadros" no "…" da tela da pasta: círculo de seleção no canto de cada quadro (como a seleção de fotos do iOS), até 3 marcados em lavanda, topo com "Fixar N quadros", "Cancelar" e "Pronto". Os fixados aparecem primeiro também na grade da tela da pasta. (`7966a5a`)
+- Fixar quadro na Início: na tela da pasta, segurar um quadro abre o menu de contexto nativo com "Fixar na Início" / "Desafixar" (também como ação do VoiceOver). A prévia da pasta na Início mostra primeiro os fixados e completa com os outros. No máximo 3 por pasta. Nova coluna `pinned_at` em `boards` (migração `0004`). (`7966a5a`)
+
+### Alterado
+
+- O fundo lavanda do bloco do quadro passou a marcar os quadros fixados (antes, o primeiro da pasta). O alfinete ao lado do nome aparece só na tela da pasta; na Início, fica só o lavanda. (`7966a5a`)
+- "Apagar pasta" no "⋮" da Início virou "Excluir pasta", igual ao "…" da tela da pasta e ao resto do app. (`7966a5a`)
+
+---
+
 ## 2026-11-03 — Pastas: menu de opções e prévia
 
 ### Alterado
