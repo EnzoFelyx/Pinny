@@ -190,6 +190,9 @@
   - Grupo 1: Filtrar… · Selecionar cartões · Nova coluna · Reorganizar colunas
   - Grupo 2: Renomear quadro · Duplicar quadro · Mover para outra pasta
   - Grupo 3: Excluir quadro (vermelho, com desfazer)
+  - [x] Renomear quadro (no título e no menu)
+  - [x] Modal "Filtrar" (centralizado): prazo, prioridade, etiquetas, concluídos e checklist pendente, com contagem ao vivo
+  - [ ] Aplicar o filtro no quadro (esconder os cartões, selo de filtro ativo, decidir o arraste com filtro ligado)
 - [ ] Reordenar colunas segurando e arrastando
 - [ ] Refatorar o `useBoardDrag.ts` (252 linhas) para ficar abaixo de ~200
 - [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)

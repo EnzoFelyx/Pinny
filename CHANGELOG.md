@@ -7,6 +7,14 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-03 — Etapa 6.4 (modal de filtros)
+
+### Adicionado
+
+- Modal "Filtrar" (centralizado, aberto pelo "Filtrar…" do menu do quadro), seguindo o Figma "Filter panel open": prazo (Todos, Atrasados, Hoje, Próximos 7 dias, Sem prazo), prioridade, etiquetas do quadro, "Mostrar concluídos" e "Checklist pendente", com "Limpar" e "Mostrar N cartões" contando ao vivo. As regras do filtro são funções puras (`cardFilter.ts`). Ainda não esconde os cartões no quadro. (`da06653`)
+
+---
+
 ## 2026-11-03 — Etapa 6.4 (menu e título do quadro)
 
 ### Adicionado
