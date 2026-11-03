@@ -243,7 +243,11 @@
 **Objetivo:** organizar vários quadros e começar rápido.
 
 - [ ] Criar, renomear e excluir pastas
+  - [x] Tela da pasta (`/folder/[folderId]`, aberta pelo "+N quadros" da Início): todos os quadros em grade, busca pelo nome, "Novo quadro" no fim, renomear no título e no "…", estado vazio e skeleton (adiantado em 2026-11-03)
+  - [ ] "Excluir pasta" no "…" da tela da pasta (confirmação e desfazer)
+  - [ ] Segurar e arrastar para reordenar os quadros na tela da pasta
 - [ ] Criar, renomear, mover e excluir quadros
+  - [x] Criar quadro pelo "+" da pasta (folha "Novo quadro", já com "Pendentes" e "Concluídas")
 - [ ] Templates prontos (Estudos, Tarefas da semana, Projeto pessoal, Viagem)
 - [ ] Criar template personalizado a partir de um quadro
 - [ ] Testes

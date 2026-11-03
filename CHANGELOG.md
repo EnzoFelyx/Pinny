@@ -7,6 +7,22 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-03 — Pastas: criar quadro e tela da pasta
+
+### Adicionado
+
+- Início: botão "+" em cada pasta, sempre depois do último quadro (na pasta vazia, sozinho no lugar do aviso), com a borda tracejada da coluna "Adicionar coluna": um quadrado depois do último quadro e, na pasta vazia, a linha toda com "Criar o primeiro quadro". (`1f8d146`)
+- Folha "Novo quadro" (`/folder/[folderId]/new-board`), aberta pelo "+" da pasta: mesma folha da "Nova pasta" (`NameSheet`), com ícone de quadro e o aviso "Ele vai ficar na pasta "X"". O quadro entra no fim da pasta, já com as colunas "Pendentes" e "Concluídas" (vazias), e abre logo em seguida. (`1f8d146`)
+- Início: cada pasta mostra no máximo 3 quadros; com mais, a última vaga vira "+N quadros", que abre a nova tela da pasta. (`1f8d146`)
+- Tela da pasta: todos os quadros em grade, busca pelo nome, "Novo quadro" no fim, renomear pasta no título e no "…" ("Excluir pasta" ainda sem ação), estado vazio "Nenhum quadro aqui ainda." com "Criar quadro" e skeleton enquanto carrega. O topo mostra o ícone da pasta no fundo pastel da cor dela, e o "Novo quadro" continua na grade mesmo quando a busca não acha nada. Nesse caso, a folha "Novo quadro" já abre com o nome buscado no campo, sem criar nada sozinha. (`1f8d146`)
+- Ajustes (desenvolvimento): botões para criar pastas com 8 e 30 quadros. (`1f8d146`)
+
+### Alterado
+
+- O topo do quadro virou um componente compartilhado (`ScreenHeader`, com `EditableTitle` e `GlassMenu`), usado também pela tela da pasta. O `Input` ganhou a opção de esconder o rótulo (busca). (`1f8d146`)
+
+---
+
 ## 2026-11-03 — Etapa 6.4 (filtro no quadro)
 
 ### Alterado
