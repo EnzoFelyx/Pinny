@@ -6,6 +6,7 @@ import type { Board } from '@/features/board/model/board.schema';
 import { boardRepository } from '@/features/board/model/boardRepository';
 import { PINNED_BOARDS_PER_FOLDER } from '@/constants/limits';
 import { orderForPreview, togglePinnedBoard } from '@/features/board/model/boardPinning';
+import { useDeleteBoard } from '@/features/board/viewmodel/useDeleteBoard';
 import { snackbarStore } from '@/features/feedback/model/snackbarStore';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
@@ -14,7 +15,6 @@ import { normalizeForSearch } from '@/utils/text';
 import type { Folder } from '../model/folder.schema';
 import { folderRepository } from '../model/folderRepository';
 import { useBoardSelection } from './useBoardSelection';
-import { useDeleteBoard } from './useDeleteBoard';
 import { toBoardItem } from './useFolderItems';
 
 const text = ptBR.folders;

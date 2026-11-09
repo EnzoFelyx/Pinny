@@ -74,6 +74,10 @@ export const colors = {
   // ícone, em onSecondary, 6,5:1 ou mais).
   addColumnBorder: palette.violet600Soft,
 
+  // Linha embaixo do título do quadro em edição: decorativa (o cursor e a seleção mostram a
+  // edição), num roxo mais claro que o primary.
+  inlineEditBorder: palette.violet600Soft,
+
   lavender: palette.lavender200,
   mint: palette.mint200,
   peach: palette.peach200,

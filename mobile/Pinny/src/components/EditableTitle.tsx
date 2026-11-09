@@ -48,9 +48,9 @@ export function EditableTitle({
           returnKeyType="done"
           accessibilityLabel={inputLabel}
           selectionColor={colors.primary}
-          // Margens negativas do tamanho do recuo e da borda: o texto fica no mesmo lugar do título
-          // e o cabeçalho não pula.
-          className="-mx-[9px] -my-[5px] rounded-[10px] border border-border-selected bg-surface px-2 py-1 text-header-title text-text-primary"
+          // Sem fundo, só uma linha roxa clara embaixo: o campo fica no lugar exato do título e a margem
+          // negativa da espessura da linha impede o cabeçalho de pular.
+          className="-mb-px border-b border-inline-edit-border p-0 text-header-title text-text-primary"
         />
       ) : (
         <Pressable

@@ -11,6 +11,7 @@ import {
   removeBoardWithContent,
   restoreBoardWithContent,
 } from '@/features/board/model/boardRemoval';
+import { type BoardPlace, restoreBoardPlace } from '@/features/board/model/boardMove';
 import type { BoardRepository } from '@/features/board/model/boardRepository';
 import type { ColumnRepository } from '@/features/board/model/columnRepository';
 import type { LabelRepository } from '@/features/board/model/labelRepository';
@@ -41,6 +42,8 @@ export type UndoOperation =
   | { kind: 'deleteBoard'; boardId: string }
   // Desfaz uma exclusão de quadro: recria o quadro, as etiquetas, as colunas e os cartões.
   | { kind: 'restoreBoard'; snapshot: BoardSnapshot }
+  // Desfaz "Mover para outra pasta": volta à pasta, à posição e à fixação de antes.
+  | { kind: 'moveBoard'; place: BoardPlace }
   // Várias operações como uma ação só (ex.: criar a coluna e levar o cartão para ela). Desfaz na
   // ordem dada; a inversa refaz na ordem contrária.
   | { kind: 'sequence'; operations: UndoOperation[] };
@@ -174,5 +177,9 @@ export async function applyUndo(
     case 'restoreBoard':
       await restoreBoardWithContent(operation.snapshot, repositories);
       return { kind: 'deleteBoard', boardId: operation.snapshot.board.id };
+    case 'moveBoard': {
+      const place = await restoreBoardPlace(operation.place, boards);
+      return place ? { kind: 'moveBoard', place } : null;
+    }
   }
 }

@@ -40,7 +40,12 @@ export interface CardRepository {
   removeByColumn(columnId: string): Promise<CardSnapshot[]>;
   // Copia os cartões ativos de uma coluna para outra (vazia), na mesma ordem, com etiquetas e
   // checklist ("Duplicar coluna"). Os anexos não vão junto: a foto continuaria sendo do original.
-  copyToColumn(fromColumnId: string, toColumnId: string): Promise<void>;
+  // labelIdMap: etiquetas do original → as da cópia (ao copiar para outro quadro).
+  copyToColumn(
+    fromColumnId: string,
+    toColumnId: string,
+    labelIdMap?: ReadonlyMap<string, string>,
+  ): Promise<void>;
   restore(snapshot: CardSnapshot): Promise<void>;
   // Recria vários cartões numa transação só (ex.: desfazer a exclusão de uma coluna).
   restoreAll(snapshots: readonly CardSnapshot[]): Promise<void>;
@@ -153,7 +158,7 @@ export function createCardRepository(database: Database = db): CardRepository {
       });
     },
 
-    async copyToColumn(fromColumnId, toColumnId) {
+    async copyToColumn(fromColumnId, toColumnId, labelIdMap) {
       database.transaction((tx) => {
         const now = nowIso();
         const rows = tx
@@ -164,7 +169,9 @@ export function createCardRepository(database: Database = db): CardRepository {
           .all();
         insertSnapshots(
           tx,
-          snapshotsOf(tx, rows).map((snapshot) => copySnapshot(snapshot, toColumnId, now)),
+          snapshotsOf(tx, rows).map((snapshot) =>
+            copySnapshot(snapshot, toColumnId, now, labelIdMap),
+          ),
         );
       });
     },

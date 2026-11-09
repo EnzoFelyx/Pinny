@@ -16,6 +16,7 @@ import { type BoardColumnItem, toColumnItems } from './boardItems';
 import { useBoardFilter } from './useBoardFilter';
 import { useBoardRename } from './useBoardRename';
 import { useColumnActions } from './useColumnActions';
+import { useBoardMenuActions } from './useBoardMenuActions';
 import { useVisibleCards } from './useVisibleCards';
 
 const text = ptBR.board;
@@ -153,6 +154,11 @@ export function useBoardViewModel(boardId: string) {
 
   const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
   const renameBoard = useBoardRename({ data, onDataChange: setData, onSaveError: reportSaveError });
+  const boardMenuActions = useBoardMenuActions({
+    board: data?.board,
+    notifyUndoable,
+    onSaveError: reportSaveError,
+  });
   const columnActions = useColumnActions({
     boardId,
     data,
@@ -175,6 +181,7 @@ export function useBoardViewModel(boardId: string) {
     openMoveCard,
     addCard,
     renameBoard,
+    ...boardMenuActions,
     filter,
     goBack: router.back,
     ...columnActions,

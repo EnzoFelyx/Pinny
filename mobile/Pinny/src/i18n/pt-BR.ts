@@ -125,6 +125,8 @@ export const ptBR = {
       renameBoard: 'Renomeação de Quadro',
       deleteBoard: 'Exclusão de Quadro',
       deleteBoards: 'Exclusão de Quadros',
+      duplicateBoard: 'Duplicação de Quadro',
+      moveBoard: 'Movimento de Quadro',
     },
     undoAction: (actionName: string) => `Desfazer ${actionName}`,
     redoAction: (actionName: string) => `Refazer ${actionName}`,
@@ -167,6 +169,9 @@ export const ptBR = {
       delete: 'Excluir coluna',
     },
     columnCopyTitle: (title: string) => `${title} (cópia)`,
+    boardCopyTitle: (title: string) => `${title} (cópia)`,
+    boardDuplicated: 'Quadro duplicado',
+    boardMoved: (folderTitle: string) => `Quadro movido para "${folderTitle}"`,
     boardOptions: 'Opções do quadro',
     renameBoard: 'Renomear quadro',
     renameBoardHint: 'Toque duas vezes para renomear.',
@@ -231,6 +236,18 @@ export const ptBR = {
     moveTo: 'Mover para…',
     movedToColumn: (columnTitle: string, position: number, total: number) =>
       `Movido para ${columnTitle}, posição ${position} de ${total}`,
+    // Folha "Mover para outra pasta" (… do quadro).
+    moveBoardSheet: {
+      title: (boardTitle: string) => `Mover "${boardTitle}" para a pasta:`,
+      // Enquanto o nome do quadro carrega.
+      loadingTitle: 'Mover o quadro para a pasta:',
+      folderLabel: 'Pasta',
+      currentFolder: (title: string) => `${title} (atual)`,
+      pinDropped: (limit: number) =>
+        `Essa pasta já tem ${limit} quadros fixados: o quadro chega lá sem fixar.`,
+      submit: 'Mover',
+      loadError: 'Não conseguimos abrir as pastas agora. Tente de novo em instantes.',
+    },
     moveSheet: {
       title: 'Mover cartão',
       columnLabel: 'Coluna',

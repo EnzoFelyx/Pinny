@@ -44,10 +44,17 @@ function undoFor(snapshots: readonly BoardSnapshot[]): UndoOperation {
     : { kind: 'sequence', operations };
 }
 
-// "Excluir quadro" (segurar o quadro) e "Excluir" do modo "Selecionar" na tela da pasta: pede
-// confirmação no alerta nativo, apaga os quadros com colunas, cartões e etiquetas e registra uma
-// ação só no histórico (chacoalhar ou snackbar desfazem). A tela recarrega quando o banco muda.
-export function useDeleteBoard(boards: readonly Board[]) {
+interface DeleteBoardOptions {
+  // Logo depois do "Excluir" do alerta, antes de apagar (ex.: o quadro aberto volta para a tela
+  // anterior, para não ficar mostrando um quadro que sumiu).
+  onConfirmed?: () => void;
+}
+
+// "Excluir quadro" (segurar o quadro na tela da pasta ou "…" do quadro) e "Excluir" do modo
+// "Selecionar": pede confirmação no alerta nativo, apaga os quadros com colunas, cartões e
+// etiquetas e registra uma ação só no histórico (chacoalhar ou snackbar desfazem). As telas
+// recarregam quando o banco muda.
+export function useDeleteBoard(boards: readonly Board[], { onConfirmed }: DeleteBoardOptions = {}) {
   const notifyUndoable = useUndoNotice();
   const [targets, setTargets] = useState<Board[]>([]);
 
@@ -62,6 +69,7 @@ export function useDeleteBoard(boards: readonly Board[]) {
     const chosen = targets;
     setTargets([]);
     if (chosen.length === 0) return;
+    onConfirmed?.();
     try {
       const snapshots: BoardSnapshot[] = [];
       for (const board of chosen) {
@@ -79,7 +87,7 @@ export function useDeleteBoard(boards: readonly Board[]) {
       console.warn('Falha ao excluir os quadros.', error);
       snackbarStore.show(ptBR.common.saveError);
     }
-  }, [targets, notifyUndoable]);
+  }, [targets, notifyUndoable, onConfirmed]);
 
   const confirmRequest = useMemo(() => confirmRequestFor(targets), [targets]);
 

@@ -16,7 +16,7 @@ import { colors, duration, skeleton } from '@/theme';
 import { useBoardViewModel } from '../viewmodel/useBoardViewModel';
 import { AddColumnButton } from './components/AddColumnButton';
 import { BoardFilterModal } from './components/BoardFilterModal';
-import { boardRenameLabels, renderBoardMenu } from './components/BoardMenu';
+import { BoardMenu, boardRenameLabels } from './components/BoardMenu';
 import { BoardSkeleton } from './components/BoardSkeleton';
 import { BoardToolbar } from './components/BoardToolbar';
 import { DragOverlay } from './components/DragOverlay';
@@ -115,6 +115,10 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
     onConfirm: vm.confirmDeleteColumn,
     onCancel: vm.closeDeleteColumn,
   });
+  useDestructiveConfirm(vm.deleteBoardRequest, {
+    onConfirm: vm.confirmDeleteBoard,
+    onCancel: vm.cancelDeleteBoard,
+  });
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
@@ -126,7 +130,15 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
         onBack={vm.goBack}
         onRename={vm.renameBoard}
         renameLabels={boardRenameLabels}
-        renderMenu={renderBoardMenu}
+        renderMenu={(startRename) => (
+          <BoardMenu
+            onRename={startRename}
+            onCreateColumn={vm.createColumn}
+            onDuplicate={vm.duplicateBoard}
+            onMoveToFolder={vm.moveBoardToFolder}
+            onDelete={vm.requestDeleteBoard}
+          />
+        )}
       />
 
       <BoardToolbar isLoading={showSkeleton} filter={vm.filter} />

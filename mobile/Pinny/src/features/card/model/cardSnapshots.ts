@@ -106,16 +106,20 @@ export function insertSnapshots(tx: Transaction, snapshots: readonly CardSnapsho
 }
 
 // Cópia do retrato em outra coluna, com ids novos (cartão e itens do checklist). Os anexos não
-// vão junto: a foto continuaria sendo do original.
+// vão junto: a foto continuaria sendo do original. labelIdMap troca as etiquetas pelas cópias
+// delas (cópia em outro quadro, que tem as próprias etiquetas).
 export function copySnapshot(
   snapshot: CardSnapshot,
   toColumnId: string,
   now: string,
+  labelIdMap?: ReadonlyMap<string, string>,
 ): CardSnapshot {
   const copyId = createId();
   return {
     card: { ...snapshot.card, id: copyId, columnId: toColumnId, createdAt: now, updatedAt: now },
-    labelIds: snapshot.labelIds,
+    labelIds: labelIdMap
+      ? snapshot.labelIds.flatMap((id) => labelIdMap.get(id) ?? [])
+      : snapshot.labelIds,
     checklist: snapshot.checklist.map((item) => ({
       ...item,
       id: createId(),

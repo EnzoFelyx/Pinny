@@ -1,6 +1,6 @@
 import { Pin } from 'lucide-react-native';
 import { memo } from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { colors } from '@/theme';
 
@@ -47,8 +47,8 @@ export const FolderCard = memo(function FolderCard({
         }
       : undefined;
   return (
-    <View className="gap-2 rounded-[24px] bg-surface p-3">
-      <View className="h-8 flex-row items-center gap-1.5">
+    <View className="rounded-[24px] bg-surface p-3">
+      <View className="h-8 flex-row items-center gap-1.5 pl-1">
         {/* Nome encolhe antes do contador e do alfinete: nome longo corta com "…". */}
         <View
           accessible
@@ -81,6 +81,9 @@ export const FolderCard = memo(function FolderCard({
         ) : null}
       </View>
 
+      {/* Linha fina entre o cabeçalho e os quadros (decorativa): 8 do título e 12 dos quadros. */}
+      <View style={styles.divider} className="mx-2 mb-3 mt-2" />
+
       {folder.createFirstBoardText && add ? (
         <AddBoardTile
           accessibilityLabel={add.accessibilityLabel}
@@ -101,4 +104,9 @@ export const FolderCard = memo(function FolderCard({
       )}
     </View>
   );
+});
+
+// Espessura de um pixel físico: valor do sistema, fora do className (REGRAS.md, regra 5).
+const styles = StyleSheet.create({
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
 });

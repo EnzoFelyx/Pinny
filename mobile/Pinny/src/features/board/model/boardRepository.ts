@@ -17,6 +17,8 @@ export interface BoardRepository {
   rename(id: string, title: string): Promise<void>;
   // Pode trocar de pasta: folderId é a pasta de destino.
   move(id: string, folderId: string, placement: Placement): Promise<void>;
+  // Volta à pasta e à posição exatas de antes (desfazer o "Mover para outra pasta").
+  moveToPosition(id: string, folderId: string, position: number): Promise<void>;
   remove(id: string): Promise<void>;
   // Recria o quadro exatamente como era (desfazer a exclusão).
   restore(board: Board): Promise<void>;
@@ -88,6 +90,14 @@ export function createBoardRepository(database: Database = db): BoardRepository 
           .where(eq(boards.id, id))
           .run();
       });
+    },
+
+    async moveToPosition(id, folderId, position) {
+      database
+        .update(boards)
+        .set({ folderId, position, updatedAt: nowIso() })
+        .where(eq(boards.id, id))
+        .run();
     },
 
     async setPinnedAt(id, pinnedAt) {

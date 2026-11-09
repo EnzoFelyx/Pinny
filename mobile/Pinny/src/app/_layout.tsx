@@ -29,6 +29,14 @@ const sheetScreenOptions = {
   contentStyle: { backgroundColor: colors.surface },
 } as const;
 
+// Folha com lista longa (SheetLayout com footer): começa em 40% e a tela mede o conteúdo e troca
+// as paradas para [altura do conteúdo (40% a 60%), tela toda] (useSheetFitDetent).
+const SCROLLABLE_SHEET_DETENTS: number[] = [0.4, 1];
+const scrollableSheetScreenOptions = {
+  ...sheetScreenOptions,
+  sheetAllowedDetents: SCROLLABLE_SHEET_DETENTS,
+};
+
 export default function RootLayout() {
   const databaseStatus = useDatabaseStatus();
 
@@ -39,7 +47,8 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             {/* O quadro desenha o próprio topo (voltar, título e menu na mesma linha). */}
-            <Stack.Screen name="board/[boardId]" />
+            <Stack.Screen name="board/[boardId]/index" />
+            <Stack.Screen name="board/[boardId]/move" options={scrollableSheetScreenOptions} />
             <Stack.Screen name="dev/gallery" options={pushedScreenOptions} />
             {/* A pasta também desenha o próprio topo (como o quadro). */}
             <Stack.Screen name="folder/[folderId]/index" />
