@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { PINNED_BOARDS_PER_FOLDER } from '@/constants/limits';
 import type { Board } from '@/features/board/model/board.schema';
@@ -6,6 +6,7 @@ import { pinBoards, selectionPinAction, unpinBoards } from '@/features/board/mod
 import { boardRepository } from '@/features/board/model/boardRepository';
 import { snackbarStore } from '@/features/feedback/model/snackbarStore';
 import { historyStore } from '@/features/history/model/historyStore';
+import { useSelection } from '@/hooks/useSelection';
 import { ptBR } from '@/i18n/pt-BR';
 
 const text = ptBR.folders.folderScreen;
@@ -18,29 +19,15 @@ export function useBoardSelection(
   folderBoards: readonly Board[],
   onDelete: (boardIds: readonly string[]) => void,
 ) {
-  // null = fora do modo de seleção.
-  const [selectedIds, setSelectedIds] = useState<string[] | null>(null);
-  const selected = useMemo(() => selectedIds ?? [], [selectedIds]);
+  const { isSelecting, selectedIds: selected, start, cancel, toggle } = useSelection();
   const pinAction = useMemo(
     () => selectionPinAction(folderBoards, selected),
     [folderBoards, selected],
   );
 
-  const start = useCallback(() => setSelectedIds([]), []);
-  const cancel = useCallback(() => setSelectedIds(null), []);
-
-  const toggle = useCallback((boardId: string) => {
-    setSelectedIds((current) => {
-      if (!current) return current;
-      return current.includes(boardId)
-        ? current.filter((id) => id !== boardId)
-        : [...current, boardId];
-    });
-  }, []);
-
   const togglePin = useCallback(async () => {
     if (!pinAction.isEnabled) return;
-    setSelectedIds(null);
+    cancel();
     try {
       if (pinAction.kind === 'unpin') {
         await unpinBoards(selected, boardRepository);
@@ -53,7 +40,7 @@ export function useBoardSelection(
       console.warn('Falha ao fixar os quadros.', error);
       snackbarStore.show(ptBR.common.saveError);
     }
-  }, [folderBoards, folderId, pinAction, selected]);
+  }, [cancel, folderBoards, folderId, pinAction, selected]);
 
   const requestDelete = useCallback(() => {
     if (selected.length > 0) onDelete(selected);
@@ -62,7 +49,7 @@ export function useBoardSelection(
   const isUnpin = pinAction.kind === 'unpin';
 
   return {
-    isSelecting: selectedIds !== null,
+    isSelecting,
     selectedIds: selected,
     title: text.selectionTitle(selected.length),
     hint: pinAction.isLimitReached

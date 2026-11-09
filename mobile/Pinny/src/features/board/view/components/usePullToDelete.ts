@@ -16,6 +16,8 @@ interface PullToDeleteOptions {
   isUserScrolling: SharedValue<boolean>;
   onArmed: () => void;
   onComplete: () => void;
+  // Desligado no modo de seleção.
+  isEnabled: boolean;
 }
 
 // Puxar a coluna para baixo além do limite e segurar: o anel enche em holdMs e, ao completar,
@@ -25,6 +27,7 @@ export function usePullToDelete({
   isUserScrolling,
   onArmed,
   onComplete,
+  isEnabled,
 }: PullToDeleteOptions) {
   const progress = useSharedValue(0);
   // Quanto a coluna está puxada para baixo (0 quando não está).
@@ -32,11 +35,11 @@ export function usePullToDelete({
   // A lixeira só aparece com o dedo segurando a coluna: a inércia de uma rolagem forte, que
   // também passa do topo, não conta. Ao soltar, some rapidinho.
   const visibility = useDerivedValue<number>(() =>
-    withTiming(isUserScrolling.get() ? 1 : 0, { duration: duration.fast }),
+    withTiming(isEnabled && isUserScrolling.get() ? 1 : 0, { duration: duration.fast }),
   );
 
   useAnimatedReaction(
-    () => isUserScrolling.get() && pull.get() >= pullToDelete.distance,
+    () => isEnabled && isUserScrolling.get() && pull.get() >= pullToDelete.distance,
     (isArmed, wasArmed) => {
       if (isArmed && !wasArmed) {
         scheduleOnRN(onArmed);

@@ -34,7 +34,7 @@ export const ptBR = {
       newBoard: 'Novo quadro',
       pin: 'Fixar no topo',
       unpin: 'Desafixar',
-      delete: 'Excluir pasta',
+      delete: 'Apagar',
     },
     openBoardA11y: (title: string, isPinned: boolean) =>
       `Abrir o quadro ${title}${isPinned ? ', fixado na Início' : ''}`,
@@ -42,16 +42,16 @@ export const ptBR = {
       `${title}${isPinned ? ', fixado na Início' : ''}`,
     pinBoard: 'Fixar na Início',
     unpinBoard: 'Desafixar',
-    // Segurar o quadro na tela da pasta: excluir com confirmação e desfazer.
-    deleteBoard: 'Excluir quadro',
-    deleteBoardTitle: (title: string) => `Excluir o quadro "${title}"?`,
-    deleteBoardMessage: 'As colunas e os cartões dele também serão excluídos.',
-    deleteBoardsTitle: (count: number) => `Excluir ${count} quadros?`,
-    deleteBoardsMessage: 'As colunas e os cartões deles também serão excluídos.',
-    deleteBoardConfirm: 'Excluir',
+    // Segurar o quadro na tela da pasta: apagar com confirmação e desfazer.
+    deleteBoard: 'Apagar',
+    deleteBoardTitle: (title: string) => `Apagar o quadro "${title}"?`,
+    deleteBoardMessage: 'As colunas e os cartões dele também serão apagados.',
+    deleteBoardsTitle: (count: number) => `Apagar ${count} quadros?`,
+    deleteBoardsMessage: 'As colunas e os cartões deles também serão apagados.',
+    deleteBoardConfirm: 'Apagar',
     deleteBoardCancel: 'Cancelar',
-    boardDeleted: 'Quadro excluído',
-    boardsDeleted: (count: number) => `${count} quadros excluídos`,
+    boardDeleted: 'Quadro apagado',
+    boardsDeleted: (count: number) => `${count} quadros apagados`,
     createBoardA11y: (folderTitle: string) => `Criar um quadro na pasta ${folderTitle}`,
     createFirstBoard: 'Criar o primeiro quadro',
     // Última vaga da pasta na Início quando há quadros de fora (abre a tela da pasta).
@@ -67,7 +67,7 @@ export const ptBR = {
       noResults: (query: string) => `Nenhum quadro com "${query}".`,
       options: 'Opções da pasta',
       customize: 'Personalizar pasta',
-      // Modo "Selecionar" (como a seleção de fotos do iOS): fixar ou excluir os escolhidos.
+      // Modo "Selecionar" (como a seleção de fotos do iOS): fixar ou apagar os escolhidos.
       select: 'Selecionar',
       selectionTitle: (count: number) =>
         count === 0
@@ -79,10 +79,10 @@ export const ptBR = {
       pinLimitHint: (limit: number) => `A Início mostra até ${limit} quadros fixados por pasta.`,
       pinSelectedA11y: 'Fixar os quadros selecionados na Início',
       unpinSelectedA11y: 'Desafixar os quadros selecionados',
-      deleteSelectedA11y: 'Excluir os quadros selecionados',
+      deleteSelectedA11y: 'Apagar os quadros selecionados',
       cancel: 'Cancelar',
       customizeHint: 'Toque duas vezes para personalizar.',
-      delete: 'Excluir pasta',
+      delete: 'Apagar',
       loading: 'Carregando a pasta',
     },
     newBoard: {
@@ -118,13 +118,16 @@ export const ptBR = {
       moveCard: 'Movimento',
       createCard: 'Criação',
       createColumn: 'Nova Coluna',
-      deleteColumn: 'Exclusão de Coluna',
+      deleteColumn: 'Apagar Coluna',
       moveColumn: 'Movimento de Coluna',
       duplicateColumn: 'Duplicação de Coluna',
       renameColumn: 'Renomeação de Coluna',
       renameBoard: 'Renomeação de Quadro',
-      deleteBoard: 'Exclusão de Quadro',
-      deleteBoards: 'Exclusão de Quadros',
+      deleteBoard: 'Apagar Quadro',
+      deleteBoards: 'Apagar Quadros',
+      archiveCards: 'Arquivar Cartões',
+      deleteCards: 'Apagar Cartões',
+      moveCards: 'Movimento de Cartões',
       duplicateBoard: 'Duplicação de Quadro',
       moveBoard: 'Movimento de Quadro',
     },
@@ -136,6 +139,60 @@ export const ptBR = {
     undoError: 'Não deu para desfazer ou refazer agora. Tente de novo, por favor.',
   },
   board: {
+    // Modo "Selecionar cartões" (como a seleção de fotos do iOS).
+    selection: {
+      title: (count: number) =>
+        count === 0
+          ? 'Selecionar cartões'
+          : count === 1
+            ? '1 selecionado'
+            : `${count} selecionados`,
+      hint: 'Toque nos cartões para selecionar.',
+      cancel: 'Cancelar',
+      cancelA11y: 'Sair da seleção',
+      // Ao lado da contagem de cada coluna: marca todos à mostra ou, com algum marcado, desmarca.
+      // Em duas linhas, para ocupar pouco espaço ao lado da contagem.
+      selectAll: 'Selecionar\ntodos',
+      clear: 'Limpar',
+      selectAllA11y: (column: string) => `Selecionar todos os cartões de ${column}`,
+      clearA11y: (column: string) => `Limpar a seleção de ${column}`,
+      // Barra de baixo: Mover, Arquivar e Apagar os selecionados.
+      moveA11y: 'Mover os cartões selecionados',
+      archiveA11y: 'Arquivar os cartões selecionados',
+      deleteA11y: 'Apagar os cartões selecionados',
+      deleteOneTitle: (title: string) => `Apagar o cartão "${title}"?`,
+      deleteManyTitle: (count: number) => `Apagar ${count} cartões?`,
+      deleteMessage: (count: number) =>
+        count === 1
+          ? 'As etiquetas, o checklist e as fotos dele também vão embora.'
+          : 'As etiquetas, os checklists e as fotos deles também vão embora.',
+      deleteConfirm: 'Apagar',
+      cardsArchived: (count: number) =>
+        count === 1 ? 'Cartão arquivado' : `${count} cartões arquivados`,
+      cardsDeleted: (count: number) =>
+        count === 1 ? 'Cartão apagado' : `${count} cartões apagados`,
+      cardsMoved: (count: number, column: string) =>
+        count === 1 ? `Cartão movido para ${column}` : `${count} cartões movidos para ${column}`,
+    },
+    // Tela "Arquivados" (… do quadro), provisória até o desenho no Figma.
+    archived: {
+      title: 'Arquivados',
+      columnTitle: 'Cartões arquivados',
+      empty: 'Nenhum cartão arquivado por aqui.',
+      loadError: 'Não conseguimos abrir os arquivados agora. Tente de novo em instantes.',
+    },
+    // Folha "Mover cartões" (barra do modo de seleção).
+    moveCardsSheet: {
+      title: (count: number) =>
+        count === 1 ? 'Mover 1 cartão para:' : `Mover ${count} cartões para:`,
+      boardLabel: 'Quadro',
+      currentBoard: (title: string) => `${title} (atual)`,
+      changeBoard: 'Trocar',
+      changeBoardA11y: (title: string) => `Quadro ${title}. Toque para trocar de quadro.`,
+      columnLabel: 'Coluna',
+      submit: 'Mover',
+      loadError: 'Não conseguimos carregar os quadros agora. Tente de novo em instantes.',
+    },
     addCard: 'Adicionar cartão',
     addColumn: 'Adicionar coluna',
     newColumn: {
@@ -166,7 +223,7 @@ export const ptBR = {
       moveForward: 'Mover para frente',
       moveBackward: 'Mover para trás',
       duplicate: 'Duplicar',
-      delete: 'Excluir coluna',
+      delete: 'Apagar',
     },
     columnCopyTitle: (title: string) => `${title} (cópia)`,
     boardCopyTitle: (title: string) => `${title} (cópia)`,
@@ -207,14 +264,16 @@ export const ptBR = {
       emptyColumn: 'Nenhum cartão com esses filtros.',
       newCardHidden: 'Cartão criado, mas escondido pelos filtros',
     },
+    // O grupo do meio age sobre o quadro: os nomes ficam curtos ("Renomear", não "Renomear quadro").
     boardMenu: {
       search: 'Buscar lembrete',
-      selectCards: 'Selecionar cartões',
+      selectCards: 'Selecionar',
       newColumn: 'Nova coluna',
-      rename: 'Renomear quadro',
-      duplicate: 'Duplicar quadro',
-      moveToFolder: 'Mover para outra pasta',
-      delete: 'Excluir quadro',
+      archived: 'Arquivados',
+      rename: 'Renomear',
+      duplicate: 'Duplicar',
+      moveToFolder: 'Mover',
+      delete: 'Apagar',
     },
     dropToReorder: 'Solte para reorganizar',
     columnSummary: (title: string, count: number) =>
@@ -236,7 +295,7 @@ export const ptBR = {
     moveTo: 'Mover para…',
     movedToColumn: (columnTitle: string, position: number, total: number) =>
       `Movido para ${columnTitle}, posição ${position} de ${total}`,
-    // Folha "Mover para outra pasta" (… do quadro).
+    // Folha "Mover quadro" (… do quadro).
     moveBoardSheet: {
       title: (boardTitle: string) => `Mover "${boardTitle}" para a pasta:`,
       // Enquanto o nome do quadro carrega.
@@ -259,14 +318,14 @@ export const ptBR = {
       loadError: 'Não conseguimos abrir as colunas agora. Tente de novo em instantes.',
     },
     dragHint: 'Segure um cartão ou uma coluna para mudar a ordem.',
-    deleteColumnTitle: (title: string) => `Excluir a coluna "${title}"?`,
+    deleteColumnTitle: (title: string) => `Apagar a coluna "${title}"?`,
     deleteColumnMessage: (count: number) =>
       count === 1
         ? 'O cartão dela também vai embora.'
         : `Os ${count} cartões dela também vão embora.`,
-    deleteColumnConfirm: 'Excluir',
+    deleteColumnConfirm: 'Apagar',
     deleteColumnCancel: 'Cancelar',
-    columnDeleted: 'Coluna excluída',
+    columnDeleted: 'Coluna apagada',
   },
   card: {
     priority: {

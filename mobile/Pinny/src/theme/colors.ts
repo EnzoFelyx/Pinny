@@ -19,6 +19,8 @@ const palette = {
   babyBlue200: '#DDEAF2',
   butter200: '#F6EDBE',
   terracotta700: '#9E4D42',
+  // Vermelho-coral vivo, só para ícones (4:1 sobre o creme; texto continua em terracotta700).
+  coral600: '#D9493C',
   honey800: '#8A622D',
   green600: '#537360',
   blue600: '#4F6F86',
@@ -57,6 +59,8 @@ export const colors = {
   inverseAction: palette.lavender200,
 
   alert: palette.terracotta700,
+  // Ícone de ação destrutiva nos botões de vidro (ex.: lixeira do modo de seleção).
+  destructiveIcon: palette.coral600,
 
   // Espaço tracejado onde o cartão arrastado vai cair. A borda e o texto (primary) têm 4,55:1 sobre
   // a coluna e ~4,9:1 sobre o fundo do destino. Na coluna de origem, só a borda; em outra coluna,

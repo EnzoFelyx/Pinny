@@ -48,7 +48,13 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             {/* O quadro desenha o próprio topo (voltar, título e menu na mesma linha). */}
             <Stack.Screen name="board/[boardId]/index" />
+            {/* Arquivados: mesmo topo desenhado pela tela (como o quadro). */}
+            <Stack.Screen name="board/[boardId]/archived" />
             <Stack.Screen name="board/[boardId]/move" options={scrollableSheetScreenOptions} />
+            <Stack.Screen
+              name="board/[boardId]/move-cards"
+              options={scrollableSheetScreenOptions}
+            />
             <Stack.Screen name="dev/gallery" options={pushedScreenOptions} />
             {/* A pasta também desenha o próprio topo (como o quadro). */}
             <Stack.Screen name="folder/[folderId]/index" />

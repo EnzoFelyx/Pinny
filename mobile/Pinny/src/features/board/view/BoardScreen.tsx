@@ -1,3 +1,4 @@
+import { Archive, FolderInput, Trash2 } from 'lucide-react-native';
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -5,6 +6,8 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { COLUMN_GAP, useBoardColumnLayout } from '@/hooks/useBoardColumnLayout';
+import { GlassTextButton } from '@/components/GlassTextButton';
+import { GlassToolbar } from '@/components/GlassToolbar';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { useDestructiveConfirm } from '@/hooks/useDestructiveConfirm';
 import { useHaptics } from '@/hooks/useHaptics';
@@ -67,7 +70,11 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   // As colunas deslizam para abrir a vaga no mesmo ritmo dos cartões.
   const reorderDuration = isReducedMotion ? duration.fast : duration.normal;
   const { columnWidth, snapInterval } = useBoardColumnLayout();
-  const { cardActions, columnActions } = useBoardActions(vm);
+  const { selection } = vm;
+  const { cardActions, columnActions } = useBoardActions({
+    ...vm,
+    toggleCardSelection: selection.toggle,
+  });
   const {
     drag,
     activeCardId,
@@ -140,6 +147,11 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
     onConfirm: vm.confirmDeleteColumn,
     onCancel: vm.closeDeleteColumn,
   });
+  const { batch } = vm;
+  useDestructiveConfirm(batch.deleteRequest, {
+    onConfirm: batch.confirmDelete,
+    onCancel: batch.cancelDelete,
+  });
   useDestructiveConfirm(vm.deleteBoardRequest, {
     onConfirm: vm.confirmDeleteBoard,
     onCancel: vm.cancelDeleteBoard,
@@ -147,23 +159,34 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
+      {/* Selecionando: o título vira a contagem (sem renomear) e o "…" vira "Cancelar". */}
       <ScreenHeader
-        title={vm.title}
-        subtitle={vm.subtitle}
+        title={selection.isSelecting ? selection.title : vm.title}
+        subtitle={selection.isSelecting ? selection.hint : vm.subtitle}
         isLoading={showSkeleton}
         errorText={vm.errorText}
         onBack={vm.goBack}
-        onRename={vm.renameBoard}
+        onRename={selection.isSelecting ? undefined : vm.renameBoard}
         renameLabels={boardRenameLabels}
-        renderMenu={(startRename) => (
-          <BoardMenu
-            onRename={startRename}
-            onCreateColumn={vm.createColumn}
-            onDuplicate={vm.duplicateBoard}
-            onMoveToFolder={vm.moveBoardToFolder}
-            onDelete={vm.requestDeleteBoard}
-          />
-        )}
+        renderMenu={(startRename) =>
+          selection.isSelecting ? (
+            <GlassTextButton
+              label={text.selection.cancel}
+              accessibilityLabel={text.selection.cancelA11y}
+              onPress={selection.cancel}
+            />
+          ) : (
+            <BoardMenu
+              onSelectCards={selection.start}
+              onRename={startRename}
+              onCreateColumn={vm.createColumn}
+              onOpenArchived={vm.openArchived}
+              onDuplicate={vm.duplicateBoard}
+              onMoveToFolder={vm.moveBoardToFolder}
+              onDelete={vm.requestDeleteBoard}
+            />
+          )
+        }
       />
 
       <BoardToolbar isLoading={showSkeleton} filter={vm.filter} />
@@ -214,11 +237,13 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
                       columnActions={columnActions}
                       haptics={haptics}
                       columnDrag={columnDrag}
+                      selectedIds={selection.selectedIds}
                     />
                   </ColumnSlot>
                 </Animated.View>
               ))}
-              {isFullyMounted ? (
+              {/* Selecionando, a coluna "Adicionar coluna" sai: uma tarefa de cada vez. */}
+              {isFullyMounted && !selection.isSelecting ? (
                 <AddColumnButton style={columnStyle} drag={drag} onPress={vm.createColumn} />
               ) : null}
             </>
@@ -227,7 +252,43 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
         {vm.filter.isApplying ? <FilterSkeletonOverlay columnStyle={columnStyle} /> : null}
       </View>
 
-      <Text className="px-6 pt-3 text-caption text-text-secondary">{ptBR.board.dragHint}</Text>
+      {/* Na seleção, a legenda sai e as colunas descem até embaixo: os botões flutuam por cima. */}
+      {selection.isSelecting ? null : (
+        <Text className="px-6 pt-3 text-caption text-text-secondary">{ptBR.board.dragHint}</Text>
+      )}
+
+      {selection.isSelecting ? (
+        // Como no Mail: Mover à esquerda, Arquivar no meio e Apagar (vermelho) à direita, em
+        // círculos de vidro, apagados até marcar um cartão.
+        <GlassToolbar
+          actions={[
+            {
+              key: 'move',
+              icon: FolderInput,
+              tone: 'accent',
+              accessibilityLabel: text.selection.moveA11y,
+              onPress: batch.openMove,
+              disabled: !batch.canAct,
+            },
+            {
+              key: 'archive',
+              icon: Archive,
+              tone: 'info',
+              accessibilityLabel: text.selection.archiveA11y,
+              onPress: batch.archive,
+              disabled: !batch.canAct,
+            },
+            {
+              key: 'delete',
+              icon: Trash2,
+              tone: 'destructive',
+              accessibilityLabel: text.selection.deleteA11y,
+              onPress: batch.requestDelete,
+              disabled: !batch.canAct,
+            },
+          ]}
+        />
+      ) : null}
 
       <BoardFilterModal filter={vm.filter} />
 

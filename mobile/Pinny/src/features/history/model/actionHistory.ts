@@ -28,6 +28,12 @@ export type UndoOperation =
   | { kind: 'updateCard'; cardId: string; previous: CardPatch }
   // Desfaz uma exclusão: recria o cartão com etiquetas, checklist e anexos.
   | { kind: 'restoreCard'; snapshot: CardSnapshot }
+  // Refaz a exclusão de vários cartões (seleção em lote): exclui de novo, guardando os retratos.
+  | { kind: 'deleteCards'; cardIds: string[] }
+  // Desfaz a exclusão de vários cartões: recria todos numa transação só.
+  | { kind: 'restoreCards'; snapshots: CardSnapshot[] }
+  // Desfaz a troca das etiquetas de um cartão (ex.: ao ir para outro quadro): volta às de antes.
+  | { kind: 'setCardLabels'; cardId: string; labelIds: string[] }
   // Desfaz a criação de uma coluna: exclui a coluna e os cartões dela, guardando o retrato.
   | { kind: 'deleteColumn'; columnId: string }
   // Desfaz uma exclusão de coluna: recria a coluna e os cartões com os mesmos ids e posições.
@@ -42,7 +48,7 @@ export type UndoOperation =
   | { kind: 'deleteBoard'; boardId: string }
   // Desfaz uma exclusão de quadro: recria o quadro, as etiquetas, as colunas e os cartões.
   | { kind: 'restoreBoard'; snapshot: BoardSnapshot }
-  // Desfaz "Mover para outra pasta": volta à pasta, à posição e à fixação de antes.
+  // Desfaz "Mover quadro": volta à pasta, à posição e à fixação de antes.
   | { kind: 'moveBoard'; place: BoardPlace }
   // Várias operações como uma ação só (ex.: criar a coluna e levar o cartão para ela). Desfaz na
   // ordem dada; a inversa refaz na ordem contrária.
@@ -105,7 +111,7 @@ export async function applyUndo(
   operation: UndoOperation,
   repositories: UndoRepositories,
 ): Promise<UndoOperation | null> {
-  const { cards, columns, boards } = repositories;
+  const { cards, columns, boards, labels } = repositories;
   switch (operation.kind) {
     case 'deleteCard': {
       const snapshot = await cards.remove(operation.cardId);
@@ -137,6 +143,25 @@ export async function applyUndo(
     case 'restoreCard':
       await cards.restore(operation.snapshot);
       return { kind: 'deleteCard', cardId: operation.snapshot.card.id };
+    case 'deleteCards': {
+      const snapshots = await cards.removeMany(operation.cardIds);
+      return { kind: 'restoreCards', snapshots };
+    }
+    case 'restoreCards':
+      await cards.restoreAll(operation.snapshots);
+      return {
+        kind: 'deleteCards',
+        cardIds: operation.snapshots.map((snapshot) => snapshot.card.id),
+      };
+    case 'setCardLabels': {
+      const before = await labels.listByCard(operation.cardId);
+      await labels.setForCard(operation.cardId, operation.labelIds);
+      return {
+        kind: 'setCardLabels',
+        cardId: operation.cardId,
+        labelIds: before.map((label) => label.id),
+      };
+    }
     case 'deleteColumn': {
       const snapshot = await removeColumnWithCards(operation.columnId, { columns, cards });
       return snapshot ? { kind: 'restoreColumn', snapshot } : null;

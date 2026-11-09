@@ -1,7 +1,8 @@
-import { Check, Columns3, Pin } from 'lucide-react-native';
+import { Columns3, Pin } from 'lucide-react-native';
 import { memo } from 'react';
 import { type AccessibilityActionEvent, Pressable, Text, View } from 'react-native';
 
+import { SelectionCheck } from '@/components/SelectionCheck';
 import { ptBR } from '@/i18n/pt-BR';
 import { colors, CONTEXT_MENU_HOLD_MS } from '@/theme';
 
@@ -9,7 +10,6 @@ import type { HomeBoardItem } from '../../viewmodel/useFolderItems';
 
 const BOARD_ICON_SIZE = 20;
 const PIN_ICON_SIZE = 12;
-const CHECK_ICON_SIZE = 12;
 
 // O menu de contexto nativo cuida do toque longo; aqui ele só impede o toque de abrir o quadro.
 function ignoreLongPress() {}
@@ -93,13 +93,7 @@ export const BoardTile = memo(function BoardTile({
       </View>
       {isSelecting ? (
         // Círculo de seleção no canto superior direito: vazio ou preenchido com o check.
-        <View
-          className={`absolute right-1.5 top-1.5 h-5 w-5 items-center justify-center rounded-full border-[1.5px] ${
-            isSelected ? 'border-primary bg-primary' : 'border-border-strong bg-surface'
-          }`}
-        >
-          {isSelected ? <Check size={CHECK_ICON_SIZE} color={colors.textOnPrimary} /> : null}
-        </View>
+        <SelectionCheck isSelected={isSelected === true} className="right-1.5 top-1.5" />
       ) : null}
     </Pressable>
   );

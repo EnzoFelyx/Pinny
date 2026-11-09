@@ -17,7 +17,7 @@ export interface BoardRepository {
   rename(id: string, title: string): Promise<void>;
   // Pode trocar de pasta: folderId é a pasta de destino.
   move(id: string, folderId: string, placement: Placement): Promise<void>;
-  // Volta à pasta e à posição exatas de antes (desfazer o "Mover para outra pasta").
+  // Volta à pasta e à posição exatas de antes (desfazer o "Mover quadro").
   moveToPosition(id: string, folderId: string, position: number): Promise<void>;
   remove(id: string): Promise<void>;
   // Recria o quadro exatamente como era (desfazer a exclusão).

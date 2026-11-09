@@ -11,6 +11,8 @@ interface ColumnTitleProps {
   // Sem ele, o título é só leitura (ex.: galeria de componentes).
   onRename?: (title: string) => void;
   onEditingChange?: (isEditing: boolean) => void;
+  // false = sem o lápis (coluna só de leitura, ex.: Arquivados).
+  showsRenameIcon?: boolean;
 }
 
 const PENCIL_ICON_SIZE = 15;
@@ -18,7 +20,13 @@ const renameAction = [{ name: 'activate', label: ptBR.board.renameColumn }] as c
 
 // Lápis, nome e contagem da coluna (Figma "Título editável da coluna"). Tocar no lápis ou no nome
 // edita ali mesmo: "OK" ou tocar fora salva, e nome vazio volta ao anterior.
-export function ColumnTitle({ title, cardCount, onRename, onEditingChange }: ColumnTitleProps) {
+export function ColumnTitle({
+  title,
+  cardCount,
+  onRename,
+  onEditingChange,
+  showsRenameIcon = true,
+}: ColumnTitleProps) {
   const { draft, changeDraft, startEditing, finishEditing } = useInlineRename({
     title,
     onRename,
@@ -68,7 +76,12 @@ export function ColumnTitle({ title, cardCount, onRename, onEditingChange }: Col
       onPress={startEditing}
       className="flex-1 flex-row items-center gap-2 active:opacity-60"
     >
-      <Pencil size={PENCIL_ICON_SIZE} color={colors.textSecondary} />
+      {/* Sem renomear (ex.: modo de seleção), o lápis fica bem apagado, sem mudar o layout. */}
+      {showsRenameIcon ? (
+        <View className={onRename ? undefined : 'opacity-25'}>
+          <Pencil size={PENCIL_ICON_SIZE} color={colors.textSecondary} />
+        </View>
+      ) : null}
       <Text numberOfLines={1} className="flex-1 text-subtitle text-text-primary">
         {title}
       </Text>

@@ -7,6 +7,8 @@ export interface CardActions {
   // Leva o cartão ao topo da coluna vizinha e devolve o texto para o leitor de tela.
   moveToAdjacentColumn: (cardId: string, step: -1 | 1) => string | null;
   openMoveCard: (cardId: string) => void;
+  // Modo de seleção: marca ou desmarca o cartão.
+  toggleSelect: (cardId: string) => void;
 }
 
 export interface ColumnActions {
@@ -17,6 +19,9 @@ export interface ColumnActions {
   duplicate: (columnId: string) => void;
   rename: (columnId: string, title: string) => void;
   requestDelete: (columnId: string) => void;
+  // Modo de seleção: "Selecionar todos" e "Limpar" da coluna.
+  selectAllCards: (columnId: string) => void;
+  clearSelection: (columnId: string) => void;
 }
 
 // Feedback tátil do arraste.

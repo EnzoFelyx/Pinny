@@ -16,6 +16,7 @@ import { colors } from '@/theme';
 import { Chip, type ChipEmphasis } from './Chip';
 import { Label } from './Label';
 import { PriorityChip } from './PriorityChip';
+import { SelectionCheck } from './SelectionCheck';
 
 export interface CardLabel {
   id: string;
@@ -44,7 +45,20 @@ interface CardProps {
   // Alternativas ao gesto para o leitor de tela (ex.: "Mover para cima" no quadro).
   accessibilityActions?: readonly AccessibilityActionInfo[];
   onAccessibilityAction?: (event: AccessibilityActionEvent) => void;
+  // Modo de seleção: círculo no canto e, marcado, fundo lavanda com a borda roxa. O toque
+  // (onPress) marca/desmarca. undefined = fora do modo.
+  isSelected?: boolean;
 }
+
+type CardSurface = 'default' | 'unselected' | 'selected';
+
+// Todos têm a borda de 2 (transparente quando não aparece), para o tamanho não mudar.
+const surfaceClass: Record<CardSurface, string> = {
+  // Enquanto o dedo está no cartão, a borda aparece; ao soltar, some.
+  default: 'border-transparent bg-surface active:border-border-selected',
+  unselected: 'border-transparent bg-surface',
+  selected: 'border-primary bg-secondary',
+};
 
 const META_ICON_SIZE = 14;
 
@@ -71,20 +85,24 @@ export const Card = memo(function Card({
   onLongPress,
   accessibilityActions,
   onAccessibilityAction,
+  isSelected,
 }: CardProps) {
+  const isSelecting = isSelected !== undefined;
+  const surface: CardSurface = isSelecting ? (isSelected ? 'selected' : 'unselected') : 'default';
   const hasTags = labels.length > 0 || priority !== undefined;
   const hasMeta = deadline !== undefined || checklistText !== undefined;
 
   return (
     <Pressable
-      accessibilityRole="button"
+      accessibilityRole={isSelecting ? 'checkbox' : 'button'}
+      accessibilityState={isSelecting ? { checked: isSelected } : undefined}
       accessibilityLabel={accessibilityLabel}
-      accessibilityActions={accessibilityActions}
-      onAccessibilityAction={onAccessibilityAction}
+      // Selecionando, o toque só marca: as ações de mover voltam ao sair do modo.
+      accessibilityActions={isSelecting ? undefined : accessibilityActions}
+      onAccessibilityAction={isSelecting ? undefined : onAccessibilityAction}
       onPress={onPress}
       onLongPress={onLongPress}
-      // Enquanto o dedo está no cartão, a borda aparece; ao soltar, some.
-      className="w-full gap-2 rounded-[18px] border-2 border-transparent bg-surface p-3 shadow-card active:border-border-selected"
+      className={`w-full gap-2 rounded-[18px] border-2 p-3 shadow-card ${surfaceClass[surface]}`}
     >
       {thumbnail ? (
         <Image source={thumbnail} resizeMode="cover" className="h-14 w-full rounded-[12px]" />
@@ -111,6 +129,10 @@ export const Card = memo(function Card({
             </View>
           ) : null}
         </View>
+      ) : null}
+
+      {isSelecting ? (
+        <SelectionCheck isSelected={isSelected === true} className="right-2.5 top-2.5" />
       ) : null}
     </Pressable>
   );

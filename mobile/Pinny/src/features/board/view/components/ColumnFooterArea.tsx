@@ -45,7 +45,8 @@ interface ColumnFooterAreaProps {
   area: EmptyColumnArea;
   emptyMessage: string;
   emptyVariant: IllustrationVariant;
-  onAddCard: () => void;
+  // Sem ele (modo de seleção), o "Adicionar cartão" não aparece.
+  onAddCard?: () => void;
 }
 
 // Fim da coluna: o "Adicionar cartão" depois da lista ou, na coluna vazia, o estado vazio com o
@@ -69,6 +70,7 @@ export function ColumnFooterArea({
   };
 
   if (!isEmpty) {
+    if (!onAddCard) return null;
     return (
       <View style={styles.footerAfterList}>
         <ColumnFooter isEmpty={false} onAddCard={onAddCard} />

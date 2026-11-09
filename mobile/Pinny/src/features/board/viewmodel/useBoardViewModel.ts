@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
 import { createSampleCard } from '@/features/dev/model/devDataService';
@@ -15,6 +15,8 @@ import { toPlacement } from '../model/reorder';
 import { type BoardColumnItem, toColumnItems } from './boardItems';
 import { useBoardFilter } from './useBoardFilter';
 import { useBoardRename } from './useBoardRename';
+import { useCardBatchActions } from './useCardBatchActions';
+import { useCardSelection } from './useCardSelection';
 import { useColumnActions } from './useColumnActions';
 import { useBoardMenuActions } from './useBoardMenuActions';
 import { useVisibleCards } from './useVisibleCards';
@@ -134,6 +136,10 @@ export function useBoardViewModel(boardId: string) {
     [visible.columns, moveCard],
   );
 
+  const openArchived = useCallback(() => {
+    router.push({ pathname: '/board/[boardId]/archived', params: { boardId } });
+  }, [boardId]);
+
   const openMoveCard = useCallback((cardId: string) => {
     router.push({ pathname: '/card/[cardId]/move', params: { cardId } });
   }, []);
@@ -157,7 +163,50 @@ export function useBoardViewModel(boardId: string) {
     [visible],
   );
 
+  const selection = useCardSelection();
+  const { selectMany, deselectMany } = selection;
+  // "Selecionar todos" da coluna marca só os cartões à mostra (com filtro, só os que passam).
+  const selectColumnCards = useCallback(
+    (columnId: string) => {
+      const column = visible.columns.find((item) => item.id === columnId);
+      if (column) selectMany(column.visibleCards.map((card) => card.id));
+    },
+    [visible.columns, selectMany],
+  );
+  // "Limpar" desmarca todos os cartões da coluna, inclusive os escondidos pelo filtro.
+  const clearColumnSelection = useCallback(
+    (columnId: string) => {
+      const column = visible.columns.find((item) => item.id === columnId);
+      if (column) deselectMany(column.cards.map((card) => card.id));
+    },
+    [visible.columns, deselectMany],
+  );
+
   const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
+  // Selecionados na ordem do quadro: é nela que chegam ao destino ao mover.
+  const { selectedIds: selectedSet, cancel: endSelection } = selection;
+  const orderedSelectedIds = useMemo(
+    () =>
+      selectedSet
+        ? columns.flatMap((column) =>
+            column.cards.filter((card) => selectedSet.has(card.id)).map((card) => card.id),
+          )
+        : [],
+    [columns, selectedSet],
+  );
+  const titleOf = useCallback(
+    (cardId: string) =>
+      columns.flatMap((column) => column.cards).find((card) => card.id === cardId)?.title,
+    [columns],
+  );
+  const batch = useCardBatchActions({
+    boardId,
+    selectedIds: orderedSelectedIds,
+    titleOf,
+    onDone: endSelection,
+    notifyUndoable,
+    onSaveError: reportSaveError,
+  });
   const renameBoard = useBoardRename({ data, onDataChange: setData, onSaveError: reportSaveError });
   const boardMenuActions = useBoardMenuActions({
     board: data?.board,
@@ -184,10 +233,15 @@ export function useBoardViewModel(boardId: string) {
     moveCard,
     moveCardToAdjacentColumn,
     openMoveCard,
+    openArchived,
     addCard,
     renameBoard,
     ...boardMenuActions,
     filter,
+    selection,
+    batch,
+    selectColumnCards,
+    clearColumnSelection,
     goBack: router.back,
     ...columnActions,
   };

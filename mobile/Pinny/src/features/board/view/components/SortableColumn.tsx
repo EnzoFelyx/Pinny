@@ -9,6 +9,7 @@ import { colors, duration } from '@/theme';
 import type { BoardColumnItem } from '../../viewmodel/boardItems';
 import { ColumnFooterArea, useEmptyColumnArea } from './ColumnFooterArea';
 import { ColumnMenu } from './ColumnMenu';
+import { ColumnSelectionToggle } from './ColumnSelectionToggle';
 import { DropPlaceholder } from './DropPlaceholder';
 import { PullToDeleteIndicator } from './PullToDeleteIndicator';
 import { SortableCard } from './SortableCard';
@@ -36,6 +37,8 @@ interface SortableColumnViewProps {
   haptics: DragHaptics;
   // Arraste da coluna pelo cabeçalho (reordenar colunas).
   columnDrag: ColumnDrag;
+  // Modo de seleção: os cartões marcados (null = fora do modo). Selecionando, nada arrasta.
+  selectedIds: ReadonlySet<string> | null;
 }
 
 // Coluna do quadro inteira rolável (como no kanban antigo): o cabeçalho fica preso no topo e o
@@ -51,7 +54,9 @@ export const SortableColumnView = memo(function SortableColumnView({
   columnActions,
   haptics,
   columnDrag,
+  selectedIds,
 }: SortableColumnViewProps) {
+  const isSelecting = selectedIds !== null;
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const { column: sortable, scrollHandler } = useSortableColumn({
     columnId: column.id,
@@ -100,9 +105,17 @@ export const SortableColumnView = memo(function SortableColumnView({
     isUserScrolling: sortable.isUserScrolling,
     onArmed: tick,
     onComplete: confirmPullToDelete,
+    isEnabled: !isSelecting,
   });
 
   const addCardHere = useCallback(() => addCard(column.id), [addCard, column.id]);
+  const { selectAllCards, clearSelection } = columnActions;
+  const selectAllHere = useCallback(() => selectAllCards(column.id), [selectAllCards, column.id]);
+  const clearSelectionHere = useCallback(
+    () => clearSelection(column.id),
+    [clearSelection, column.id],
+  );
+  const hasSelected = selectedIds ? column.cards.some((card) => selectedIds.has(card.id)) : false;
   const renameHere = useCallback((title: string) => rename(column.id, title), [rename, column.id]);
   // Enquanto o título é editado, a coluna não rola (nem o "puxar para excluir") e os cartões não
   // arrastam: um gesto sem querer não tira o foco do campo.
@@ -111,7 +124,7 @@ export const SortableColumnView = memo(function SortableColumnView({
   // invisível no lugar (trocar de lugar vem depois).
   const columnLift = useColumnLift({
     columnId: column.id,
-    isEnabled: !isEditingTitle,
+    isEnabled: !isEditingTitle && !isSelecting,
     columnDrag,
     onLift: lift,
   });
@@ -143,8 +156,23 @@ export const SortableColumnView = memo(function SortableColumnView({
               <ColumnHeader
                 title={column.title}
                 cardCount={cardCount}
-                onRename={renameHere}
+                // Selecionando, o nome não edita: uma tarefa de cada vez.
+                onRename={isSelecting ? undefined : renameHere}
                 onEditingChange={setIsEditingTitle}
+                // Selecionando, o "…" some: excluir ou duplicar a coluna bagunçaria a seleção.
+                isMenuHidden={isSelecting}
+                accessory={
+                  // Coluna sem cartões à mostra: nada para selecionar (com algum marcado, o
+                  // "Limpar" continua).
+                  isSelecting && (cardCount > 0 || hasSelected) ? (
+                    <ColumnSelectionToggle
+                      columnTitle={column.title}
+                      hasSelected={hasSelected}
+                      onSelectAll={selectAllHere}
+                      onClear={clearSelectionHere}
+                    />
+                  ) : undefined
+                }
                 menu={
                   <ColumnMenu
                     columnId={column.id}
@@ -182,7 +210,8 @@ export const SortableColumnView = memo(function SortableColumnView({
                 total={cardCount}
                 column={sortable}
                 drag={drag}
-                isDragEnabled={!isEditingTitle}
+                isDragEnabled={!isEditingTitle && !isSelecting}
+                isSelected={selectedIds ? selectedIds.has(card.id) : undefined}
                 isReducedMotion={isReducedMotion}
                 actions={cardActions}
               />
@@ -194,7 +223,8 @@ export const SortableColumnView = memo(function SortableColumnView({
             area={emptyArea}
             emptyMessage={column.emptyMessage}
             emptyVariant={column.emptyVariant}
-            onAddCard={addCardHere}
+            // Selecionando, sem "Adicionar cartão": uma tarefa de cada vez.
+            onAddCard={isSelecting ? undefined : addCardHere}
           />
         </AnimatedScrollView>
       </Animated.View>

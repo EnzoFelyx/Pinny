@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, ne } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, isNull, ne } from 'drizzle-orm';
 
 import { type Database, db } from '@/db/client';
 import { applyPlacement } from '@/db/ordering';
@@ -27,6 +27,8 @@ export type CardPatch = Partial<
 export interface CardRepository {
   // Cartões ativos (não arquivados) da coluna, em ordem.
   listByColumn(columnId: string): Promise<Card[]>;
+  // Cartões arquivados dessas colunas, do arquivado mais recente para o mais antigo.
+  listArchivedByColumns(columnIds: readonly string[]): Promise<Card[]>;
   getById(id: string): Promise<Card | null>;
   create(input: NewCardInput): Promise<Card>;
   update(id: string, patch: CardPatch): Promise<void>;
@@ -36,6 +38,8 @@ export interface CardRepository {
   moveToPosition(id: string, columnId: string, position: number): Promise<void>;
   // Exclui e devolve o retrato completo, para o "Desfazer".
   remove(id: string): Promise<CardSnapshot>;
+  // Exclui vários numa transação só (seleção em lote) e devolve os retratos, na ordem dada.
+  removeMany(ids: readonly string[]): Promise<CardSnapshot[]>;
   // Exclui todos os cartões da coluna (inclusive arquivados) e devolve os retratos, em ordem.
   removeByColumn(columnId: string): Promise<CardSnapshot[]>;
   // Copia os cartões ativos de uma coluna para outra (vazia), na mesma ordem, com etiquetas e
@@ -71,6 +75,17 @@ export function createCardRepository(database: Database = db): CardRepository {
         .from(cards)
         .where(and(eq(cards.columnId, columnId), isNull(cards.archivedAt)))
         .orderBy(asc(cards.position))
+        .all();
+      return parseRows(cardSchema, rows, 'cards');
+    },
+
+    async listArchivedByColumns(columnIds) {
+      if (columnIds.length === 0) return [];
+      const rows = database
+        .select()
+        .from(cards)
+        .where(and(inArray(cards.columnId, [...columnIds]), isNotNull(cards.archivedAt)))
+        .orderBy(desc(cards.archivedAt))
         .all();
       return parseRows(cardSchema, rows, 'cards');
     },
@@ -140,6 +155,25 @@ export function createCardRepository(database: Database = db): CardRepository {
         // Etiquetas, checklist e anexos saem junto (cascata).
         tx.delete(cards).where(eq(cards.id, id)).run();
         return snapshot;
+      });
+    },
+
+    async removeMany(ids) {
+      if (ids.length === 0) return [];
+      return database.transaction((tx) => {
+        const rows = tx
+          .select()
+          .from(cards)
+          .where(inArray(cards.id, [...ids]))
+          .all();
+        const byId = new Map(rows.map((row) => [row.id, row]));
+        const ordered = ids.flatMap((id) => byId.get(id) ?? []);
+        const snapshots = snapshotsOf(tx, ordered);
+        // Etiquetas, checklist e anexos saem junto (cascata).
+        tx.delete(cards)
+          .where(inArray(cards.id, [...ids]))
+          .run();
+        return snapshots;
       });
     },
 

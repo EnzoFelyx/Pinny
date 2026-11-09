@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { type LayoutChangeEvent, StyleSheet } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
@@ -38,6 +38,8 @@ interface SortableCardProps {
   isDragEnabled: boolean;
   isReducedMotion: boolean;
   actions: CardActions;
+  // Modo de seleção: marcado ou não (undefined = fora do modo); o toque marca/desmarca.
+  isSelected?: boolean;
 }
 
 // Cartão do quadro: segurar e arrastar muda a ordem ou a coluna. Enquanto o dedo segura e
@@ -57,6 +59,7 @@ export const SortableCard = memo(function SortableCard({
   isDragEnabled,
   isReducedMotion,
   actions,
+  isSelected,
 }: SortableCardProps) {
   const { id } = card;
   // Só os valores que cada animação lê: um worklet que captura o objeto `drag` ou `column` inteiro
@@ -169,6 +172,9 @@ export const SortableCard = memo(function SortableCard({
     reportHeight(id, event.nativeEvent.layout.height);
   };
 
+  const { toggleSelect } = actions;
+  const toggleHere = useCallback(() => toggleSelect(id), [toggleSelect, id]);
+
   const accessibility = useCardAccessibilityActions({
     cardId: id,
     columnId,
@@ -195,6 +201,8 @@ export const SortableCard = memo(function SortableCard({
           checklistText={card.checklistText}
           accessibilityActions={accessibility.accessibilityActions}
           onAccessibilityAction={accessibility.onAccessibilityAction}
+          isSelected={isSelected}
+          onPress={isSelected !== undefined ? toggleHere : undefined}
         />
       </Animated.View>
     </GestureDetector>

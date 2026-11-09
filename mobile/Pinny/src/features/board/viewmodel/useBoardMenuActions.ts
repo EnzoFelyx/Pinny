@@ -58,7 +58,7 @@ export function useBoardMenuActions({
 
   return {
     duplicateBoard: duplicate,
-    // Mover para outra pasta: folha nativa com as pastas.
+    // Mover quadro: folha nativa com as pastas.
     moveBoardToFolder: useCallback(() => {
       if (board) router.push({ pathname: '/board/[boardId]/move', params: { boardId: board.id } });
     }, [board]),

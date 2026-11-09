@@ -15,7 +15,7 @@ import type { MoveOption } from './useMoveCardViewModel';
 
 const text = ptBR.board.moveBoardSheet;
 
-// Folha "Mover para outra pasta" (… do quadro): escolhe a pasta e o quadro vai para o fim dela.
+// Folha "Mover quadro" (… do quadro): escolhe a pasta e o quadro vai para o fim dela.
 // Fixado, chega fixado se a pasta de destino tiver vaga; senão, a folha avisa antes de mover.
 export function useMoveBoardViewModel(boardId: string) {
   const [board, setBoard] = useState<Board | null>(null);

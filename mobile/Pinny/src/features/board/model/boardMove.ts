@@ -21,7 +21,7 @@ async function keepPinIfFits(
   await boards.setPinnedAt(boardId, pinnedAt !== null && fits ? pinnedAt : null);
 }
 
-// "Mover para outra pasta": o quadro vai para o fim da pasta escolhida. Fixado, continua fixado
+// "Mover quadro": o quadro vai para o fim da pasta escolhida. Fixado, continua fixado
 // se a pasta de destino tiver vaga; senão, chega desafixado. Devolve onde ele estava.
 // null = o quadro não existe mais.
 export async function moveBoardToFolder(
