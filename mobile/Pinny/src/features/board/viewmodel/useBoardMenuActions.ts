@@ -38,7 +38,8 @@ export function useBoardMenuActions({
   const deleteBoard = useDeleteBoard(deletable, { onConfirmed: router.back });
   const requestDelete = deleteBoard.request;
 
-  // Duplicar: a cópia fica logo depois na mesma pasta e o usuário continua no quadro atual.
+  // Duplicar: a cópia fica logo depois na mesma pasta e abre no lugar do quadro atual (replace:
+  // o voltar leva para onde o usuário estava antes do original).
   const duplicate = useCallback(async () => {
     if (!board) return;
     try {
@@ -47,6 +48,7 @@ export function useBoardMenuActions({
         kind: 'deleteBoard',
         boardId: copy.id,
       });
+      router.replace({ pathname: '/board/[boardId]', params: { boardId: copy.id } });
       await notifyUndoable(text.boardDuplicated);
     } catch (error: unknown) {
       console.warn('Falha ao duplicar o quadro.', error);

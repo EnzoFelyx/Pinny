@@ -39,7 +39,8 @@ export function NameSheet({
   onSubmit,
 }: NameSheetProps) {
   return (
-    <SheetLayout title={title}>
+    // ~100px (32pt) entre o último item (botão ou nota) e a borda de baixo (decisão do autor).
+    <SheetLayout title={title} bottomSpace="roomy">
       {description ? <Text className="text-body text-text-secondary">{description}</Text> : null}
       <Input
         label={label}

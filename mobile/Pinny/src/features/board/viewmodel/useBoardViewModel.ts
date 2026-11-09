@@ -60,6 +60,11 @@ export function useBoardViewModel(boardId: string) {
       loadBoard(boardId)
         .then((result) => {
           if (!isActive) return;
+          // Quadro apagado com a tela aberta (ex.: desfazer a duplicação dentro da cópia): volta.
+          if (!result) {
+            router.back();
+            return;
+          }
           const ids = result?.columns.map((item) => item.column.id) ?? [];
           const added = knownColumnIds ? ids.find((id) => !knownColumnIds?.has(id)) : undefined;
           knownColumnIds = new Set(ids);
