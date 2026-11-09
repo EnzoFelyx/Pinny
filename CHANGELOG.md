@@ -7,6 +7,27 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-09 — Reordenar colunas
+
+### Adicionado
+
+- Reordenar colunas segurando o cabeçalho: uma cópia da coluna (cabeçalho e os 4 primeiros cartões, girada -3°, com borda roxa e sombra elevada) sobe para a camada por cima de tudo e segue o dedo nos dois eixos, com rolagem automática horizontal do quadro. As colunas deslizam para abrir a vaga tracejada "Solte para reorganizar", do tamanho da coluna. Ao soltar, a coluna verdadeira assume do mesmo ponto e assenta com uma mola quase sem quique, acompanhando a rolagem e já podendo ser rolada. A nova ordem é gravada na hora, com desfazer ("Movimento de Coluna") e o aviso "Coluna movida". (`ed3bfff`)
+
+### Alterado
+
+- "Duplicar quadro" abre a cópia no lugar do quadro atual; um quadro apagado com a tela aberta volta para a tela anterior. (`2c33968`)
+- A legenda do quadro virou "Segure um cartão ou uma coluna para mudar a ordem." (`ed3bfff`)
+
+### Removido
+
+- "Reorganizar colunas" saiu do "…" do quadro: as colunas são reordenadas segurando o cabeçalho, e "Mover para trás/frente" no menu da coluna continua como alternativa sem gesto. (`ed3bfff`)
+
+### Corrigido
+
+- As folhas simples (renomear pasta, nova pasta, novo quadro, nova coluna, mover cartão) ficavam em 40% da tela e expandiam para a tela toda com o teclado: agora têm a altura exata do conteúdo e só sobem junto com o teclado, com 32pt embaixo do botão. (`2c33968`)
+
+---
+
 ## 2026-11-08 — Novo card da pasta e excluir quadro
 
 ### Adicionado

@@ -187,7 +187,7 @@
 ### 6.4 — Reordenar colunas
 - [x] Skeleton loading do quadro (enquanto carrega): 2 colunas com 4 e 3 cartões, shimmer no estilo do YouTube, sem tempo mínimo.
 - [ ] Menu "…" do topo do quadro (menu nativo, igual ao da coluna), adiado da 6.3. Ordem decidida (2026-11-02):
-  - Grupo 1: Buscar lembrete · Selecionar cartões · Nova coluna · Reorganizar colunas (o "Filtrar…" saiu do menu em 2026-11-03: os filtros ficam na linha abaixo do título)
+  - Grupo 1: Buscar lembrete · Selecionar cartões · Nova coluna ("Reorganizar colunas" saiu em 2026-11-09) (o "Filtrar…" saiu do menu em 2026-11-03: os filtros ficam na linha abaixo do título)
   - Grupo 2: Renomear quadro · Duplicar quadro · Mover para outra pasta
   - Grupo 3: Excluir quadro (vermelho, com desfazer)
   - [x] Renomear quadro (no título e no menu)
@@ -199,8 +199,12 @@
   - [ ] "Buscar lembrete" (lupa): definir como a busca funciona
   - [x] Linha de filtros abaixo do título: atalhos (Hoje, Atrasados, Alta) e "Filtros"; com filtro, chips removíveis e "Limpar"
   - [x] Aplicar o filtro no quadro: todas as colunas sempre visíveis, só os cartões que passam; arraste pelo vizinho visível; aviso de cartão novo escondido; contador e subtítulo com os visíveis
-- [ ] Reordenar colunas segurando e arrastando
-- [ ] Refatorar para ficar abaixo de ~200 linhas: `useBoardDrag.ts` (252), `SortableCard.tsx` (221) e `SortableColumn.tsx` (208)
+- [x] Reordenar colunas segurando e arrastando
+  - [x] Visual da coluna levantada: segurar o cabeçalho gira -3°, com borda `primary` e sombra elevada (Figma "Quadro · Reordenar colunas")
+  - [x] Levantada numa camada por cima de tudo, com só os 4 primeiros cartões, seguindo o dedo nos dois eixos e com rolagem automática horizontal do quadro
+  - [x] Vaga: as colunas deslizam para abrir espaço e a vaga tracejada "Solte para reorganizar" aparece do tamanho da coluna
+  - [x] Trocar a coluna de lugar ao soltar (cópia assenta na vaga, quadro encaixa, ordem gravada com desfazer)
+- [ ] Refatorar para ficar abaixo de ~200 linhas: `useBoardDrag.ts` (287), `SortableCard.tsx` (221) e `SortableColumn.tsx` (231) e `BoardScreen.tsx` (259)
 - [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)
 - [ ] Melhoria de performance do aplicativo
   - [x] Objeto do arraste estável (o cartão segurado saiu dele) e ações com identidade fixa: segurar e soltar não redesenham mais todas as colunas e cartões
@@ -357,6 +361,7 @@
 **Objetivo:** um app pronto para as lojas e para o portfólio.
 
 - [ ] Revisão de performance em build de release
+- [ ] Skeleton loading das telas da tab bar (Início, Modelos, Agenda, Ajustes e Busca), no padrão do quadro (pedido do autor, 2026-11-09)
 - [ ] Teste completo com VoiceOver e TalkBack
 - [ ] Teste com fonte grande do sistema e "Reduzir movimento"
 - [ ] Revisão do tom amigável em todos os textos
