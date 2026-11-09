@@ -11,6 +11,8 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ### Adicionado
 
+- Menu "…" do quadro: "Nova coluna" (mesma folha da coluna "Adicionar coluna"), "Excluir quadro" (alerta, volta para a tela anterior e desfazer), "Duplicar quadro" ("Nome (cópia)" logo depois do original, com etiquetas, colunas e cartões ativos, sem anexos, com desfazer) e "Mover para outra pasta" (folha nativa com as pastas; fixado, chega fixado só se a pasta tiver vaga; com desfazer). A folha abre na altura do conteúdo (40% a 60% da tela) e expande para a tela toda. (`54293eb`)
+
 - Modo "Selecionar" na tela da pasta (primeira opção do "…", no lugar do "Fixar quadros"): seleção sem limite, como nas fotos do iOS, com check e borda roxa nos escolhidos; os fixados continuam em lavanda e com o alfinete. Embaixo, botões redondos de Liquid Glass: fixar (ou desafixar, com o alfinete riscado, quando só há fixados selecionados) à esquerda, em cinza-escuro, e excluir (lixeira vermelha) à direita. O "Fixar" só aparece se a pasta continuar com no máximo 3 fixados, contando os que já estão; a dica do topo explica o limite. Excluir vários quadros pede uma confirmação e vira uma ação só no histórico ("Exclusão de Quadros"). (`b22617c`)
 
 - Excluir quadro: na tela da pasta, segurar um quadro abre o menu de contexto com "Excluir quadro" (vermelho, separado de "Fixar na Início" / "Desafixar"; também como ação do VoiceOver). O alerta nativo pede confirmação; o quadro sai com colunas, cartões (inclusive arquivados) e etiquetas, entra no histórico ("Exclusão de Quadro") e pode ser desfeito pelo chacoalhar ou pelo snackbar, voltando com os mesmos ids, posições e fixação. (`1e02a69`)
@@ -20,6 +22,7 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 - Card da pasta na Início no novo layout do Figma: padding de 12, cabeçalho numa linha (ícone, nome, contador, alfinete roxo se fixada e "⋮"), quadros de 64 de altura com o ícone de colunas na cor da pasta (no lugar da miniatura desenhada) e grade com 8 de espaço. Entre as pastas, 20 de espaço. (`1e02a69`)
 - Pastas com mais de 3 quadros terminam no bloco lavanda "Ver todos ›" (com ícone de pilha), do tamanho dos outros quadros, no lugar do link "+N ›", e não mostram mais o "+": o novo quadro fica no "⋮" da pasta ou dentro dela. (`1e02a69`)
 - O menu ao segurar o quadro aparece sempre: com 3 fixados, fica só o "Excluir quadro". (`1e02a69`)
+- Card da pasta: 4 a mais à esquerda no cabeçalho, linha fina entre o título e os quadros e 24 entre as pastas. O título do quadro em edição ficou só com uma linha roxa clara embaixo, sem borda nem fundo. (`54293eb`)
 - Fixar um quadro novo na pasta tira do histórico a exclusão de um quadro fixado dela, para a pasta nunca passar de 3 fixados. (`1e02a69`)
 
 ### Corrigido

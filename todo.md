@@ -191,6 +191,10 @@
   - Grupo 2: Renomear quadro · Duplicar quadro · Mover para outra pasta
   - Grupo 3: Excluir quadro (vermelho, com desfazer)
   - [x] Renomear quadro (no título e no menu)
+  - [x] Nova coluna (abre a folha "Nova coluna")
+  - [x] Excluir quadro (alerta, volta para a tela anterior e desfazer)
+  - [x] Duplicar quadro (cópia logo depois, na mesma pasta, com desfazer)
+  - [x] Mover para outra pasta (folha com as pastas, fixação respeitando o limite, com desfazer)
   - [x] Modal "Filtrar" (centralizado): prazo, prioridade, etiquetas, concluídos e checklist pendente, com contagem ao vivo
   - [ ] "Buscar lembrete" (lupa): definir como a busca funciona
   - [x] Linha de filtros abaixo do título: atalhos (Hoje, Atrasados, Alta) e "Filtros"; com filtro, chips removíveis e "Limpar"
