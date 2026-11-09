@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -19,6 +19,8 @@ import { BoardFilterModal } from './components/BoardFilterModal';
 import { BoardMenu, boardRenameLabels } from './components/BoardMenu';
 import { BoardSkeleton } from './components/BoardSkeleton';
 import { BoardToolbar } from './components/BoardToolbar';
+import { ColumnDragOverlay } from './components/ColumnDragOverlay';
+import { ColumnSlot } from './components/ColumnSlot';
 import { DragOverlay } from './components/DragOverlay';
 import { FilterSkeletonOverlay } from './components/FilterSkeletonOverlay';
 import { SortableColumnView } from './components/SortableColumn';
@@ -62,9 +64,20 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   const mountedColumns = vm.columns.slice(0, mountedCount);
   const haptics = useHaptics();
   const isReducedMotion = useReducedMotion();
+  // As colunas deslizam para abrir a vaga no mesmo ritmo dos cartões.
+  const reorderDuration = isReducedMotion ? duration.fast : duration.normal;
   const { columnWidth, snapInterval } = useBoardColumnLayout();
   const { cardActions, columnActions } = useBoardActions(vm);
-  const { drag, activeCardId, boardScrollHandler, originRef, boardScrollRef } = useBoardDrag({
+  const {
+    drag,
+    activeCardId,
+    columnDrag,
+    draggedColumnId,
+    markColumnOrderCommitted,
+    boardScrollHandler,
+    originRef,
+    boardScrollRef,
+  } = useBoardDrag({
     columnIds: vm.columns.map((column) => column.id),
     pitch: snapInterval,
     gap: COLUMN_GAP,
@@ -72,7 +85,19 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
     onMove: cardActions.move,
     onDrop: haptics.drop,
     onDropOnNewColumn: vm.createColumnWithCard,
+    onMoveColumn: columnActions.moveTo,
+    isReducedMotion,
   });
+  // Coluna solta numa vaga nova: avisa quando a nova ordem é desenhada (antes da pintura); a cópia
+  // some quando também terminar de assentar.
+  const columnOrderKey = vm.columns.map((column) => column.id).join();
+  useLayoutEffect(() => {
+    markColumnOrderCommitted();
+  }, [columnOrderKey, markColumnOrderCommitted]);
+  // Coluna segurada pelo cabeçalho, desenhada na camada de arraste.
+  const draggedColumn = draggedColumnId
+    ? (vm.columns.find((column) => column.id === draggedColumnId) ?? null)
+    : null;
   // Conteúdo do cartão segurado, desenhado na camada de arraste.
   const draggedCard = activeCardId
     ? (vm.columns
@@ -170,16 +195,27 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
                   entering={FadeIn.duration(duration.normal)}
                   style={columnStyle}
                 >
-                  <SortableColumnView
-                    column={column}
-                    columnIndex={index}
-                    columnCount={vm.columns.length}
+                  <ColumnSlot
+                    columnId={column.id}
+                    index={index}
+                    pitch={snapInterval}
+                    reorderDuration={reorderDuration}
                     isReducedMotion={isReducedMotion}
-                    drag={drag}
-                    cardActions={cardActions}
-                    columnActions={columnActions}
-                    haptics={haptics}
-                  />
+                    columnDrag={columnDrag}
+                    style={styles.columnSlot}
+                  >
+                    <SortableColumnView
+                      column={column}
+                      columnIndex={index}
+                      columnCount={vm.columns.length}
+                      isReducedMotion={isReducedMotion}
+                      drag={drag}
+                      cardActions={cardActions}
+                      columnActions={columnActions}
+                      haptics={haptics}
+                      columnDrag={columnDrag}
+                    />
+                  </ColumnSlot>
                 </Animated.View>
               ))}
               {isFullyMounted ? (
@@ -202,6 +238,11 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
         card={draggedCard}
         isReducedMotion={isReducedMotion}
       />
+      <ColumnDragOverlay
+        columnDrag={columnDrag}
+        column={draggedColumn}
+        isReducedMotion={isReducedMotion}
+      />
     </SafeAreaView>
   );
 }
@@ -210,6 +251,7 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   board: { flex: 1 },
+  columnSlot: { flex: 1 },
   columnsRow: {
     alignItems: 'stretch',
     gap: COLUMN_GAP,

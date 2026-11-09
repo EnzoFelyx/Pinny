@@ -5,10 +5,16 @@ import { cardRepository } from '@/features/card/model/cardRepository';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
 
-import { type BoardData, withColumnRemoved, withColumnRenamed } from '../model/boardData';
+import {
+  type BoardData,
+  withColumnMoved,
+  withColumnRemoved,
+  withColumnRenamed,
+} from '../model/boardData';
 import { duplicateColumn } from '../model/columnCopy';
 import { removeColumnWithCards } from '../model/columnRemoval';
 import { columnRepository } from '../model/columnRepository';
+import { toPlacement } from '../model/reorder';
 
 const text = ptBR.board;
 const repositories = { columns: columnRepository, cards: cardRepository };
@@ -82,6 +88,32 @@ export function useColumnActions({
       }
     },
     [data, onFocusColumn, onSaveError],
+  );
+
+  // Coluna solta numa vaga do quadro (arraste pelo cabeçalho): a nova ordem aparece na hora,
+  // antes de gravar (a cópia acabou de assentar ali); se a gravação falhar, a ordem antiga volta.
+  const moveColumnTo = useCallback(
+    async (columnId: string, toIndex: number) => {
+      const target = data?.columns.find((item) => item.column.id === columnId);
+      if (!data || !target) return;
+      const next = withColumnMoved(data, columnId, toIndex);
+      onDataChange(next);
+      try {
+        const ids = next.columns.map((item) => item.column.id);
+        await columnRepository.move(columnId, toPlacement(ids, columnId));
+        historyStore.record(ptBR.history.actions.moveColumn, {
+          kind: 'moveColumn',
+          columnId,
+          position: target.column.position,
+        });
+        await notifyUndoable(text.columnMoved);
+      } catch (error: unknown) {
+        console.warn('Falha ao mover a coluna.', error);
+        onDataChange(data);
+        onSaveError();
+      }
+    },
+    [data, onDataChange, notifyUndoable, onSaveError],
   );
 
   // Título da coluna editado ali mesmo (lápis ou nome). O nome novo aparece na hora (sem piscar
@@ -175,6 +207,7 @@ export function useColumnActions({
     createColumn,
     createColumnWithCard,
     moveColumn,
+    moveColumnTo,
     renameColumn,
     duplicateColumn: duplicate,
     columnToDelete,

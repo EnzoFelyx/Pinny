@@ -9,6 +9,7 @@ type BoardActionsSource = Pick<CardActions, 'openMoveCard'> & {
   moveCardToAdjacentColumn: CardActions['moveToAdjacentColumn'];
   addCard: ColumnActions['addCard'];
   moveColumn: ColumnActions['move'];
+  moveColumnTo: ColumnActions['moveTo'];
   duplicateColumn: ColumnActions['duplicate'];
   renameColumn: ColumnActions['rename'];
   requestDeleteColumn: ColumnActions['requestDelete'];
@@ -22,6 +23,7 @@ export function useBoardActions(vm: BoardActionsSource) {
   const openMoveCard = useStableCallback(vm.openMoveCard);
   const addCard = useStableCallback(vm.addCard);
   const moveColumn = useStableCallback(vm.moveColumn);
+  const moveColumnTo = useStableCallback(vm.moveColumnTo);
   const duplicateColumn = useStableCallback(vm.duplicateColumn);
   const renameColumn = useStableCallback(vm.renameColumn);
   const requestDeleteColumn = useStableCallback(vm.requestDeleteColumn);
@@ -34,11 +36,12 @@ export function useBoardActions(vm: BoardActionsSource) {
     () => ({
       addCard,
       move: moveColumn,
+      moveTo: moveColumnTo,
       duplicate: duplicateColumn,
       rename: renameColumn,
       requestDelete: requestDeleteColumn,
     }),
-    [addCard, moveColumn, duplicateColumn, renameColumn, requestDeleteColumn],
+    [addCard, moveColumn, moveColumnTo, duplicateColumn, renameColumn, requestDeleteColumn],
   );
   return { cardActions, columnActions };
 }

@@ -12,6 +12,8 @@ export interface CardActions {
 export interface ColumnActions {
   addCard: (columnId: string) => void;
   move: (columnId: string, step: -1 | 1) => void;
+  // Solta numa vaga do quadro (arraste pelo cabeçalho).
+  moveTo: (columnId: string, toIndex: number) => void;
   duplicate: (columnId: string) => void;
   rename: (columnId: string, title: string) => void;
   requestDelete: (columnId: string) => void;

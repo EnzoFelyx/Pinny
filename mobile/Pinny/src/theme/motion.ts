@@ -20,6 +20,17 @@ export const dragLift = {
   scale: 1.03,
 } as const;
 
+// Coluna segurada pelo cabeçalho para reordenar (Figma "Quadro · Reordenar colunas"): levemente
+// girada no sentido anti-horário, com borda primary e sombra elevada.
+export const columnLift = {
+  rotationDeg: -3,
+  // Levantada, a coluna mostra só os primeiros cartões (o resto fica cortado).
+  visibleCards: 4,
+  // Mola ao soltar: quase sem quique (amortecimento ~0,94, passa ~1% do ponto), menos que a do
+  // cartão (pedido do autor em 2026-11-09).
+  spring: { damping: 28, stiffness: 220 },
+} as const;
+
 // Tempo segurando o cartão até o arraste começar (antes disso, o dedo rola a coluna).
 export const DRAG_ACTIVATION_MS = 300;
 

@@ -25,8 +25,9 @@ interface BoardScrollOptions {
   pitch: number;
   gap: number;
   gutter: number;
-  // Cartão segurado (null = sem arraste) e posição do dedo na camada.
+  // Cartão segurado (null = sem arraste) ou coluna segurada, e posição do dedo na camada.
   activeId: SharedValue<string | null>;
+  isColumnHolding: SharedValue<boolean>;
   fingerX: SharedValue<number>;
 }
 
@@ -38,6 +39,7 @@ export function useBoardScroll({
   gap,
   gutter,
   activeId,
+  isColumnHolding,
   fingerX,
 }: BoardScrollOptions) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -60,7 +62,7 @@ export function useBoardScroll({
   // Rola o quadro quando o dedo chega perto da borda da tela: mais rápido quanto mais perto.
   useFrameCallback(() => {
     const viewport = viewportWidth.get();
-    if (activeId.get() === null || viewport === 0) return;
+    if ((activeId.get() === null && !isColumnHolding.get()) || viewport === 0) return;
 
     const finger = fingerX.get();
     const lowerEdge = autoScroll.boardEdge;
@@ -80,14 +82,19 @@ export function useBoardScroll({
 
   // Encaixa o quadro na coluna pedida (ao soltar um cartão: a coluna onde ele caiu, não a mais
   // próxima da rolagem, porque quem leva o cartão à coluna da borda quer ver essa coluna).
+  // Encaixa o quadro na posição index e devolve a rolagem final (para animar junto).
+  const snapToIndex = (index: number) => {
+    'worklet';
+    const maxScroll = Math.max(0, contentWidth.get() - viewportWidth.get());
+    const target = Math.min(maxScroll, Math.max(0, index * layout.get().pitch));
+    if (target !== scrollX.get()) scrollTo(scrollRef, target, 0, true);
+    return target;
+  };
+
   const snapToColumn = (columnId: string) => {
     'worklet';
-    const { columnIds: ids, pitch: step } = layout.get();
-    const index = ids.indexOf(columnId);
-    if (index < 0) return;
-    const maxScroll = Math.max(0, contentWidth.get() - viewportWidth.get());
-    const target = Math.min(maxScroll, index * step);
-    if (target !== scrollX.get()) scrollTo(scrollRef, target, 0, true);
+    const index = layout.get().columnIds.indexOf(columnId);
+    if (index >= 0) snapToIndex(index);
   };
 
   // A coluna pedida pode ainda não estar no layout (o React desenha depois): espera ela entrar
@@ -119,6 +126,7 @@ export function useBoardScroll({
     viewportWidth,
     contentWidth,
     layout,
+    snapToIndex,
     snapToColumn,
     focusColumn,
   };

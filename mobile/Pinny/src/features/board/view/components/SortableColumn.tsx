@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from 'react';
-import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { type LayoutChangeEvent, StyleSheet } from 'react-native';
+import { GestureDetector, ScrollView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedRef, useAnimatedStyle } from 'react-native-reanimated';
 
 import { ColumnHeader } from '@/components/Column';
@@ -14,7 +14,9 @@ import { PullToDeleteIndicator } from './PullToDeleteIndicator';
 import { SortableCard } from './SortableCard';
 import type { CardActions, ColumnActions, DragHaptics } from './boardActions';
 import type { BoardDrag } from './useBoardDrag';
+import type { ColumnDrag } from './useColumnDrag';
 import { usePullToDelete } from './usePullToDelete';
+import { useColumnLift } from './useColumnLift';
 import { useSortableColumn } from './useSortableColumn';
 
 // ScrollView do Gesture Handler: quando o arraste começa, ele para de rolar a coluna.
@@ -32,6 +34,8 @@ interface SortableColumnViewProps {
   cardActions: CardActions;
   columnActions: ColumnActions;
   haptics: DragHaptics;
+  // Arraste da coluna pelo cabeçalho (reordenar colunas).
+  columnDrag: ColumnDrag;
 }
 
 // Coluna do quadro inteira rolável (como no kanban antigo): o cabeçalho fica preso no topo e o
@@ -46,6 +50,7 @@ export const SortableColumnView = memo(function SortableColumnView({
   cardActions,
   columnActions,
   haptics,
+  columnDrag,
 }: SortableColumnViewProps) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const { column: sortable, scrollHandler } = useSortableColumn({
@@ -102,83 +107,98 @@ export const SortableColumnView = memo(function SortableColumnView({
   // Enquanto o título é editado, a coluna não rola (nem o "puxar para excluir") e os cartões não
   // arrastam: um gesto sem querer não tira o foco do campo.
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  // Segurar o cabeçalho levanta a coluna: a cópia segue o dedo por cima de tudo e esta fica
+  // invisível no lugar (trocar de lugar vem depois).
+  const columnLift = useColumnLift({
+    columnId: column.id,
+    isEnabled: !isEditingTitle,
+    columnDrag,
+    onLift: lift,
+  });
 
   return (
-    <View style={styles.wrapper}>
+    <Animated.View style={[styles.wrapper, columnLift.hiddenStyle]}>
       {/* Atrás da coluna: aparece no espaço que o iOS revela ao puxar para baixo. */}
       <PullToDeleteIndicator
         pull={pullToDelete.pull}
         progress={pullToDelete.progress}
         visibility={pullToDelete.visibility}
       />
-      <AnimatedScrollView
-        ref={scrollRef}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        scrollEnabled={!isEditingTitle}
-        onLayout={measureViewport}
-        onContentSizeChange={measureContent}
-        stickyHeaderIndices={[0]}
-        showsVerticalScrollIndicator={false}
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-      >
-        <ColumnHeader
-          title={column.title}
-          cardCount={cardCount}
-          onRename={renameHere}
-          onEditingChange={setIsEditingTitle}
-          menu={
-            <ColumnMenu
-              columnId={column.id}
-              canMoveBackward={columnIndex > 0}
-              canMoveForward={columnIndex < columnCount - 1}
-              onAddCard={addCard}
-              onMove={columnActions.move}
-              onDuplicate={columnActions.duplicate}
-              onDelete={requestDelete}
-            />
-          }
-        />
+      {/* Parte visível da coluna (altura do conteúdo, até a da tela): de onde a cópia começa. */}
+      <Animated.View ref={columnLift.frameRef} collapsable={false} style={styles.frame}>
+        <AnimatedScrollView
+          ref={scrollRef}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          scrollEnabled={!isEditingTitle}
+          onLayout={measureViewport}
+          onContentSizeChange={measureContent}
+          stickyHeaderIndices={[0]}
+          showsVerticalScrollIndicator={false}
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+        >
+          <GestureDetector gesture={columnLift.gesture}>
+            <Animated.View collapsable={false}>
+              <ColumnHeader
+                title={column.title}
+                cardCount={cardCount}
+                onRename={renameHere}
+                onEditingChange={setIsEditingTitle}
+                menu={
+                  <ColumnMenu
+                    columnId={column.id}
+                    canMoveBackward={columnIndex > 0}
+                    canMoveForward={columnIndex < columnCount - 1}
+                    onAddCard={addCard}
+                    onMove={columnActions.move}
+                    onDuplicate={columnActions.duplicate}
+                    onDelete={requestDelete}
+                  />
+                }
+              />
+            </Animated.View>
+          </GestureDetector>
 
-        {/* Sempre montada (altura 0 sem cartões): a vaga também aparece numa coluna vazia. */}
-        <Animated.View ref={sortable.listRef} onLayout={measureList} style={listStyle}>
-          <DropPlaceholder
-            columnId={column.id}
-            column={sortable}
-            drag={drag}
-            reorderDuration={reorderDuration}
-            fixedHeight={emptyArea.slotHeight}
-          />
-          {/* Todos montados: o escondido pelo filtro só some (display none), sem desmontar. */}
-          {column.cards.map((card) => (
-            <SortableCard
-              key={card.id}
-              card={card}
+          {/* Sempre montada (altura 0 sem cartões): a vaga também aparece numa coluna vazia. */}
+          <Animated.View ref={sortable.listRef} onLayout={measureList} style={listStyle}>
+            <DropPlaceholder
               columnId={column.id}
-              columnIndex={columnIndex}
-              columnCount={columnCount}
-              index={visibleIndex.get(card.id) ?? -1}
-              isHidden={!visibleIndex.has(card.id)}
-              total={cardCount}
               column={sortable}
               drag={drag}
-              isDragEnabled={!isEditingTitle}
-              isReducedMotion={isReducedMotion}
-              actions={cardActions}
+              reorderDuration={reorderDuration}
+              fixedHeight={emptyArea.slotHeight}
             />
-          ))}
-        </Animated.View>
+            {/* Todos montados: o escondido pelo filtro só some (display none), sem desmontar. */}
+            {column.cards.map((card) => (
+              <SortableCard
+                key={card.id}
+                card={card}
+                columnId={column.id}
+                columnIndex={columnIndex}
+                columnCount={columnCount}
+                index={visibleIndex.get(card.id) ?? -1}
+                isHidden={!visibleIndex.has(card.id)}
+                total={cardCount}
+                column={sortable}
+                drag={drag}
+                isDragEnabled={!isEditingTitle}
+                isReducedMotion={isReducedMotion}
+                actions={cardActions}
+              />
+            ))}
+          </Animated.View>
 
-        <ColumnFooterArea
-          isEmpty={isEmpty}
-          area={emptyArea}
-          emptyMessage={column.emptyMessage}
-          emptyVariant={column.emptyVariant}
-          onAddCard={addCardHere}
-        />
-      </AnimatedScrollView>
-    </View>
+          <ColumnFooterArea
+            isEmpty={isEmpty}
+            area={emptyArea}
+            emptyMessage={column.emptyMessage}
+            emptyVariant={column.emptyVariant}
+            onAddCard={addCardHere}
+          />
+        </AnimatedScrollView>
+      </Animated.View>
+    </Animated.View>
   );
 });
 
@@ -191,6 +211,9 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     borderRadius: COLUMN_RADIUS,
+  },
+  frame: {
+    flexShrink: 1,
   },
   // Altura pelo conteúdo, limitada à da tela: a coluna cresce conforme chegam cartões. Sem corte
   // próprio (ver wrapper).

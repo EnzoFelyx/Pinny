@@ -15,6 +15,8 @@ import { duration } from '@/theme';
 import { columnIndexAt } from '../../model/reorder';
 import { ADD_COLUMN_SLOT, type BoardDrag } from './boardDrag.types';
 import { useBoardScroll } from './useBoardScroll';
+import { type BoardColumnDrag, useColumnDrag } from './useColumnDrag';
+import { useColumnReorder } from './useColumnReorder';
 import { useDragSettle } from './useDragSettle';
 import { useDragValues } from './useDragValues';
 import { useHeightBatch } from './useHeightBatch';
@@ -32,6 +34,9 @@ interface BoardDragOptions {
   onDrop: () => void;
   // Cartão solto na coluna "Adicionar coluna".
   onDropOnNewColumn: (cardId: string) => void;
+  // Coluna solta numa vaga nova (arraste pelo cabeçalho).
+  onMoveColumn: (columnId: string, toIndex: number) => void;
+  isReducedMotion: boolean;
 }
 
 // Arraste no nível do quadro, todo na UI thread: a camada com o cartão segurado (por cima de
@@ -45,6 +50,8 @@ export function useBoardDrag({
   onMove,
   onDrop,
   onDropOnNewColumn,
+  onMoveColumn,
+  isReducedMotion,
 }: BoardDragOptions): {
   drag: BoardDrag;
   // Fora do objeto do arraste: os worklets o capturam, e o manipulador de rolagem não pode ser
@@ -57,6 +64,11 @@ export function useBoardDrag({
   // Qual cartão desenhar na camada (estado do React, só para o conteúdo). Fora de `drag`: mudar
   // ao segurar e ao soltar não pode trocar o objeto que todas as colunas e cartões recebem.
   activeCardId: string | null;
+  // Arraste de coluna (reordenar colunas) e a coluna desenhada na camada.
+  columnDrag: BoardColumnDrag;
+  draggedColumnId: string | null;
+  // A tela chama quando a nova ordem das colunas já foi desenhada.
+  markColumnOrderCommitted: () => void;
 } {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const originRef = useAnimatedRef<View>();
@@ -86,14 +98,39 @@ export function useBoardDrag({
 
   // O manipulador de rolagem fica fora de `board`: os worklets abaixo capturam esse objeto, e o
   // manipulador não pode ser copiado para a UI thread.
+  const {
+    columnDrag: columnDragBase,
+    releasing,
+    draggedColumnId,
+  } = useColumnDrag({
+    originRef,
+    fingerX,
+    isReducedMotion,
+  });
   const { scrollHandler: boardScrollHandler, ...board } = useBoardScroll({
     columnIds,
     pitch,
     gap,
     gutter,
     activeId,
+    isColumnHolding: columnDragBase.isHolding,
     fingerX,
   });
+  const columnReorder = useColumnReorder({
+    columnDrag: columnDragBase,
+    releasing,
+    layout: board.layout,
+    scrollX: board.scrollX,
+    fingerX,
+    snapToIndex: board.snapToIndex,
+    onMoveColumn,
+  });
+  // A camada lê a rolagem do quadro para a cópia acompanhar o quadro ao assentar.
+  const columnDrag: BoardColumnDrag = {
+    ...columnDragBase,
+    ...columnReorder,
+    scrollX: board.scrollX,
+  };
 
   // O fantasma some e o cartão da lista volta a aparecer.
   const hide = () => {
@@ -232,6 +269,9 @@ export function useBoardDrag({
     originRef,
     boardScrollRef: board.scrollRef,
     activeCardId,
+    columnDrag,
+    draggedColumnId,
+    markColumnOrderCommitted: columnReorder.markOrderCommitted,
     drag: {
       ...values,
       ...settle.state,

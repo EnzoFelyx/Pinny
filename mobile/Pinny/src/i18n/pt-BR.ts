@@ -211,7 +211,6 @@ export const ptBR = {
       search: 'Buscar lembrete',
       selectCards: 'Selecionar cartões',
       newColumn: 'Nova coluna',
-      reorderColumns: 'Reorganizar colunas',
       rename: 'Renomear quadro',
       duplicate: 'Duplicar quadro',
       moveToFolder: 'Mover para outra pasta',
@@ -227,6 +226,7 @@ export const ptBR = {
     loadError: 'Não conseguimos abrir este quadro agora. Tente de novo em instantes.',
     loading: 'Carregando o quadro',
     cardMoved: 'Cartão movido',
+    columnMoved: 'Coluna movida',
     moveUp: 'Mover para cima',
     moveDown: 'Mover para baixo',
     movedTo: (position: number, total: number) =>
@@ -258,7 +258,7 @@ export const ptBR = {
       submit: 'Mover',
       loadError: 'Não conseguimos abrir as colunas agora. Tente de novo em instantes.',
     },
-    dragHint: 'Segure um cartão para mudar a ordem.',
+    dragHint: 'Segure um cartão ou uma coluna para mudar a ordem.',
     deleteColumnTitle: (title: string) => `Excluir a coluna "${title}"?`,
     deleteColumnMessage: (count: number) =>
       count === 1

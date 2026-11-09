@@ -35,7 +35,6 @@ export function BoardMenu({
       <Button label={text.search} systemImage="magnifyingglass" onPress={noop} />
       <Button label={text.selectCards} systemImage="checkmark.circle" onPress={noop} />
       <Button label={text.newColumn} systemImage="plus" onPress={onCreateColumn} />
-      <Button label={text.reorderColumns} systemImage="arrow.up.arrow.down" onPress={noop} />
       <Divider />
       <Button label={text.rename} systemImage="pencil" onPress={onRename} />
       <Button label={text.duplicate} systemImage="plus.square.on.square" onPress={onDuplicate} />

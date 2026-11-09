@@ -11,6 +11,7 @@ import type { Board, Column, Label } from './board.schema';
 import { type BoardRepository, boardRepository } from './boardRepository';
 import { type ColumnRepository, columnRepository } from './columnRepository';
 import { type LabelRepository, labelRepository } from './labelRepository';
+import { moveIndex } from './reorder';
 
 export interface BoardCard {
   card: Card;
@@ -104,6 +105,13 @@ export function withColumnRenamed(data: BoardData, columnId: string, title: stri
 // Novo retrato do quadro com o nome novo (para mostrar antes de gravar).
 export function withBoardRenamed(data: BoardData, title: string): BoardData {
   return { ...data, board: { ...data.board, title } };
+}
+
+// Novo retrato do quadro com a coluna na posição toIndex (para aparecer antes de gravar).
+export function withColumnMoved(data: BoardData, columnId: string, toIndex: number): BoardData {
+  const from = data.columns.findIndex((item) => item.column.id === columnId);
+  if (from < 0) return data;
+  return { ...data, columns: moveIndex(data.columns, from, toIndex) };
 }
 
 // Novo retrato do quadro sem a coluna (para ela sumir da tela antes de gravar a exclusão).
