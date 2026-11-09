@@ -13,23 +13,23 @@ interface FolderMenuProps {
   onCustomize: () => void;
   // Folha "Novo quadro" nesta pasta (o mesmo do "Novo quadro" no fim da grade).
   onCreateBoard: () => void;
-  // Modo de seleção para escolher os quadros que aparecem na Início.
-  onPinBoards: () => void;
+  // Modo "Selecionar": escolher quadros para fixar na Início ou excluir.
+  onSelect: () => void;
 }
 
 // "…" do topo da pasta (menu nativo do iOS). Renomear é tocar no nome; fixar a pasta na Início
 // fica só no "⋮" da Início. "Excluir pasta" ainda não faz nada: a exclusão (com confirmação e
 // desfazer) chega depois.
-export function FolderMenu({ onCustomize, onCreateBoard, onPinBoards }: FolderMenuProps) {
+export function FolderMenu({ onCustomize, onCreateBoard, onSelect }: FolderMenuProps) {
   return (
     <GlassMenu accessibilityLabel={text.options}>
+      <Button label={text.select} systemImage="checkmark.circle" onPress={onSelect} />
       <Button label={cardText.customize} systemImage="paintpalette" onPress={onCustomize} />
       <Button
         label={cardText.newBoard}
         systemImage="plus.rectangle.on.rectangle"
         onPress={onCreateBoard}
       />
-      <Button label={text.pinBoards} systemImage="pin.circle" onPress={onPinBoards} />
       <Divider />
       <Button label={text.delete} systemImage="trash" role="destructive" onPress={noop} />
     </GlassMenu>

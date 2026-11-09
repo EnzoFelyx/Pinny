@@ -69,6 +69,7 @@ export function BoardGrid({
             noteColor={noteColor}
             onOpen={selection.onToggle}
             isSelected={selection.selectedIds.includes(tile.board.id)}
+            showsPinIcon
           />
         );
       }

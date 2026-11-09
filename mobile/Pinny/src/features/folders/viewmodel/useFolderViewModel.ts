@@ -13,9 +13,9 @@ import { normalizeForSearch } from '@/utils/text';
 
 import type { Folder } from '../model/folder.schema';
 import { folderRepository } from '../model/folderRepository';
+import { useBoardSelection } from './useBoardSelection';
 import { useDeleteBoard } from './useDeleteBoard';
 import { toBoardItem } from './useFolderItems';
-import { usePinSelection } from './usePinSelection';
 
 const text = ptBR.folders;
 
@@ -57,9 +57,16 @@ export function useFolderViewModel(folderId: string) {
   }, [folderId]);
 
   const folderBoards = useMemo(() => data?.boards ?? [], [data]);
-  const pinSelection = usePinSelection(folderBoards);
   const deleteBoard = useDeleteBoard(folderBoards);
   const requestDeleteBoard = deleteBoard.request;
+  const selection = useBoardSelection(folderId, folderBoards, requestDeleteBoard);
+  const exitSelection = selection.cancel;
+  const confirmDelete = deleteBoard.confirm;
+  // Excluir pelo modo "Selecionar": ao confirmar, a seleção acaba (cancelar o alerta a mantém).
+  const confirmDeleteBoard = useCallback(() => {
+    exitSelection();
+    return confirmDelete();
+  }, [exitSelection, confirmDelete]);
   const boardMenu = useMemo(
     () => ({
       onTogglePin: (boardId: string) => {
@@ -72,7 +79,7 @@ export function useFolderViewModel(folderId: string) {
             snackbarStore.show(ptBR.common.saveError);
           });
       },
-      onDelete: requestDeleteBoard,
+      onDelete: (boardId: string) => requestDeleteBoard([boardId]),
     }),
     [folderId, requestDeleteBoard],
   );
@@ -82,7 +89,7 @@ export function useFolderViewModel(folderId: string) {
   const pinnedBoardCount = (data?.boards ?? []).filter((board) => board.pinnedAt !== null).length;
   const canPinMoreBoards = pinnedBoardCount < PINNED_BOARDS_PER_FOLDER;
   // Os fixados na Início vêm primeiro (como na prévia da Início); depois, os outros na ordem da
-  // pasta. Durante o modo de seleção, a ordem não muda (a escolha só vale no "Pronto").
+  // pasta.
   const boards = orderForPreview(folderBoards).map((board) =>
     toBoardItem(
       board,
@@ -126,11 +133,11 @@ export function useFolderViewModel(folderId: string) {
     customizeFolder: useCallback(() => {
       router.push({ pathname: '/folder/[folderId]/rename', params: { folderId } });
     }, [folderId]),
-    pinSelection,
+    selection,
     // Segurar o quadro: fixar/desafixar e "Excluir quadro" (alerta de confirmação e desfazer).
     boardMenu,
     deleteBoardRequest: deleteBoard.confirmRequest,
-    confirmDeleteBoard: deleteBoard.confirm,
+    confirmDeleteBoard,
     cancelDeleteBoard: deleteBoard.cancel,
     goBack: router.back,
   };

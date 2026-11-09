@@ -34,23 +34,51 @@ export function orderForPreview(boards: readonly Board[]): Board[] {
   return [...pinned, ...boards.filter((board) => board.pinnedAt === null)];
 }
 
-// Modo "Fixar quadros" da tela da pasta: deixa fixados exatamente os escolhidos (até
-// PINNED_BOARDS_PER_FOLDER), na ordem da escolha (o primeiro escolhido aparece primeiro na Início).
-// Quem já estava fixado e continua escolhido mantém a data; os desmarcados são desafixados.
-export async function applyPinnedBoards(
+// Ação de fixar do modo "Selecionar" da tela da pasta. Só fixados escolhidos: "Desafixar". Senão,
+// "Fixar" os escolhidos que ainda não estão fixados, desde que a pasta continue com no máximo
+// PINNED_BOARDS_PER_FOLDER fixados (os já fixados contam). isLimitReached = passaria do limite.
+export interface SelectionPinAction {
+  kind: 'pin' | 'unpin';
+  isEnabled: boolean;
+  isLimitReached: boolean;
+}
+
+export function selectionPinAction(
   folderBoards: readonly Board[],
   selectedIds: readonly string[],
+): SelectionPinAction {
+  const selected = folderBoards.filter((board) => selectedIds.includes(board.id));
+  if (selected.length > 0 && selected.every((board) => board.pinnedAt !== null)) {
+    return { kind: 'unpin', isEnabled: true, isLimitReached: false };
+  }
+  const pinnedCount = folderBoards.filter((board) => board.pinnedAt !== null).length;
+  const newPins = selected.filter((board) => board.pinnedAt === null).length;
+  const fits = pinnedCount + newPins <= PINNED_BOARDS_PER_FOLDER;
+  return { kind: 'pin', isEnabled: newPins > 0 && fits, isLimitReached: newPins > 0 && !fits };
+}
+
+// Fixa os quadros na ordem dada (o primeiro aparece primeiro na Início). Quem já está fixado
+// mantém a data. Quem chama confere o limite (selectionPinAction).
+export async function pinBoards(
+  folderBoards: readonly Board[],
+  boardIds: readonly string[],
   boards: BoardRepository,
 ): Promise<void> {
-  const chosen = selectedIds.slice(0, PINNED_BOARDS_PER_FOLDER);
+  const toPin = boardIds.filter((id) =>
+    folderBoards.some((board) => board.id === id && board.pinnedAt === null),
+  );
   const now = Date.now();
-  for (const board of folderBoards) {
-    const order = chosen.indexOf(board.id);
-    if (order < 0) {
-      if (board.pinnedAt !== null) await boards.setPinnedAt(board.id, null);
-    } else if (board.pinnedAt === null) {
-      // Datas em ordem decrescente: o primeiro escolhido fica como o "mais recente".
-      await boards.setPinnedAt(board.id, new Date(now - order).toISOString());
-    }
+  for (const [order, boardId] of toPin.entries()) {
+    // Datas em ordem decrescente: o primeiro escolhido fica como o "mais recente".
+    await boards.setPinnedAt(boardId, new Date(now - order).toISOString());
+  }
+}
+
+export async function unpinBoards(
+  boardIds: readonly string[],
+  boards: BoardRepository,
+): Promise<void> {
+  for (const boardId of boardIds) {
+    await boards.setPinnedAt(boardId, null);
   }
 }

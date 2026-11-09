@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import type { Board } from '@/features/board/model/board.schema';
-import { removeBoardWithContent } from '@/features/board/model/boardRemoval';
+import { type BoardSnapshot, removeBoardWithContent } from '@/features/board/model/boardRemoval';
 import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { labelRepository } from '@/features/board/model/labelRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { snackbarStore } from '@/features/feedback/model/snackbarStore';
+import type { UndoOperation } from '@/features/history/model/actionHistory';
 import { historyStore } from '@/features/history/model/historyStore';
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import type { DestructiveConfirmRequest } from '@/hooks/useDestructiveConfirm';
@@ -20,46 +21,67 @@ const repositories = {
   labels: labelRepository,
 };
 
-// "Excluir quadro" (segurar o quadro na tela da pasta): pede confirmação no alerta nativo, apaga o
-// quadro com colunas, cartões e etiquetas e registra no histórico (chacoalhar ou snackbar
-// desfazem). A tela recarrega sozinha quando o banco muda.
+function confirmRequestFor(targets: readonly Board[]): DestructiveConfirmRequest | null {
+  const [first] = targets;
+  if (!first) return null;
+  const isSingle = targets.length === 1;
+  return {
+    title: isSingle ? text.deleteBoardTitle(first.title) : text.deleteBoardsTitle(targets.length),
+    message: isSingle ? text.deleteBoardMessage : text.deleteBoardsMessage,
+    confirmLabel: text.deleteBoardConfirm,
+    cancelLabel: text.deleteBoardCancel,
+  };
+}
+
+// Um quadro: desfaz com o retrato dele; vários: uma ação só no histórico.
+function undoFor(snapshots: readonly BoardSnapshot[]): UndoOperation {
+  const operations = snapshots.map((snapshot): UndoOperation => ({
+    kind: 'restoreBoard',
+    snapshot,
+  }));
+  return operations.length === 1 && operations[0]
+    ? operations[0]
+    : { kind: 'sequence', operations };
+}
+
+// "Excluir quadro" (segurar o quadro) e "Excluir" do modo "Selecionar" na tela da pasta: pede
+// confirmação no alerta nativo, apaga os quadros com colunas, cartões e etiquetas e registra uma
+// ação só no histórico (chacoalhar ou snackbar desfazem). A tela recarrega quando o banco muda.
 export function useDeleteBoard(boards: readonly Board[]) {
   const notifyUndoable = useUndoNotice();
-  const [target, setTarget] = useState<Board | null>(null);
+  const [targets, setTargets] = useState<Board[]>([]);
 
   const request = useCallback(
-    (boardId: string) => setTarget(boards.find((board) => board.id === boardId) ?? null),
+    (boardIds: readonly string[]) =>
+      setTargets(boards.filter((board) => boardIds.includes(board.id))),
     [boards],
   );
-  const cancel = useCallback(() => setTarget(null), []);
+  const cancel = useCallback(() => setTargets([]), []);
 
   const confirm = useCallback(async () => {
-    const board = target;
-    setTarget(null);
-    if (!board) return;
+    const chosen = targets;
+    setTargets([]);
+    if (chosen.length === 0) return;
     try {
-      const snapshot = await removeBoardWithContent(board.id, repositories);
-      if (!snapshot) return;
-      historyStore.record(ptBR.history.actions.deleteBoard, { kind: 'restoreBoard', snapshot });
-      await notifyUndoable(text.boardDeleted);
+      const snapshots: BoardSnapshot[] = [];
+      for (const board of chosen) {
+        const snapshot = await removeBoardWithContent(board.id, repositories);
+        if (snapshot) snapshots.push(snapshot);
+      }
+      if (snapshots.length === 0) return;
+      const isSingle = snapshots.length === 1;
+      historyStore.record(
+        isSingle ? ptBR.history.actions.deleteBoard : ptBR.history.actions.deleteBoards,
+        undoFor(snapshots),
+      );
+      await notifyUndoable(isSingle ? text.boardDeleted : text.boardsDeleted(snapshots.length));
     } catch (error: unknown) {
-      console.warn('Falha ao excluir o quadro.', error);
+      console.warn('Falha ao excluir os quadros.', error);
       snackbarStore.show(ptBR.common.saveError);
     }
-  }, [target, notifyUndoable]);
+  }, [targets, notifyUndoable]);
 
-  const confirmRequest = useMemo<DestructiveConfirmRequest | null>(
-    () =>
-      target
-        ? {
-            title: text.deleteBoardTitle(target.title),
-            message: text.deleteBoardMessage,
-            confirmLabel: text.deleteBoardConfirm,
-            cancelLabel: text.deleteBoardCancel,
-          }
-        : null,
-    [target],
-  );
+  const confirmRequest = useMemo(() => confirmRequestFor(targets), [targets]);
 
   return { confirmRequest, request, cancel, confirm };
 }

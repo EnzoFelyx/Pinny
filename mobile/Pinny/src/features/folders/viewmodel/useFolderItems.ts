@@ -17,6 +17,8 @@ export interface HomeBoardItem {
   id: string;
   title: string;
   accessibilityLabel: string;
+  // Modo "Selecionar": nome e se está fixado (o leitor de tela já diz se está marcado).
+  selectionAccessibilityLabel: string;
   // Fixado na Início: alfinete ao lado do nome e o fundo lavanda de destaque.
   isPinned: boolean;
   // Tela da pasta: "Fixar na Início"/"Desafixar" ao segurar (null = sem a opção: já há 3 fixados).
@@ -54,6 +56,7 @@ export function toBoardItem(board: Board, pinActionLabel: string | null = null):
     id: board.id,
     title: board.title,
     accessibilityLabel: text.openBoardA11y(board.title, isPinned),
+    selectionAccessibilityLabel: text.selectBoardA11y(board.title, isPinned),
     isPinned,
     pinActionLabel,
   };

@@ -36,9 +36,9 @@ interface BoardTileProps {
   isSelected?: boolean;
 }
 
-// Quadro da pasta: ícone de colunas e nome. Fixado na Início, ganha o fundo lavanda (e, na tela da pasta,
-// o alfinete). No modo de seleção, o círculo do canto marca os escolhidos, como na seleção de
-// fotos do iOS.
+// Quadro da pasta: ícone de colunas e nome. Fixado na Início, ganha o fundo lavanda (e, na tela da
+// pasta, o alfinete), também no modo de seleção, para dar para escolher os fixados e desafixar.
+// Selecionando, o círculo do canto e a borda roxa marcam os escolhidos, como nas fotos do iOS.
 export const BoardTile = memo(function BoardTile({
   board,
   noteColor,
@@ -48,7 +48,10 @@ export const BoardTile = memo(function BoardTile({
   isSelected,
 }: BoardTileProps) {
   const isSelecting = isSelected !== undefined;
-  const isHighlighted = isSelecting ? isSelected : board.isPinned;
+  // Selecionando, a borda roxa marca os escolhidos (todos têm a borda, para o tamanho não mudar).
+  const selectionBorder = isSelecting
+    ? `border-[1.5px] ${isSelected ? 'border-primary' : 'border-transparent'}`
+    : '';
   const menuActions =
     menu && !isSelecting
       ? [
@@ -65,7 +68,9 @@ export const BoardTile = memo(function BoardTile({
     <Pressable
       accessibilityRole={isSelecting ? 'checkbox' : 'button'}
       accessibilityState={isSelecting ? { checked: isSelected } : undefined}
-      accessibilityLabel={isSelecting ? board.title : board.accessibilityLabel}
+      accessibilityLabel={
+        isSelecting ? board.selectionAccessibilityLabel : board.accessibilityLabel
+      }
       accessibilityActions={menuActions}
       onAccessibilityAction={handleAccessibilityAction}
       onPress={() => onOpen(board.id)}
@@ -73,8 +78,8 @@ export const BoardTile = memo(function BoardTile({
       onLongPress={menu ? ignoreLongPress : undefined}
       delayLongPress={CONTEXT_MENU_HOLD_MS}
       className={`h-[64px] flex-1 flex-row items-center gap-2 rounded-[12px] p-2.5 active:opacity-70 ${
-        isHighlighted ? 'bg-secondary' : 'bg-column-background'
-      }`}
+        board.isPinned ? 'bg-secondary' : 'bg-column-background'
+      } ${selectionBorder}`}
     >
       <Columns3 size={BOARD_ICON_SIZE} color={noteColor} />
       {/* O nome encolhe antes do alfinete: nome longo corta e o alfinete continua visível. */}
@@ -82,7 +87,7 @@ export const BoardTile = memo(function BoardTile({
         <Text numberOfLines={2} className="shrink text-label text-text-primary">
           {board.title}
         </Text>
-        {showsPinIcon && board.isPinned && !isSelecting ? (
+        {showsPinIcon && board.isPinned ? (
           <Pin size={PIN_ICON_SIZE} color={colors.textSecondary} />
         ) : null}
       </View>

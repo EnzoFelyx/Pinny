@@ -38,15 +38,20 @@ export const ptBR = {
     },
     openBoardA11y: (title: string, isPinned: boolean) =>
       `Abrir o quadro ${title}${isPinned ? ', fixado na Início' : ''}`,
+    selectBoardA11y: (title: string, isPinned: boolean) =>
+      `${title}${isPinned ? ', fixado na Início' : ''}`,
     pinBoard: 'Fixar na Início',
     unpinBoard: 'Desafixar',
     // Segurar o quadro na tela da pasta: excluir com confirmação e desfazer.
     deleteBoard: 'Excluir quadro',
     deleteBoardTitle: (title: string) => `Excluir o quadro "${title}"?`,
     deleteBoardMessage: 'As colunas e os cartões dele também serão excluídos.',
+    deleteBoardsTitle: (count: number) => `Excluir ${count} quadros?`,
+    deleteBoardsMessage: 'As colunas e os cartões deles também serão excluídos.',
     deleteBoardConfirm: 'Excluir',
     deleteBoardCancel: 'Cancelar',
     boardDeleted: 'Quadro excluído',
+    boardsDeleted: (count: number) => `${count} quadros excluídos`,
     createBoardA11y: (folderTitle: string) => `Criar um quadro na pasta ${folderTitle}`,
     createFirstBoard: 'Criar o primeiro quadro',
     // Última vaga da pasta na Início quando há quadros de fora (abre a tela da pasta).
@@ -62,13 +67,20 @@ export const ptBR = {
       noResults: (query: string) => `Nenhum quadro com "${query}".`,
       options: 'Opções da pasta',
       customize: 'Personalizar pasta',
-      // Modo de seleção "Fixar quadros" (até 3, como a seleção de fotos do iOS).
-      pinBoards: 'Fixar quadros',
-      pinSelectionTitle: (count: number) =>
-        count === 0 ? 'Fixar quadros' : count === 1 ? 'Fixar 1 quadro' : `Fixar ${count} quadros`,
-      pinSelectionHint: 'Escolha até 3 quadros para aparecer na Início.',
+      // Modo "Selecionar" (como a seleção de fotos do iOS): fixar ou excluir os escolhidos.
+      select: 'Selecionar',
+      selectionTitle: (count: number) =>
+        count === 0
+          ? 'Selecionar quadros'
+          : count === 1
+            ? '1 selecionado'
+            : `${count} selecionados`,
+      selectionHint: 'Toque nos quadros para selecionar.',
+      pinLimitHint: (limit: number) => `A Início mostra até ${limit} quadros fixados por pasta.`,
+      pinSelectedA11y: 'Fixar os quadros selecionados na Início',
+      unpinSelectedA11y: 'Desafixar os quadros selecionados',
+      deleteSelectedA11y: 'Excluir os quadros selecionados',
       cancel: 'Cancelar',
-      done: 'Pronto',
       customizeHint: 'Toque duas vezes para personalizar.',
       delete: 'Excluir pasta',
       loading: 'Carregando a pasta',
@@ -112,6 +124,7 @@ export const ptBR = {
       renameColumn: 'Renomeação de Coluna',
       renameBoard: 'Renomeação de Quadro',
       deleteBoard: 'Exclusão de Quadro',
+      deleteBoards: 'Exclusão de Quadros',
     },
     undoAction: (actionName: string) => `Desfazer ${actionName}`,
     redoAction: (actionName: string) => `Refazer ${actionName}`,

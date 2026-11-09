@@ -16,7 +16,8 @@ import { BoardGrid } from './components/BoardGrid';
 import { FolderBadge } from './components/FolderBadge';
 import { FolderMenu, folderTitleLabels } from './components/FolderMenu';
 import { FolderSkeleton } from './components/FolderSkeleton';
-import { PinSelectionHeader } from './components/PinSelectionHeader';
+import { SelectionHeader } from './components/SelectionHeader';
+import { SelectionToolbar } from './components/SelectionToolbar';
 import { folderInkColors } from './folderAppearance';
 
 const text = ptBR.folders.folderScreen;
@@ -36,11 +37,11 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
 
   return (
     <SafeAreaView edges={['top']} style={styles.screen}>
-      {vm.pinSelection.isSelecting ? (
-        <PinSelectionHeader
-          title={vm.pinSelection.title}
-          onCancel={vm.pinSelection.cancel}
-          onDone={vm.pinSelection.confirm}
+      {vm.selection.isSelecting ? (
+        <SelectionHeader
+          title={vm.selection.title}
+          hint={vm.selection.hint}
+          onCancel={vm.selection.cancel}
         />
       ) : (
         <ScreenHeader
@@ -56,12 +57,16 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
             <FolderMenu
               onCustomize={vm.customizeFolder}
               onCreateBoard={vm.createBoard}
-              onPinBoards={vm.pinSelection.start}
+              onSelect={vm.selection.start}
             />
           )}
         />
       )}
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-4 px-6 pb-12">
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        // Selecionando: espaço extra no fim para os botões de vidro não cobrirem o último quadro.
+        contentContainerClassName={`gap-4 px-6 ${vm.selection.isSelecting ? 'pb-28' : 'pb-12'}`}
+      >
         {vm.isLoading ? (
           <Animated.View exiting={FadeOut.duration(duration.normal)}>
             <FolderSkeleton />
@@ -88,17 +93,17 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
                   noteColor={folderInkColors[vm.color]}
                   onOpenBoard={vm.openBoard}
                   boardMenu={vm.boardMenu}
-                  // Escolhendo os fixados: círculo em cada quadro e sem o "Novo quadro".
+                  // Selecionando: círculo em cada quadro e sem o "Novo quadro".
                   selection={
-                    vm.pinSelection.isSelecting
+                    vm.selection.isSelecting
                       ? {
-                          selectedIds: vm.pinSelection.selectedIds,
-                          onToggle: vm.pinSelection.toggle,
+                          selectedIds: vm.selection.selectedIds,
+                          onToggle: vm.selection.toggle,
                         }
                       : undefined
                   }
                   add={
-                    vm.pinSelection.isSelecting
+                    vm.selection.isSelecting
                       ? undefined
                       : {
                           label: text.newBoard,
@@ -119,6 +124,14 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
           </Animated.View>
         )}
       </ScrollView>
+      {vm.selection.isSelecting ? (
+        <SelectionToolbar
+          pin={vm.selection.pin}
+          canDelete={vm.selection.canDelete}
+          onTogglePin={vm.selection.togglePin}
+          onDelete={vm.selection.requestDelete}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
