@@ -21,8 +21,8 @@ export function AddBoardTile({ accessibilityLabel, label, onPress }: AddBoardTil
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
-      className={`h-[58px] flex-row items-center justify-center gap-2 rounded-[12px] border border-dashed border-add-column-border active:opacity-60 ${
-        label ? 'w-full' : 'w-[58px]'
+      className={`h-[64px] flex-row items-center justify-center gap-2 rounded-[12px] border border-dashed border-add-column-border active:opacity-60 ${
+        label ? 'w-full' : 'w-[64px]'
       }`}
     >
       <Plus size={PLUS_SIZE} color={colors.primary} />

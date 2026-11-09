@@ -41,7 +41,7 @@ export function HomeScreen() {
 
         {vm.emptyText ? <EmptyState message={vm.emptyText} /> : null}
 
-        <View className="gap-3">
+        <View className="gap-5">
           {vm.folders.map((folder) => (
             <FolderCard
               key={folder.id}

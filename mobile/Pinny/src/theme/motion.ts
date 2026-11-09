@@ -23,6 +23,11 @@ export const dragLift = {
 // Tempo segurando o cartão até o arraste começar (antes disso, o dedo rola a coluna).
 export const DRAG_ACTIVATION_MS = 300;
 
+// Bloco com menu de contexto nativo (segurar): depois deste tempo, soltar não conta mais como
+// toque. Menor que o tempo do menu do iOS (~0,5 s), para soltar junto com a vibração não abrir
+// o item.
+export const CONTEXT_MENU_HOLD_MS = 300;
+
 // Rolagem automática quando o cartão chega perto da borda (da coluna ou da tela).
 export const autoScroll = {
   // Distância da borda, em pontos, em que a rolagem começa: em cima e embaixo da coluna.

@@ -18,6 +18,8 @@ export interface BoardRepository {
   // Pode trocar de pasta: folderId é a pasta de destino.
   move(id: string, folderId: string, placement: Placement): Promise<void>;
   remove(id: string): Promise<void>;
+  // Recria o quadro exatamente como era (desfazer a exclusão).
+  restore(board: Board): Promise<void>;
   // Fixa na Início (pinnedAt = agora) ou desafixa (null).
   setPinnedAt(id: string, pinnedAt: string | null): Promise<void>;
   countPinnedInFolder(folderId: string): Promise<number>;
@@ -103,6 +105,10 @@ export function createBoardRepository(database: Database = db): BoardRepository 
 
     async remove(id) {
       database.delete(boards).where(eq(boards.id, id)).run();
+    },
+
+    async restore(board) {
+      database.insert(boards).values(board).run();
     },
   };
 }

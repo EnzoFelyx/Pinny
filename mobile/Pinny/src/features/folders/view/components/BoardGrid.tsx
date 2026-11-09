@@ -2,9 +2,9 @@ import { View } from 'react-native';
 
 import type { HomeBoardItem } from '../../viewmodel/useFolderItems';
 import { AddBoardTile } from './AddBoardTile';
-import { BoardTile } from './BoardTile';
+import { BoardMenuTile } from './BoardMenuTile';
+import { type BoardMenuActions, BoardTile } from './BoardTile';
 import { MoreBoardsTile } from './MoreBoardsTile';
-import { PinnableBoardTile } from './PinnableBoardTile';
 
 const BOARDS_PER_ROW = 2;
 
@@ -21,15 +21,15 @@ interface BoardGridProps {
   onOpenBoard: (boardId: string) => void;
   // "+" sempre depois do último quadro (sem ele, não aparece).
   add?: TileAction;
-  // "+N ›" (Início): divide a última vaga com o "+", depois dele.
-  more?: TileAction & { label: string };
-  // Tela da pasta: segurar o quadro fixa ou desafixa na Início.
-  onTogglePin?: (boardId: string) => void;
+  // "Ver todos ›" (Início): ocupa a última vaga, no lugar do "+".
+  more?: TileAction;
+  // Tela da pasta: segurar o quadro abre as opções (fixar na Início e excluir).
+  boardMenu?: BoardMenuActions;
   // Modo "Fixar quadros": círculo de seleção em cada quadro; o toque marca/desmarca.
   selection?: { selectedIds: readonly string[]; onToggle: (boardId: string) => void };
 }
 
-// Item da grade: um quadro, o "+" ou o "+" seguido do "+N ›".
+// Item da grade: um quadro, o "+" ou o "+N ›".
 type Tile = { kind: 'board'; board: HomeBoardItem } | { kind: 'add' } | { kind: 'more' };
 
 function tileKey(tile: Tile): string {
@@ -51,21 +51,13 @@ export function BoardGrid({
   onOpenBoard,
   add,
   more,
-  onTogglePin,
+  boardMenu,
   selection,
 }: BoardGridProps) {
   const tiles: Tile[] = [
     ...boards.map((board) => ({ kind: 'board', board }) as const),
     ...(more ? [{ kind: 'more' } as const] : add ? [{ kind: 'add' } as const] : []),
   ];
-
-  const addTile = add ? (
-    <AddBoardTile
-      accessibilityLabel={add.accessibilityLabel}
-      label={add.label}
-      onPress={add.onPress}
-    />
-  ) : null;
 
   const renderTile = (tile: Tile) => {
     if (tile.kind === 'board') {
@@ -80,14 +72,14 @@ export function BoardGrid({
           />
         );
       }
-      if (onTogglePin) {
+      if (boardMenu) {
         return (
-          <PinnableBoardTile
+          <BoardMenuTile
             key={tile.board.id}
             board={tile.board}
             noteColor={noteColor}
             onOpen={onOpenBoard}
-            onTogglePin={onTogglePin}
+            menu={boardMenu}
           />
         );
       }
@@ -102,28 +94,30 @@ export function BoardGrid({
     }
     if (tile.kind === 'more' && more) {
       return (
-        <View key="more" className="flex-1 flex-row gap-2.5">
-          {addTile}
-          <MoreBoardsTile
-            label={more.label}
-            accessibilityLabel={more.accessibilityLabel}
-            onPress={more.onPress}
-          />
-        </View>
+        <MoreBoardsTile
+          key="more"
+          accessibilityLabel={more.accessibilityLabel}
+          onPress={more.onPress}
+        />
       );
     }
+    if (!add) return null;
     // Ocupa a vaga de um quadro, mas o bloco só tem a largura do conteúdo, à esquerda.
     return (
       <View key="add" className="flex-1 items-start">
-        {addTile}
+        <AddBoardTile
+          accessibilityLabel={add.accessibilityLabel}
+          label={add.label}
+          onPress={add.onPress}
+        />
       </View>
     );
   };
 
   return (
-    <View className="gap-2.5">
+    <View className="gap-2">
       {toRows(tiles).map((row) => (
-        <View key={row.map(tileKey).join()} className="flex-row gap-2.5">
+        <View key={row.map(tileKey).join()} className="flex-row gap-2">
           {row.map(renderTile)}
           {/* Linha com um item só: o espaço vazio mantém a largura igual à dos outros. */}
           {row.length < BOARDS_PER_ROW ? <View className="flex-1" /> : null}

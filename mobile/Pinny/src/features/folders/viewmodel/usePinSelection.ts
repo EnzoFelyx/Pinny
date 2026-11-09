@@ -5,6 +5,7 @@ import type { Board } from '@/features/board/model/board.schema';
 import { applyPinnedBoards } from '@/features/board/model/boardPinning';
 import { boardRepository } from '@/features/board/model/boardRepository';
 import { snackbarStore } from '@/features/feedback/model/snackbarStore';
+import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
 
 const text = ptBR.folders.folderScreen;
@@ -40,6 +41,12 @@ export function usePinSelection(folderBoards: readonly Board[]) {
     setSelectedIds(null);
     try {
       await applyPinnedBoards(folderBoards, selectedIds, boardRepository);
+      // Algum quadro novo fixado: a exclusão de um fixado da pasta não pode mais ser desfeita.
+      const pinnedNew = folderBoards.some(
+        (board) => board.pinnedAt === null && selectedIds.includes(board.id),
+      );
+      const folderId = folderBoards[0]?.folderId;
+      if (pinnedNew && folderId) historyStore.forgetPinnedBoardRestores(folderId);
     } catch (error: unknown) {
       console.warn('Falha ao fixar os quadros.', error);
       snackbarStore.show(ptBR.common.saveError);

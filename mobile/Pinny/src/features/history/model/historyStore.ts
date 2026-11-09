@@ -1,5 +1,6 @@
 import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
+import { labelRepository } from '@/features/board/model/labelRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { createId } from '@/utils/id';
 import { nowIso } from '@/utils/time';
@@ -9,6 +10,7 @@ import {
   type HistoryEntry,
   popEntry,
   pushEntry,
+  restoresPinnedBoardIn,
   type UndoOperation,
   type UndoRepositories,
 } from './actionHistory';
@@ -24,6 +26,7 @@ const defaultRepositories: UndoRepositories = {
   cards: cardRepository,
   columns: columnRepository,
   boards: boardRepository,
+  labels: labelRepository,
 };
 
 // Tira a última entrada de uma pilha, aplica e guarda a inversa na outra.
@@ -63,6 +66,14 @@ export const historyStore = {
   record(description: string, undo: UndoOperation): void {
     undoStack = pushEntry(undoStack, { id: createId(), description, createdAt: nowIso(), undo });
     redoStack = [];
+  },
+
+  // Quadro novo fixado na pasta: a exclusão de um quadro fixado dela não pode mais ser desfeita
+  // (ele voltaria fixado e a pasta passaria do limite de fixados).
+  forgetPinnedBoardRestores(folderId: string): void {
+    const keeps = (entry: HistoryEntry) => !restoresPinnedBoardIn(entry.undo, folderId);
+    undoStack = undoStack.filter(keeps);
+    redoStack = redoStack.filter(keeps);
   },
 
   // Desfaz a última ação. null = nada para desfazer (ou outra operação em andamento).

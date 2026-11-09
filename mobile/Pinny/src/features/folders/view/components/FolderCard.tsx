@@ -21,8 +21,8 @@ interface FolderCardProps {
   onOpenFolder?: (folderId: string) => void;
 }
 
-const FOLDER_ICON_SIZE = 22;
-const PIN_ICON_SIZE = 14;
+const FOLDER_ICON_SIZE = 20;
+const PIN_ICON_SIZE = 15;
 
 export const FolderCard = memo(function FolderCard({
   folder,
@@ -40,46 +40,32 @@ export const FolderCard = memo(function FolderCard({
       }
     : undefined;
   const more =
-    onOpenFolder && folder.seeAllText
+    onOpenFolder && folder.hasMoreBoards
       ? {
-          label: folder.seeAllText,
           accessibilityLabel: folder.seeAllAccessibilityLabel,
           onPress: () => onOpenFolder(folder.id),
         }
       : undefined;
-  // Na Início, o contador fica embaixo do nome (o nome usa a linha toda); na busca, à direita.
-  const isCountBelow = onOpenFolder !== undefined;
-  // Nome encolhe antes do alfinete: nome longo corta com "…" e o alfinete continua visível.
-  const title = (
-    <View className="flex-row items-center gap-1.5">
-      <Text numberOfLines={1} className="shrink text-subtitle text-text-primary">
-        {folder.title}
-      </Text>
-      {folder.isPinned ? <Pin size={PIN_ICON_SIZE} color={colors.textSecondary} /> : null}
-    </View>
-  );
-
   return (
-    <View className="gap-[11px] rounded-[24px] bg-surface p-4">
-      <View className="flex-row items-center gap-[9px]">
+    <View className="gap-2 rounded-[24px] bg-surface p-3">
+      <View className="h-8 flex-row items-center gap-1.5">
+        {/* Nome encolhe antes do contador e do alfinete: nome longo corta com "…". */}
         <View
           accessible
           accessibilityRole="header"
           accessibilityLabel={folder.accessibilityLabel}
-          className="flex-1 flex-row items-center gap-[9px]"
+          className="flex-1 flex-row items-center gap-1.5"
         >
           <Icon size={FOLDER_ICON_SIZE} color={inkColor} />
-          {isCountBelow ? (
-            <View className="flex-1">
-              {title}
-              <Text className="text-caption text-text-secondary">{folder.boardCountText}</Text>
+          <Text numberOfLines={1} className="flex-1 text-subtitle text-text-primary">
+            {folder.title}
+          </Text>
+          <Text className="text-caption text-text-secondary">{folder.boardCountText}</Text>
+          {folder.isPinned ? (
+            <View className="w-7 items-center">
+              <Pin size={PIN_ICON_SIZE} color={colors.primary} />
             </View>
-          ) : (
-            <>
-              <View className="flex-1">{title}</View>
-              <Text className="text-caption text-text-secondary">{folder.boardCountText}</Text>
-            </>
-          )}
+          ) : null}
         </View>
         {actions ? (
           // Margens negativas: a área de toque de 44pt não aumenta a altura do cabeçalho.
@@ -108,7 +94,8 @@ export const FolderCard = memo(function FolderCard({
           boards={onOpenFolder ? folder.previewBoards : folder.boards}
           noteColor={inkColor}
           onOpenBoard={onOpenBoard}
-          add={add}
+          // Com "+N ›", o "+" sai: o novo quadro fica no "⋮" ou dentro da pasta.
+          add={more ? undefined : add}
           more={more}
         />
       )}

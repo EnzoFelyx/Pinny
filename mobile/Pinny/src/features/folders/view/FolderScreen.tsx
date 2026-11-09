@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { Input } from '@/components/Input';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useDestructiveConfirm } from '@/hooks/useDestructiveConfirm';
 import { ptBR } from '@/i18n/pt-BR';
 import { colors, duration } from '@/theme';
 
@@ -28,6 +29,10 @@ interface FolderScreenProps {
 // O topo é o mesmo do quadro (voltar, título editável e "…").
 export function FolderScreen({ folderId }: FolderScreenProps) {
   const vm = useFolderViewModel(folderId);
+  useDestructiveConfirm(vm.deleteBoardRequest, {
+    onConfirm: vm.confirmDeleteBoard,
+    onCancel: vm.cancelDeleteBoard,
+  });
 
   return (
     <SafeAreaView edges={['top']} style={styles.screen}>
@@ -82,7 +87,7 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
                   boards={vm.boards}
                   noteColor={folderInkColors[vm.color]}
                   onOpenBoard={vm.openBoard}
-                  onTogglePin={vm.togglePinBoard}
+                  boardMenu={vm.boardMenu}
                   // Escolhendo os fixados: círculo em cada quadro e sem o "Novo quadro".
                   selection={
                     vm.pinSelection.isSelecting

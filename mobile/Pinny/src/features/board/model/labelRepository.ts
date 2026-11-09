@@ -23,6 +23,8 @@ export interface LabelRepository {
   create(boardId: string, input: LabelInput): Promise<Label>;
   update(id: string, input: LabelInput): Promise<void>;
   remove(id: string): Promise<void>;
+  // Recria as etiquetas exatamente como eram (desfazer a exclusão do quadro).
+  restoreAll(labels: readonly Label[]): Promise<void>;
   // Substitui todas as etiquetas do cartão pelas informadas.
   setForCard(cardId: string, labelIds: readonly string[]): Promise<void>;
 }
@@ -89,6 +91,14 @@ export function createLabelRepository(database: Database = db): LabelRepository 
 
     async remove(id) {
       database.delete(labels).where(eq(labels.id, id)).run();
+    },
+
+    async restoreAll(boardLabels) {
+      if (boardLabels.length === 0) return;
+      database
+        .insert(labels)
+        .values([...boardLabels])
+        .run();
     },
 
     async setForCard(cardId, labelIds) {

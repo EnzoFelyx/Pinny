@@ -1,6 +1,7 @@
 export { colors, shadows, type ColorToken } from './colors';
 export {
   autoScroll,
+  CONTEXT_MENU_HOLD_MS,
   DRAG_ACTIVATION_MS,
   dragLift,
   dragSpring,

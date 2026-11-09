@@ -7,11 +7,13 @@ import { boardRepository } from '@/features/board/model/boardRepository';
 import { PINNED_BOARDS_PER_FOLDER } from '@/constants/limits';
 import { orderForPreview, togglePinnedBoard } from '@/features/board/model/boardPinning';
 import { snackbarStore } from '@/features/feedback/model/snackbarStore';
+import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
 import { normalizeForSearch } from '@/utils/text';
 
 import type { Folder } from '../model/folder.schema';
 import { folderRepository } from '../model/folderRepository';
+import { useDeleteBoard } from './useDeleteBoard';
 import { toBoardItem } from './useFolderItems';
 import { usePinSelection } from './usePinSelection';
 
@@ -56,8 +58,27 @@ export function useFolderViewModel(folderId: string) {
 
   const folderBoards = useMemo(() => data?.boards ?? [], [data]);
   const pinSelection = usePinSelection(folderBoards);
+  const deleteBoard = useDeleteBoard(folderBoards);
+  const requestDeleteBoard = deleteBoard.request;
+  const boardMenu = useMemo(
+    () => ({
+      onTogglePin: (boardId: string) => {
+        togglePinnedBoard(boardId, boardRepository)
+          .then((result) => {
+            if (result === 'pinned') historyStore.forgetPinnedBoardRestores(folderId);
+          })
+          .catch((error: unknown) => {
+            console.warn('Falha ao fixar o quadro.', error);
+            snackbarStore.show(ptBR.common.saveError);
+          });
+      },
+      onDelete: requestDeleteBoard,
+    }),
+    [folderId, requestDeleteBoard],
+  );
 
-  // Segurar o quadro: "Fixar na Início" (até 3 por pasta) ou "Desafixar".
+  // Segurar o quadro: "Fixar na Início" (até 3 por pasta; com 3, a opção some e fica só o
+  // "Excluir quadro") ou "Desafixar".
   const pinnedBoardCount = (data?.boards ?? []).filter((board) => board.pinnedAt !== null).length;
   const canPinMoreBoards = pinnedBoardCount < PINNED_BOARDS_PER_FOLDER;
   // Os fixados na Início vêm primeiro (como na prévia da Início); depois, os outros na ordem da
@@ -106,12 +127,11 @@ export function useFolderViewModel(folderId: string) {
       router.push({ pathname: '/folder/[folderId]/rename', params: { folderId } });
     }, [folderId]),
     pinSelection,
-    togglePinBoard: useCallback((boardId: string) => {
-      togglePinnedBoard(boardId, boardRepository).catch((error: unknown) => {
-        console.warn('Falha ao fixar o quadro.', error);
-        snackbarStore.show(ptBR.common.saveError);
-      });
-    }, []),
+    // Segurar o quadro: fixar/desafixar e "Excluir quadro" (alerta de confirmação e desfazer).
+    boardMenu,
+    deleteBoardRequest: deleteBoard.confirmRequest,
+    confirmDeleteBoard: deleteBoard.confirm,
+    cancelDeleteBoard: deleteBoard.cancel,
     goBack: router.back,
   };
 }

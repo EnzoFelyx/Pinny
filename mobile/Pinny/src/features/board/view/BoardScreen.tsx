@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Alert, type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { COLUMN_GAP, useBoardColumnLayout } from '@/hooks/useBoardColumnLayout';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useDestructiveConfirm } from '@/hooks/useDestructiveConfirm';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useMinimumDuration } from '@/hooks/useMinimumDuration';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -97,19 +98,23 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   }, [focusRequest, focusColumn]);
 
   // Confirmação nativa do iOS ao puxar e segurar uma coluna.
-  const { columnToDelete, closeDeleteColumn, confirmDeleteColumn } = vm;
-  useEffect(() => {
-    if (!columnToDelete) return;
-    Alert.alert(
-      text.deleteColumnTitle(columnToDelete.title),
-      columnToDelete.message,
-      [
-        { text: text.deleteColumnCancel, style: 'cancel', onPress: closeDeleteColumn },
-        { text: text.deleteColumnConfirm, style: 'destructive', onPress: confirmDeleteColumn },
-      ],
-      { cancelable: true, onDismiss: closeDeleteColumn },
-    );
-  }, [columnToDelete, closeDeleteColumn, confirmDeleteColumn]);
+  const { columnToDelete } = vm;
+  const columnDeleteRequest = useMemo(
+    () =>
+      columnToDelete
+        ? {
+            title: text.deleteColumnTitle(columnToDelete.title),
+            message: columnToDelete.message,
+            confirmLabel: text.deleteColumnConfirm,
+            cancelLabel: text.deleteColumnCancel,
+          }
+        : null,
+    [columnToDelete],
+  );
+  useDestructiveConfirm(columnDeleteRequest, {
+    onConfirm: vm.confirmDeleteColumn,
+    onCancel: vm.closeDeleteColumn,
+  });
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>

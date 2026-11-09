@@ -6,8 +6,14 @@ import {
   removeColumnWithCards,
   restoreColumnWithCards,
 } from '@/features/board/model/columnRemoval';
+import {
+  type BoardSnapshot,
+  removeBoardWithContent,
+  restoreBoardWithContent,
+} from '@/features/board/model/boardRemoval';
 import type { BoardRepository } from '@/features/board/model/boardRepository';
 import type { ColumnRepository } from '@/features/board/model/columnRepository';
+import type { LabelRepository } from '@/features/board/model/labelRepository';
 
 // Histórico de ações (base do "Desfazer"). Cada entrada guarda como voltar ao estado anterior.
 // Novos tipos entram conforme as ações chegam (ex.: excluir coluna na etapa 6).
@@ -31,6 +37,10 @@ export type UndoOperation =
   | { kind: 'renameColumn'; columnId: string; title: string }
   // Desfaz uma renomeação de quadro: volta ao nome anterior.
   | { kind: 'renameBoard'; boardId: string; title: string }
+  // Refaz a exclusão de um quadro: exclui de novo, guardando o retrato.
+  | { kind: 'deleteBoard'; boardId: string }
+  // Desfaz uma exclusão de quadro: recria o quadro, as etiquetas, as colunas e os cartões.
+  | { kind: 'restoreBoard'; snapshot: BoardSnapshot }
   // Várias operações como uma ação só (ex.: criar a coluna e levar o cartão para ela). Desfaz na
   // ordem dada; a inversa refaz na ordem contrária.
   | { kind: 'sequence'; operations: UndoOperation[] };
@@ -61,10 +71,23 @@ export function popEntry(history: readonly HistoryEntry[]): {
   return { entry: history.at(-1), rest: history.slice(0, -1) };
 }
 
+// A operação recriaria um quadro fixado nesta pasta (inclusive dentro de uma sequência).
+export function restoresPinnedBoardIn(operation: UndoOperation, folderId: string): boolean {
+  if (operation.kind === 'sequence') {
+    return operation.operations.some((step) => restoresPinnedBoardIn(step, folderId));
+  }
+  return (
+    operation.kind === 'restoreBoard' &&
+    operation.snapshot.board.folderId === folderId &&
+    operation.snapshot.board.pinnedAt !== null
+  );
+}
+
 export interface UndoRepositories {
   cards: CardRepository;
   columns: ColumnRepository;
   boards: BoardRepository;
+  labels: LabelRepository;
 }
 
 // Campos do patch com os valores atuais do cartão: o que é preciso para voltar uma edição.
@@ -144,5 +167,12 @@ export async function applyUndo(
       await boards.rename(operation.boardId, operation.title);
       return { kind: 'renameBoard', boardId: before.id, title: before.title };
     }
+    case 'deleteBoard': {
+      const snapshot = await removeBoardWithContent(operation.boardId, repositories);
+      return snapshot ? { kind: 'restoreBoard', snapshot } : null;
+    }
+    case 'restoreBoard':
+      await restoreBoardWithContent(operation.snapshot, repositories);
+      return { kind: 'deleteBoard', boardId: operation.snapshot.board.id };
   }
 }

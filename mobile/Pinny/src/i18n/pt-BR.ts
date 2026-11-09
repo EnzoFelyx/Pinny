@@ -21,7 +21,7 @@ export const ptBR = {
     search: 'Buscar',
   },
   folders: {
-    greeting: (name: string) => `Oi, ${name}. Vamos dar espaço às ideias?`,
+    greeting: (name: string) => `Bem vindo, ${name}!`,
     createFolderA11y: 'Criar pasta',
     sectionTitle: 'Minhas pastas',
     folderCount: (count: number) => (count === 1 ? '1 pasta' : `${count} pastas`),
@@ -40,10 +40,17 @@ export const ptBR = {
       `Abrir o quadro ${title}${isPinned ? ', fixado na Início' : ''}`,
     pinBoard: 'Fixar na Início',
     unpinBoard: 'Desafixar',
+    // Segurar o quadro na tela da pasta: excluir com confirmação e desfazer.
+    deleteBoard: 'Excluir quadro',
+    deleteBoardTitle: (title: string) => `Excluir o quadro "${title}"?`,
+    deleteBoardMessage: 'As colunas e os cartões dele também serão excluídos.',
+    deleteBoardConfirm: 'Excluir',
+    deleteBoardCancel: 'Cancelar',
+    boardDeleted: 'Quadro excluído',
     createBoardA11y: (folderTitle: string) => `Criar um quadro na pasta ${folderTitle}`,
     createFirstBoard: 'Criar o primeiro quadro',
-    // Quantos quadros ficaram de fora da Início (o resto está na tela da pasta).
-    seeAllBoards: (hidden: number) => `+${hidden}`,
+    // Última vaga da pasta na Início quando há quadros de fora (abre a tela da pasta).
+    seeAll: 'Ver todos',
     moreBoardsA11y: (title: string, total: number) => `Ver os ${total} quadros da pasta ${title}`,
     // Tela da pasta (todos os quadros).
     folderScreen: {
@@ -104,6 +111,7 @@ export const ptBR = {
       duplicateColumn: 'Duplicação de Coluna',
       renameColumn: 'Renomeação de Coluna',
       renameBoard: 'Renomeação de Quadro',
+      deleteBoard: 'Exclusão de Quadro',
     },
     undoAction: (actionName: string) => `Desfazer ${actionName}`,
     redoAction: (actionName: string) => `Refazer ${actionName}`,

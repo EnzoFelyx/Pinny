@@ -1,22 +1,34 @@
-import { Check, Pin } from 'lucide-react-native';
+import { Check, Columns3, Pin } from 'lucide-react-native';
 import { memo } from 'react';
 import { type AccessibilityActionEvent, Pressable, Text, View } from 'react-native';
 
-import { colors } from '@/theme';
+import { ptBR } from '@/i18n/pt-BR';
+import { colors, CONTEXT_MENU_HOLD_MS } from '@/theme';
 
 import type { HomeBoardItem } from '../../viewmodel/useFolderItems';
-import { BoardThumbnail } from './BoardThumbnail';
 
+const BOARD_ICON_SIZE = 20;
 const PIN_ICON_SIZE = 12;
 const CHECK_ICON_SIZE = 12;
 
+// O menu de contexto nativo cuida do toque longo; aqui ele só impede o toque de abrir o quadro.
+function ignoreLongPress() {}
+
+// Opções do quadro ao segurar (tela da pasta).
+export interface BoardMenuActions {
+  // "Fixar na Início"/"Desafixar" (sem board.pinActionLabel, a opção não aparece).
+  onTogglePin: (boardId: string) => void;
+  onDelete: (boardId: string) => void;
+}
+
 interface BoardTileProps {
   board: HomeBoardItem;
+  // Cor escura da pasta, usada no ícone do quadro.
   noteColor: string;
   onOpen: (boardId: string) => void;
-  // Tela da pasta: "Fixar na Início"/"Desafixar" também como ação do leitor de tela (alternativa
-  // ao segurar, regra 15).
-  onTogglePin?: (boardId: string) => void;
+  // Dentro do menu de contexto nativo (segurar): soltar depois de CONTEXT_MENU_HOLD_MS só abre o
+  // menu, sem abrir o quadro. As mesmas opções viram ações do leitor de tela (regra 15).
+  menu?: BoardMenuActions;
   // Tela da pasta: alfinete ao lado do nome dos fixados (na Início, só o fundo lavanda).
   showsPinIcon?: boolean;
   // Modo de seleção ("Fixar quadros"): círculo no canto e o toque marca/desmarca em vez de abrir.
@@ -24,25 +36,29 @@ interface BoardTileProps {
   isSelected?: boolean;
 }
 
-// Quadro da pasta: miniatura e nome. Fixado na Início, ganha o fundo lavanda (e, na tela da pasta,
+// Quadro da pasta: ícone de colunas e nome. Fixado na Início, ganha o fundo lavanda (e, na tela da pasta,
 // o alfinete). No modo de seleção, o círculo do canto marca os escolhidos, como na seleção de
 // fotos do iOS.
 export const BoardTile = memo(function BoardTile({
   board,
   noteColor,
   onOpen,
-  onTogglePin,
+  menu,
   showsPinIcon = false,
   isSelected,
 }: BoardTileProps) {
   const isSelecting = isSelected !== undefined;
   const isHighlighted = isSelecting ? isSelected : board.isPinned;
-  const pinAction =
-    onTogglePin && board.pinActionLabel
-      ? [{ name: 'togglePin', label: board.pinActionLabel }]
+  const menuActions =
+    menu && !isSelecting
+      ? [
+          ...(board.pinActionLabel ? [{ name: 'togglePin', label: board.pinActionLabel }] : []),
+          { name: 'delete', label: ptBR.folders.deleteBoard },
+        ]
       : undefined;
   const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
-    if (event.nativeEvent.actionName === 'togglePin') onTogglePin?.(board.id);
+    if (event.nativeEvent.actionName === 'togglePin') menu?.onTogglePin(board.id);
+    if (event.nativeEvent.actionName === 'delete') menu?.onDelete(board.id);
   };
 
   return (
@@ -50,17 +66,20 @@ export const BoardTile = memo(function BoardTile({
       accessibilityRole={isSelecting ? 'checkbox' : 'button'}
       accessibilityState={isSelecting ? { checked: isSelected } : undefined}
       accessibilityLabel={isSelecting ? board.title : board.accessibilityLabel}
-      accessibilityActions={isSelecting ? undefined : pinAction}
+      accessibilityActions={menuActions}
       onAccessibilityAction={handleAccessibilityAction}
       onPress={() => onOpen(board.id)}
-      className={`h-[58px] flex-1 flex-row items-center gap-2 rounded-[12px] p-2.5 active:opacity-70 ${
+      // Com onLongPress, o Pressable não chama o onPress ao soltar depois do toque longo.
+      onLongPress={menu ? ignoreLongPress : undefined}
+      delayLongPress={CONTEXT_MENU_HOLD_MS}
+      className={`h-[64px] flex-1 flex-row items-center gap-2 rounded-[12px] p-2.5 active:opacity-70 ${
         isHighlighted ? 'bg-secondary' : 'bg-column-background'
       }`}
     >
-      <BoardThumbnail noteColor={noteColor} />
+      <Columns3 size={BOARD_ICON_SIZE} color={noteColor} />
       {/* O nome encolhe antes do alfinete: nome longo corta e o alfinete continua visível. */}
       <View className="flex-1 flex-row items-center gap-1">
-        <Text numberOfLines={2} className="shrink text-tag text-text-primary">
+        <Text numberOfLines={2} className="shrink text-label text-text-primary">
           {board.title}
         </Text>
         {showsPinIcon && board.isPinned && !isSelecting ? (

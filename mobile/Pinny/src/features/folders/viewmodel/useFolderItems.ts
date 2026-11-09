@@ -43,8 +43,8 @@ export interface HomeFolderItem {
   boards: HomeBoardItem[];
   // Na Início: os primeiros quadros e, se houver mais, o link para a tela da pasta.
   previewBoards: HomeBoardItem[];
-  // Texto do link "+N ›" (quadros que ficaram de fora; null = todos cabem).
-  seeAllText: string | null;
+  // Há quadros fora da Início: a última vaga vira "Ver todos ›".
+  hasMoreBoards: boolean;
   seeAllAccessibilityLabel: string;
 }
 
@@ -71,7 +71,6 @@ export function toFolderItem(
   const boardItems = boards.map((board) => toBoardItem(board));
   // Na Início, os fixados vêm primeiro e a pasta completa com os outros.
   const previewItems = orderForPreview(boards).map((board) => toBoardItem(board));
-  const hasMore = boards.length > HOME_PREVIEW_BOARDS;
   return {
     id: folder.id,
     title: folder.title,
@@ -88,7 +87,7 @@ export function toFolderItem(
     emptyText: boards.length === 0 ? text.emptyFolder : null,
     boards: boardItems,
     previewBoards: previewItems.slice(0, HOME_PREVIEW_BOARDS),
-    seeAllText: hasMore ? text.seeAllBoards(boards.length - HOME_PREVIEW_BOARDS) : null,
+    hasMoreBoards: boards.length > HOME_PREVIEW_BOARDS,
     seeAllAccessibilityLabel: text.moreBoardsA11y(folder.title, boards.length),
   };
 }
