@@ -252,6 +252,7 @@
   - [ ] Tela das pastas arquivadas: ver os quadros, desarquivar e excluir (perguntar sobre skeleton antes de implementar)
 - [ ] Criar, renomear, mover e excluir quadros
   - [x] Criar quadro pelo "+" da pasta (folha "Novo quadro", já com "Pendentes" e "Concluídas")
+  - [x] Excluir quadro segurando o quadro na tela da pasta (alerta de confirmação e desfazer)
 - [ ] Templates prontos (Estudos, Tarefas da semana, Projeto pessoal, Viagem)
 - [ ] Criar template personalizado a partir de um quadro
 - [ ] Testes

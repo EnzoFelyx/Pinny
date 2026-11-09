@@ -7,6 +7,25 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-08 — Novo card da pasta e excluir quadro
+
+### Adicionado
+
+- Excluir quadro: na tela da pasta, segurar um quadro abre o menu de contexto com "Excluir quadro" (vermelho, separado de "Fixar na Início" / "Desafixar"; também como ação do VoiceOver). O alerta nativo pede confirmação; o quadro sai com colunas, cartões (inclusive arquivados) e etiquetas, entra no histórico ("Exclusão de Quadro") e pode ser desfeito pelo chacoalhar ou pelo snackbar, voltando com os mesmos ids, posições e fixação. (`1e02a69`)
+
+### Alterado
+
+- Card da pasta na Início no novo layout do Figma: padding de 12, cabeçalho numa linha (ícone, nome, contador, alfinete roxo se fixada e "⋮"), quadros de 64 de altura com o ícone de colunas na cor da pasta (no lugar da miniatura desenhada) e grade com 8 de espaço. Entre as pastas, 20 de espaço. (`1e02a69`)
+- Pastas com mais de 3 quadros terminam no bloco lavanda "Ver todos ›" (com ícone de pilha), do tamanho dos outros quadros, no lugar do link "+N ›", e não mostram mais o "+": o novo quadro fica no "⋮" da pasta ou dentro dela. (`1e02a69`)
+- O menu ao segurar o quadro aparece sempre: com 3 fixados, fica só o "Excluir quadro". (`1e02a69`)
+- Fixar um quadro novo na pasta tira do histórico a exclusão de um quadro fixado dela, para a pasta nunca passar de 3 fixados. (`1e02a69`)
+
+### Corrigido
+
+- Soltar o quadro bem quando o menu de contexto aparece (com a vibração) abria o quadro em vez de só mostrar o menu. (`1e02a69`)
+
+---
+
 ## 2026-11-03 — Fixar pastas e quadros
 
 ### Adicionado
