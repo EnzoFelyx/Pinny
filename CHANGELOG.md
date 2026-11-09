@@ -7,6 +7,20 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ---
 
+## 2026-11-09 — Selecionar cartões (etapa 6.5)
+
+### Adicionado
+
+- "Selecionar" no "…" do quadro liga o modo de seleção, como nas fotos do iOS: cada cartão ganha uma bolinha no canto e o toque marca e desmarca (marcado: fundo lavanda, borda roxa e check). O topo mostra "N selecionados" com a dica e troca o "…" por uma pílula de vidro "Cancelar". Enquanto seleciona, cartões e colunas não arrastam, o "puxar para excluir" fica desligado o nome da coluna não é renomeado (lápis bem apagado), e somem o "…" da coluna, o "Adicionar cartão" e a coluna "Adicionar coluna". As ações sobre os escolhidos vêm depois. (`813fe65`)
+- Barra no pé do quadro durante a seleção, no estilo do Mail do iOS (círculos de vidro de 54 flutuando por cima do quadro, sem encolher as colunas, com ícones coloridos: Mover em roxo, Arquivar em azul e Apagar em vermelho; a barra da tela da pasta ficou igual, com o alfinete em roxo): Mover, Arquivar e Apagar (vermelho), apagados até marcar um cartão. "Mover" abre a folha "Mover N cartões para:" com as colunas do quadro e "Trocar" para escolher outro quadro (as etiquetas são levadas pelo nome e cor). Apagar pede confirmação. Cada ação entra no histórico como uma só, com aviso de desfazer. (`813fe65`)
+- No modo de seleção, cada coluna mostra, ao lado da contagem, um "Selecionar todos" pequeno em roxo escuro que marca os cartões à mostra; com algum marcado, vira "Limpar" e desmarca só os daquela coluna. (`813fe65`)
+- "Arquivados" no "…" do quadro, abaixo de "Nova coluna": tela provisória que lista os cartões arquivados do quadro numa coluna só de leitura (o desenho final vem do Figma). (`813fe65`)
+- No "…" do quadro, "Selecionar cartões" virou "Selecionar" e o grupo do meio ficou só com o verbo: "Renomear", "Duplicar" e "Mover" (antes "Renomear quadro", "Duplicar quadro" e "Mover para outra pasta"). (`813fe65`)
+- "Excluir" virou "Apagar" em todo o app: o item dos menus "…" (quadro, pasta e coluna) e do menu de contexto do quadro é só "Apagar", os alertas perguntam "Apagar o quadro/a coluna "X"?" com o botão "Apagar", os avisos dizem "Quadro apagado"/"Coluna apagada" e o desfazer ao chacoalhar mostra "Desfazer Apagar Quadro". (`813fe65`)
+- Peças compartilhadas: `useSelection` (hook de seleção), `SelectionCheck` (bolinha, também usada pela tela da pasta) e `GlassTextButton` (pílula de vidro com texto). (`813fe65`)
+
+---
+
 ## 2026-11-09 — Reordenar colunas
 
 ### Adicionado

@@ -216,7 +216,13 @@
   - Virtualização e paginação da montagem: fora da v1 (decisão do autor, 2026-11-03), ver Roadmap no CLAUDE.md
 
 ### 6.5 — Seleção em lote
-- [ ] Modo de seleção múltipla e arraste em lote
+- [x] Modo "Selecionar cartões" (2026-11-09): bolinha em cada cartão, marcado em lavanda com borda roxa, topo com "N selecionados" e "Cancelar" de vidro, arraste desligado enquanto seleciona
+- [x] "Selecionar todos" / "Limpar" ao lado da contagem de cada coluna (2026-11-09)
+- [x] Barra de baixo com as ações em lote (2026-11-09): Mover (coluna ou outro quadro, numa folha só), Arquivar e Apagar, com desfazer
+- [ ] Tela da pasta: botões da barra de seleção visíveis e apagados sem seleção (hoje somem), como no quadro
+- [x] "Arquivados" no "…" do quadro (abaixo de "Nova coluna", 2026-11-09): tela provisória com os cartões arquivados numa coluna só de leitura
+- [ ] **Lembrete do autor:** desenhar a tela "Arquivados" do quadro no Figma (visual final, desarquivar e apagar) e depois implementar o desenho
+- [ ] Arraste em lote
 
 ### 6.6 — Desempenho
 - [ ] Medir 60fps em build de release com ~300 cartões num aparelho intermediário
