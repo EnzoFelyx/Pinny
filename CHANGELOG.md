@@ -11,6 +11,8 @@ Formato baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ### Adicionado
 
+- Modo "Selecionar" na tela da pasta (primeira opção do "…", no lugar do "Fixar quadros"): seleção sem limite, como nas fotos do iOS, com check e borda roxa nos escolhidos; os fixados continuam em lavanda e com o alfinete. Embaixo, botões redondos de Liquid Glass: fixar (ou desafixar, com o alfinete riscado, quando só há fixados selecionados) à esquerda, em cinza-escuro, e excluir (lixeira vermelha) à direita. O "Fixar" só aparece se a pasta continuar com no máximo 3 fixados, contando os que já estão; a dica do topo explica o limite. Excluir vários quadros pede uma confirmação e vira uma ação só no histórico ("Exclusão de Quadros"). (`b22617c`)
+
 - Excluir quadro: na tela da pasta, segurar um quadro abre o menu de contexto com "Excluir quadro" (vermelho, separado de "Fixar na Início" / "Desafixar"; também como ação do VoiceOver). O alerta nativo pede confirmação; o quadro sai com colunas, cartões (inclusive arquivados) e etiquetas, entra no histórico ("Exclusão de Quadro") e pode ser desfeito pelo chacoalhar ou pelo snackbar, voltando com os mesmos ids, posições e fixação. (`1e02a69`)
 
 ### Alterado
