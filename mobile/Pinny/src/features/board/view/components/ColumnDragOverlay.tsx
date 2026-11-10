@@ -62,6 +62,7 @@ export function ColumnDragOverlay({ columnDrag, column, isReducedMotion }: Colum
               <Card
                 key={card.id}
                 title={card.title}
+                titleParts={card.titleParts}
                 accessibilityLabel={card.accessibilityLabel}
                 labels={card.labels}
                 priority={card.priority}

@@ -15,6 +15,7 @@ import { toPlacement } from '../model/reorder';
 import { type BoardColumnItem, toColumnItems } from './boardItems';
 import { useBoardFilter } from './useBoardFilter';
 import { useBoardRename } from './useBoardRename';
+import { useBoardSearch } from './useBoardSearch';
 import { useCardBatchActions } from './useCardBatchActions';
 import { useCardSelection } from './useCardSelection';
 import { useColumnActions } from './useColumnActions';
@@ -46,7 +47,9 @@ export function useBoardViewModel(boardId: string) {
   }, []);
   // Filtro do quadro (só enquanto ele está aberto): todas as colunas, só os cartões que passam.
   const filter = useBoardFilter(boardId, data);
-  const visible = useVisibleCards(data, columns, filter.applied);
+  // "Buscar lembrete": vale junto com o filtro.
+  const search = useBoardSearch();
+  const visible = useVisibleCards(data, columns, filter.applied, search.term);
   const [errorText, setErrorText] = useState<string | null>(null);
   const notifyUndoable = useUndoNotice();
   // Coluna que acabou de aparecer (criada ou devolvida pelo "Desfazer"): o quadro rola até ela.
@@ -238,6 +241,12 @@ export function useBoardViewModel(boardId: string) {
     renameBoard,
     ...boardMenuActions,
     filter,
+    search,
+    // A busca sobrou com um cartão só: o quadro rola até ele. Com dois ou mais (ou nenhum), fica
+    // onde está.
+    searchMatch: visible.singleMatch,
+    // Leitor de tela: quantos cartões a busca encontrou (o subtítulo some durante a busca).
+    searchResultText: search.term ? text.search.results(visible.visibleCount) : null,
     selection,
     batch,
     selectColumnCards,

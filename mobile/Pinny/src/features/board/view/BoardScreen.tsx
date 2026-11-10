@@ -1,11 +1,12 @@
 import { Archive, FolderInput, Trash2 } from 'lucide-react-native';
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { COLUMN_GAP, useBoardColumnLayout } from '@/hooks/useBoardColumnLayout';
+import { GlassSearchField } from '@/components/GlassSearchField';
 import { GlassTextButton } from '@/components/GlassTextButton';
 import { GlassToolbar } from '@/components/GlassToolbar';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -70,7 +71,11 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   // As colunas deslizam para abrir a vaga no mesmo ritmo dos cartões.
   const reorderDuration = isReducedMotion ? duration.fast : duration.normal;
   const { columnWidth, snapInterval } = useBoardColumnLayout();
-  const { selection } = vm;
+  const { selection, search, searchResultText } = vm;
+  // Leitor de tela: a busca anuncia quantos cartões encontrou (o subtítulo some enquanto busca).
+  useEffect(() => {
+    if (searchResultText) AccessibilityInfo.announceForAccessibility(searchResultText);
+  }, [searchResultText]);
   const { cardActions, columnActions } = useBoardActions({
     ...vm,
     toggleCardSelection: selection.toggle,
@@ -128,6 +133,12 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   useEffect(() => {
     if (focusRequest) focusColumn(focusRequest.columnId);
   }, [focusRequest, focusColumn]);
+  // Busca com um único resultado: o quadro rola até a coluna dele (de novo a cada cartão novo).
+  const matchColumnId = vm.searchMatch?.columnId;
+  const matchCardId = vm.searchMatch?.cardId;
+  useEffect(() => {
+    if (matchColumnId && matchCardId) focusColumn(matchColumnId);
+  }, [matchColumnId, matchCardId, focusColumn]);
 
   // Confirmação nativa do iOS ao puxar e segurar uma coluna.
   const { columnToDelete } = vm;
@@ -159,17 +170,30 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
-      {/* Selecionando: o título vira a contagem (sem renomear) e o "…" vira "Cancelar". */}
+      {/* Selecionando: o título vira a contagem (sem renomear) e o "…" vira "Cancelar". Buscando:
+          o campo de vidro toma o lugar do título, do subtítulo e do "…", e o voltar fecha a busca. */}
       <ScreenHeader
         title={selection.isSelecting ? selection.title : vm.title}
         subtitle={selection.isSelecting ? selection.hint : vm.subtitle}
         isLoading={showSkeleton}
         errorText={vm.errorText}
-        onBack={vm.goBack}
-        onRename={selection.isSelecting ? undefined : vm.renameBoard}
+        // Buscando, o voltar só fecha a busca (o quadro continua aberto).
+        onBack={search.isSearching ? search.cancel : vm.goBack}
+        backAccessibilityLabel={search.isSearching ? text.search.close : undefined}
+        onRename={selection.isSelecting || search.isSearching ? undefined : vm.renameBoard}
         renameLabels={boardRenameLabels}
+        titleReplacement={
+          search.isSearching ? (
+            <GlassSearchField
+              value={search.query}
+              onChangeText={search.setQuery}
+              placeholder={text.search.placeholder}
+              accessibilityLabel={text.search.inputA11y}
+            />
+          ) : null
+        }
         renderMenu={(startRename) =>
-          selection.isSelecting ? (
+          search.isSearching ? null : selection.isSelecting ? (
             <GlassTextButton
               label={text.selection.cancel}
               accessibilityLabel={text.selection.cancelA11y}
@@ -177,6 +201,7 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
             />
           ) : (
             <BoardMenu
+              onSearch={search.start}
               onSelectCards={selection.start}
               onRename={startRename}
               onCreateColumn={vm.createColumn}
@@ -199,6 +224,8 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
           onLayout={measureBoard}
           onContentSizeChange={measureBoardContent}
           horizontal
+          // Buscando: rolar o quadro esconde o teclado, para ver os cartões que sobraram.
+          keyboardDismissMode="on-drag"
           showsHorizontalScrollIndicator={false}
           snapToInterval={snapInterval}
           decelerationRate="fast"

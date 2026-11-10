@@ -5,6 +5,7 @@ import type { ChecklistProgress } from '@/features/card/model/checklistRepositor
 import { getDeadlineStatus } from '@/features/card/model/deadline';
 import { ptBR } from '@/i18n/pt-BR';
 import { formatDueDate } from '@/utils/date';
+import type { TextPart } from '@/utils/text';
 
 import type { BoardCard, BoardColumn, BoardData } from '../model/boardData';
 import type { EmptyVariant, EmptyVariantMap } from '../model/emptyVariants';
@@ -16,6 +17,8 @@ const STATUS_SEPARATOR = ' · ';
 export interface BoardCardItem {
   id: string;
   title: string;
+  // Só durante a busca, quando o termo aparece no título: os trechos para o marca-texto.
+  titleParts?: TextPart[];
   accessibilityLabel: string;
   labels: CardLabel[];
   priority?: Priority;

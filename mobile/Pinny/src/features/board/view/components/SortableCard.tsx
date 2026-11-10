@@ -194,6 +194,7 @@ export const SortableCard = memo(function SortableCard({
         <Animated.View style={[styles.liftedShadow, shadowStyle]} />
         <Card
           title={card.title}
+          titleParts={card.titleParts}
           accessibilityLabel={card.accessibilityLabel}
           labels={card.labels}
           priority={card.priority}

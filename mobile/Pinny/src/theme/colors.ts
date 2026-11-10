@@ -68,6 +68,8 @@ export const colors = {
   dropZoneBorder: palette.violet600,
   dropZoneOriginBackground: palette.clear,
   dropZoneTargetBackground: palette.lavender100,
+  // Marca-texto da busca do quadro, atrás do trecho achado no título (textPrimary por cima: 9,4:1).
+  searchHighlight: palette.lavender200,
 
   // Barras do skeleton loading (decorativas): um tom acima do fundo da coluna e do cartão, com a
   // faixa de brilho do shimmer passando por cima.

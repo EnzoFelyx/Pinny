@@ -17,6 +17,8 @@ interface ScreenHeaderProps {
   isLoading: boolean;
   errorText: string | null;
   onBack: () => void;
+  // Quando o voltar faz outra coisa (ex.: fechar a busca do quadro), o leitor de tela diz isso.
+  backAccessibilityLabel?: string;
   // Título editado ali mesmo (quadro). Sem ele, o título é só leitura ou usa onTitlePress.
   onRename?: (title: string) => void;
   // Toque no título faz outra coisa (ex.: a pasta abre a folha "Personalizar").
@@ -25,7 +27,10 @@ interface ScreenHeaderProps {
   renameLabels: { action: string; hint: string; input: string };
   // Antes do título (ex.: ícone e cor da pasta).
   leading?: ReactNode;
+  // Toma o lugar do título e do subtítulo (ex.: o campo do "Buscar lembrete" do quadro).
+  titleReplacement?: ReactNode;
   // O "…" da tela; recebe a função que começa a edição do título (item "Renomear" do menu).
+  // null = sem botão à direita (o título ou o campo vão até a borda).
   renderMenu: (startRename: () => void) => ReactNode;
 }
 
@@ -37,10 +42,12 @@ export function ScreenHeader({
   isLoading,
   errorText,
   onBack,
+  backAccessibilityLabel = ptBR.common.back,
   onRename,
   onTitlePress,
   renameLabels,
   leading,
+  titleReplacement,
   renderMenu,
 }: ScreenHeaderProps) {
   // Enquanto carrega, o título ainda não existe: nada para renomear.
@@ -51,11 +58,20 @@ export function ScreenHeader({
       <View className="flex-row items-center gap-3">
         <GlassIconButton
           icon={ChevronLeft}
-          accessibilityLabel={ptBR.common.back}
+          accessibilityLabel={backAccessibilityLabel}
           onPress={onBack}
         />
         {leading}
-        {isLoading ? (
+        {titleReplacement ? (
+          // Altura das duas linhas do título e do subtítulo: as colunas não pulam ao trocar.
+          <Animated.View
+            entering={FadeIn.duration(duration.fast)}
+            exiting={FadeOut.duration(duration.fast)}
+            style={styles.replacement}
+          >
+            {titleReplacement}
+          </Animated.View>
+        ) : isLoading ? (
           // Mesmas alturas das linhas do título e do subtítulo: nada pula quando eles chegam.
           <Animated.View exiting={FadeOut.duration(duration.normal)} style={styles.fill}>
             <SkeletonGroup className="gap-[3px]">
@@ -94,4 +110,5 @@ export function ScreenHeader({
 // Os fades do Reanimated pedem Animated.View com style (REGRAS.md, regra 5).
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  replacement: { flex: 1, minHeight: 49, flexDirection: 'row', alignItems: 'center' },
 });

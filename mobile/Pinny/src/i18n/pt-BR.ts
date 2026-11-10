@@ -264,9 +264,22 @@ export const ptBR = {
       emptyColumn: 'Nenhum cartão com esses filtros.',
       newCardHidden: 'Cartão criado, mas escondido pelos filtros',
     },
+    // "Buscar lembrete" (… do quadro): campo de vidro no lugar do título.
+    search: {
+      placeholder: 'Buscar lembrete',
+      inputA11y: 'Buscar lembrete pelo título ou pela descrição',
+      close: 'Fechar a busca',
+      emptyColumn: 'Nenhum cartão com essa busca.',
+      results: (count: number) =>
+        count === 0
+          ? 'Nenhum cartão encontrado'
+          : count === 1
+            ? '1 cartão encontrado'
+            : `${count} cartões encontrados`,
+    },
     // O grupo do meio age sobre o quadro: os nomes ficam curtos ("Renomear", não "Renomear quadro").
     boardMenu: {
-      search: 'Buscar lembrete',
+      search: 'Buscar',
       selectCards: 'Selecionar',
       newColumn: 'Nova coluna',
       archived: 'Arquivados',

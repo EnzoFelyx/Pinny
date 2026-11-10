@@ -1,6 +1,7 @@
 import { UPCOMING_DAYS } from '@/constants/limits';
 import type { Priority } from '@/features/card/model/card.types';
 import { getDeadlineStatus } from '@/features/card/model/deadline';
+import { normalizeForSearch } from '@/utils/text';
 
 import type { BoardCard, BoardData } from './boardData';
 
@@ -133,17 +134,26 @@ export function isFilterActive(filter: CardFilter): boolean {
   return activeFilterParts(filter).length > 0;
 }
 
-// Ids dos cartões que passam no filtro. null = sem filtro (todos aparecem).
+// "Buscar lembrete": o termo (já normalizado, sem acentos) aparece no título ou na descrição.
+export function matchesSearch(item: BoardCard, term: string): boolean {
+  if (term.length === 0) return true;
+  const { title, description } = item.card;
+  return normalizeForSearch(title).includes(term) || normalizeForSearch(description).includes(term);
+}
+
+// Ids dos cartões que passam no filtro e na busca (as duas valem juntas). null = sem filtro nem
+// busca (todos aparecem).
 export function visibleCardIds(
   data: BoardData,
   filter: CardFilter,
   now: Date,
+  searchTerm = '',
 ): ReadonlySet<string> | null {
-  if (!isFilterActive(filter)) return null;
+  if (!isFilterActive(filter) && searchTerm.length === 0) return null;
   return new Set(
     data.columns.flatMap((column) =>
       column.cards
-        .filter((item) => matchesCardFilter(item, filter, now))
+        .filter((item) => matchesCardFilter(item, filter, now) && matchesSearch(item, searchTerm))
         .map((item) => item.card.id),
     ),
   );

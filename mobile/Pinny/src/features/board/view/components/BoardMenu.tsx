@@ -4,13 +4,13 @@ import { GlassMenu } from '@/components/GlassMenu';
 import { ptBR } from '@/i18n/pt-BR';
 
 const text = ptBR.board.boardMenu;
-function noop() {}
 
 // "…" do topo do quadro com o menu suspenso nativo do iOS (SwiftUI Menu), em três grupos: o
 // conteúdo do quadro, o quadro em si e a exclusão (vermelha, papel destrutivo do sistema).
-// Funcionam: Selecionar, Nova coluna, Arquivados, Renomear, Duplicar, Mover quadro e Excluir quadro; as outras
-// opções ainda não fazem nada. Os filtros ficam na linha abaixo do título ("Filtros"), não no menu.
+// Os filtros ficam na linha abaixo do título ("Filtros"), não no menu.
 interface BoardMenuProps {
+  // "Buscar lembrete": o campo de busca toma o lugar do título (o "…" vira "X").
+  onSearch: () => void;
   // "Selecionar": liga o modo de seleção (o "…" vira "Cancelar").
   onSelectCards: () => void;
   // "Renomear quadro": edita o título ali mesmo (o mesmo de tocar no nome).
@@ -28,6 +28,7 @@ interface BoardMenuProps {
 }
 
 export function BoardMenu({
+  onSearch,
   onSelectCards,
   onRename,
   onCreateColumn,
@@ -38,7 +39,7 @@ export function BoardMenu({
 }: BoardMenuProps) {
   return (
     <GlassMenu accessibilityLabel={ptBR.board.boardOptions}>
-      <Button label={text.search} systemImage="magnifyingglass" onPress={noop} />
+      <Button label={text.search} systemImage="magnifyingglass" onPress={onSearch} />
       <Button label={text.selectCards} systemImage="checkmark.circle" onPress={onSelectCards} />
       <Button label={text.newColumn} systemImage="plus" onPress={onCreateColumn} />
       <Button label={text.archived} systemImage="archivebox" onPress={onOpenArchived} />

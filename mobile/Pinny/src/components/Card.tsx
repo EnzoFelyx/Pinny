@@ -12,6 +12,7 @@ import {
 
 import type { DeadlineStatus, LabelColor, Priority } from '@/features/card/model/card.types';
 import { colors } from '@/theme';
+import type { TextPart } from '@/utils/text';
 
 import { Chip, type ChipEmphasis } from './Chip';
 import { Label } from './Label';
@@ -32,6 +33,8 @@ export interface CardDeadline {
 
 interface CardProps {
   title: string;
+  // Título dividido pela busca: os trechos achados ganham o marca-texto lavanda.
+  titleParts?: readonly TextPart[];
   // Leitura completa do cartão, montada pelo ViewModel (CLAUDE.md, regra 13).
   accessibilityLabel: string;
   labels?: readonly CardLabel[];
@@ -75,6 +78,7 @@ const deadlineStyle: Record<
 // Post-it do quadro. Memoizado porque vive em listas longas.
 export const Card = memo(function Card({
   title,
+  titleParts,
   accessibilityLabel,
   labels = [],
   priority,
@@ -117,7 +121,20 @@ export const Card = memo(function Card({
         </View>
       ) : null}
 
-      <Text className="text-card-title text-text-primary">{title}</Text>
+      <Text className="text-card-title text-text-primary">
+        {titleParts
+          ? titleParts.map((part, index) =>
+              part.isMatch ? (
+                // A ordem dos trechos não muda enquanto o termo é o mesmo: o índice basta de chave.
+                <Text key={index} className="bg-search-highlight">
+                  {part.text}
+                </Text>
+              ) : (
+                part.text
+              ),
+            )
+          : title}
+      </Text>
 
       {hasMeta ? (
         <View className="flex-row items-center justify-between">
