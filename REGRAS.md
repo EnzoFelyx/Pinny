@@ -172,7 +172,7 @@ export type ColorToken = keyof typeof colors;
 ## Performance (crucial para o diferencial do app)
 
 - Animações e gestos rodando na **UI thread** (worklets do Reanimated), nunca dependendo de re-render do React a cada frame.
-- Listas de cards **virtualizadas**, com `keyExtractor` estável e itens memoizados.
+- Listas de cards com chave estável e itens memoizados. **Virtualização** no quadro ficou para depois da v1 (meta da v1: fluido até ~300 cartões por quadro; ver CLAUDE.md, seções 5.1 e 10).
 - Use `React.memo`, `useCallback` e `useMemo` onde evitam re-renders reais em listas e componentes pesados, sem exagero no resto.
 - Evite funções e objetos criados inline em props de itens de lista.
 - Imagens anexadas: gere **miniaturas** para exibir nos cards em vez de carregar a foto inteira.

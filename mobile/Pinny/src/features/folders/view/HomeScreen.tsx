@@ -41,13 +41,15 @@ export function HomeScreen() {
 
         {vm.emptyText ? <EmptyState message={vm.emptyText} /> : null}
 
-        <View className="gap-3">
+        <View className="gap-6">
           {vm.folders.map((folder) => (
             <FolderCard
               key={folder.id}
               folder={folder}
               onOpenBoard={vm.openBoard}
-              onRename={vm.renameFolder}
+              actions={vm.folderActions}
+              onCreateBoard={vm.createBoard}
+              onOpenFolder={vm.openFolder}
             />
           ))}
         </View>

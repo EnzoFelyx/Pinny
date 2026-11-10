@@ -5,6 +5,8 @@
 > Marque as tarefas com `[x]` conforme forem concluídas. Uma etapa só termina quando todos os critérios de "pronto quando" forem atendidos.
 > Toda tarefa segue as regras do `REGRAS.md` e o escopo do `CLAUDE.md`.
 
+> 🔁 **Lembrete fixo (2026-11-02):** em toda tela nova que carrega dados (lista, quadro, detalhe, calendário...), perguntar ao autor **se ela vai ter skeleton loading** antes de implementar. O padrão é o do quadro (etapa 6.4): formas nas medidas do conteúdo real, shimmer no estilo do YouTube (parado com "Reduzir movimento", base em `src/components/Skeleton.tsx`) e só enquanto os dados não chegam (sem tempo mínimo: `skeleton.minDurationMs` em 0, decisão do autor).
+
 **Legenda de status:** ⬜ não iniciada · 🟨 em andamento · ✅ concluída
 
 | # | Etapa | Status |
@@ -15,7 +17,8 @@
 | 3 | Biblioteca de componentes | ✅ |
 | 4 | Dados local-first | ✅ |
 | 5 | Navegação e estrutura das telas | ✅ |
-| 6 | Quadro kanban (o diferencial) | ⬜ |
+| 6 | Quadro kanban (o diferencial) | ✅ |
+| 6R | Refac / Perform (branch própria) | ⬜ |
 | 7 | Card completo | ⬜ |
 | 8 | Pastas e templates | ⬜ |
 | 9 | Notificações e calendário | ⬜ |
@@ -151,21 +154,129 @@
 
 **Objetivo:** a tela principal com a movimentação mais fluida possível.
 
-- [ ] Colunas lado a lado com scroll horizontal
-- [ ] Criar, renomear e excluir colunas (com confirmação e desfazer)
-- [ ] Contador de cards por coluna e "+ Adicionar coluna"
-- [ ] Lista virtualizada de cards por coluna
-- [ ] Arrastar card na mesma coluna
-- [ ] Arrastar card entre colunas, com scroll automático nas bordas
-- [ ] Card inclinado e elevado durante o arraste, com feedback tátil
-- [ ] Reordenar colunas segurando e arrastando
-- [ ] Modo de seleção múltipla e arraste em lote
-- [ ] Alternativa acessível: ação "Mover para..." e `accessibilityActions`
-- [ ] Alternativa acessível para reordenar colunas
-- [ ] Respeitar "Reduzir movimento"
-- [ ] Testes do ViewModel do quadro
+> Dividida em subetapas (decisão do autor em 2026-10-29), cada uma com o seu PR.
 
-**Pronto quando:** o arraste rodar a 60fps em build de release num Android intermediário, e todas as ações também funcionarem pelo VoiceOver e pelo TalkBack.
+### 6.1 — Quadro real e reordenar na coluna
+- [x] Tela do quadro com dados reais: título, "Pasta / N cartões" e colunas lado a lado com encaixe
+- [x] Arrastar cartão na mesma coluna (segurar 300 ms), com os vizinhos deslizando
+- [x] Cartão inclinado, maior e elevado durante o arraste, com espaço tracejado na origem (Figma)
+- [x] Feedback tátil ao levantar, a cada troca de vaga e ao soltar (`expo-haptics`)
+- [x] Rolagem automática da coluna perto das bordas
+- [x] Gravar a nova ordem (só o cartão movido) e registrar no histórico
+- [x] Chacoalhar para desfazer (antecipado da etapa 11)
+- [x] "Adicionar cartão" provisório cria um cartão de exemplo (até o formulário da etapa 7)
+- [x] Alternativa acessível: ações "Mover para cima/baixo" com anúncio da posição
+- [x] Respeitar "Reduzir movimento"
+- [x] Conferir no iPhone
+
+### 6.2 — Entre colunas
+- [x] Arrastar card entre colunas, com scroll automático nas bordas (horizontal)
+- [x] Destino tracejado na coluna de chegada (Figma "Destino de arraste")
+- [x] Alternativa acessível: ação "Mover para..." (escolher coluna e posição)
+- [x] Ações do VoiceOver "Mover para a coluna anterior/próxima"
+- [x] Desfazer devolve o cartão à coluna e à posição de antes
+- [x] Conferir no iPhone
+
+### 6.3 — Colunas
+- [x] Criar, renomear e excluir colunas (com confirmação e desfazer)
+- [x] Visual do "puxar para excluir" (adiantado em 2026-10-29): puxar a coluna para baixo e segurar 0,5 s enche um anel vermelho na lixeira e abre o alerta nativo. (exclusão de verdade ligada em 2026-11-02)
+- [x] Ligar o "Excluir" do alerta à exclusão de verdade (com desfazer)
+- [x] Menu nativo da coluna ("…"): Adicionar cartão, Mover para trás/frente, Duplicar e Excluir coluna (alternativa sem gesto)
+- [x] Contador de cards por coluna e "+ Adicionar coluna"
+- [x] Conferir no iPhone
+
+### 6.4 — Reordenar colunas
+- [x] Skeleton loading do quadro (enquanto carrega): 2 colunas com 4 e 3 cartões, shimmer no estilo do YouTube, sem tempo mínimo.
+- [x] Menu "…" do topo do quadro (menu nativo, igual ao da coluna), adiado da 6.3. Ordem decidida (2026-11-02):
+  - Grupo 1: Buscar lembrete · Selecionar cartões · Nova coluna ("Reorganizar colunas" saiu em 2026-11-09) (o "Filtrar…" saiu do menu em 2026-11-03: os filtros ficam na linha abaixo do título)
+  - Grupo 2: Renomear quadro · Duplicar quadro · Mover para outra pasta
+  - Grupo 3: Excluir quadro (vermelho, com desfazer)
+  - [x] Renomear quadro (no título e no menu)
+  - [x] Nova coluna (abre a folha "Nova coluna")
+  - [x] Excluir quadro (alerta, volta para a tela anterior e desfazer)
+  - [x] Duplicar quadro (cópia logo depois, na mesma pasta, com desfazer)
+  - [x] Mover para outra pasta (folha com as pastas, fixação respeitando o limite, com desfazer)
+  - [x] Modal "Filtrar" (centralizado): prazo, prioridade, etiquetas, concluídos e checklist pendente, com contagem ao vivo
+  - [x] "Buscar lembrete" (lupa, 2026-11-10): campo de vidro no lugar do título, "X" fecha; busca no título e na descrição a cada letra; um resultado só faz o quadro rolar até ele
+  - [x] Linha de filtros abaixo do título: atalhos (Hoje, Atrasados, Alta) e "Filtros"; com filtro, chips removíveis e "Limpar"
+  - [x] Aplicar o filtro no quadro: todas as colunas sempre visíveis, só os cartões que passam; arraste pelo vizinho visível; aviso de cartão novo escondido; contador e subtítulo com os visíveis
+- [x] Reordenar colunas segurando e arrastando
+  - [x] Visual da coluna levantada: segurar o cabeçalho gira -3°, com borda `primary` e sombra elevada (Figma "Quadro · Reordenar colunas")
+  - [x] Levantada numa camada por cima de tudo, com só os 4 primeiros cartões, seguindo o dedo nos dois eixos e com rolagem automática horizontal do quadro
+  - [x] Vaga: as colunas deslizam para abrir espaço e a vaga tracejada "Solte para reorganizar" aparece do tamanho da coluna
+  - [x] Trocar a coluna de lugar ao soltar (cópia assenta na vaga, quadro encaixa, ordem gravada com desfazer)
+- [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)
+- [x] Melhoria de performance do aplicativo (as medições ficaram para a etapa 6R)
+  - [x] Objeto do arraste estável (o cartão segurado saiu dele) e ações com identidade fixa: segurar e soltar não redesenham mais todas as colunas e cartões
+  - [x] Recarga do banco reaproveita as colunas e os cartões que não mudaram e junta os avisos do banco numa carga só
+  - [x] Alturas dos cartões gravadas em lote (uma vez por quadro de animação)
+  - [x] Animações de cada cartão dependem só dos valores que leem (antes rodavam a cada quadro do arraste, em todos os cartões)
+  - [x] Montagem progressiva: uma coluna por quadro depois das 2 primeiras
+  - Medição em build de release: foi para a etapa 6R
+  - Virtualização e paginação da montagem: fora da v1 (decisão do autor, 2026-11-03), ver Roadmap no CLAUDE.md
+
+### 6.5 — Seleção em lote
+- [x] Modo "Selecionar cartões" (2026-11-09): bolinha em cada cartão, marcado em lavanda com borda roxa, topo com "N selecionados" e "Cancelar" de vidro, arraste desligado enquanto seleciona
+- [x] "Selecionar todos" / "Limpar" ao lado da contagem de cada coluna (2026-11-09)
+- [x] Barra de baixo com as ações em lote (2026-11-09): Mover (coluna ou outro quadro, numa folha só), Arquivar e Apagar, com desfazer
+- [x] Tela da pasta: botões da barra de seleção visíveis e apagados sem seleção, como no quadro (2026-11-10)
+- [x] "Arquivados" no "…" do quadro (abaixo de "Nova coluna", 2026-11-09): tela provisória com os cartões arquivados numa coluna só de leitura
+- [x] Arraste em lote "pilha", como no Fotos do iOS (plano de 2026-11-10): com cartões marcados, segurar um junta os outros embaixo dele (no máximo 5 à mostra, ângulos alternando 3°: -5°, -2°, -8°, +1°, -11°), a pilha segue o dedo e cai junta na vaga; soltar em outra coluna sai da seleção com desfazer; soltar na própria coluna cancela (os cartões voltam voando e a seleção continua)
+  - [x] Parte 1 — Modelo: `moveCards` aceita a vaga (`nextId`), `withCardsMoved` (otimista), `toFullIndexExcluding` (vaga com filtro) e `useBatchMove` (`moveSelectionTo`: segurado primeiro, uma ação no histórico, fecha a seleção)
+  - [x] Parte 2 — Estado da pilha na UI thread (`useBatchDrag`, em `drag.batch`: ids da pilha, total, posições de partida, progresso do voo, coluna e vaga de origem), token `batchStack` no `motion.ts` e contas puras em `model/batchStack.ts` (`stackedIds`, `stackRotation`)
+  - [x] Parte 3 — Gesto na seleção: segurar só nos marcados (`isDragEnabled`); os outros medem de onde saem (`useBatchOrigin`) e saem da ordem das colunas na UI thread (`useBatchColumnOrder`, `liftedIds`), que fecham o espaço; o soltar do segurado vira o movimento do lote (`dropCard` no `useBatchMove`)
+  - [x] Parte 4 — Visual: `DragStack` (até 4 cópias embaixo do segurado, voo de 220 ms só dos cartões à vista; os de fora da tela aparecem com fade), toque tátil ao juntar e "Reduzir movimento" (sem voo nem giro). Sem bolinha do total, e as bolinhas de seleção somem durante o arraste (decisão do autor, 2026-11-10)
+  - [x] Parte 5 — Vaga e rolagem: vaga com a altura do segurado e a rolagem automática de hoje. Soltar a pilha na "Adicionar coluna" (que volta a aparecer durante a pilha, com "Solte para criar uma coluna com estes cartões") abre a folha "Nova coluna" com todos os marcados, na ordem em que foram marcados (pedido do autor, 2026-11-10)
+  - [x] Parte 6 — Soltar: em outra coluna, assenta e grava; **na própria coluna do segurado, em qualquer vaga, cancela** (decisão do autor, 2026-11-10: voo de volta, nada gravado, seleção continua). O segurado do lote assenta sem quique (só desliza, 150 ms), e as cópias têm o visual de marcado. A mola de assentar (`dragSpring`) ganhou `energyThreshold: 1e-6`: o padrão do Reanimated arrastava a cauda por ~3,5 s e a cópia ficava por cima
+  - Partes 7 e 8 (casos de borda e textos): foram para a etapa 6R
+
+> **Pendências passadas para a etapa 6R (decisão do autor, 2026-11-10):** Partes 7 e 8 do arraste em lote, a tela "Arquivados" no Figma, os testes do ViewModel do quadro, a conferência com o VoiceOver e as medições de desempenho.
+
+**Pronto quando:** as funcionalidades do quadro estiverem feitas; o que falta conferir e medir segue na etapa 6R.
+
+---
+
+## Etapa 6R — Refac / Perform
+
+**Objetivo:** fechar as pendências da etapa 6, medir o desempenho de verdade e só então organizar o código que cresceu, sem misturar com funcionalidade nova.
+
+> **Branch própria (decisão do autor, 2026-11-10):** a refatoração e as medições são feitas numa branch separada da `feat/kanban-board`. Antes de criar a branch, decidir com o autor se as pendências da seção 1 entram ainda na `feat/kanban-board`.
+
+> **Ordem desta etapa:** 1. pendências da etapa 6 → 2. desempenho → 3. refatoração (por último).
+
+> 🔔 **Lembrete do autor: medir o desempenho ANTES de refatorar.** Faça a seção 2 e registre os números antes da seção 3: eles são a base para comparar depois de cada refatoração e para decidir, arquivo por arquivo, se vale a pena mexer.
+
+### 1. Pendências que vieram da etapa 6
+- [ ] Arraste em lote, Parte 7 — casos de borda: filtro e busca (já conferidos pelo autor em 2026-11-10, falta marcar), recarga do banco no meio do arraste e gesto interrompido pelo sistema (os cartões voltam às colunas e a seleção continua)
+- [ ] Arraste em lote, Parte 8 — anúncio "Movendo N cartões" para o VoiceOver, dica do topo na seleção ("Segure um cartão marcado para arrastar todos") e registrar as decisões da pilha no CLAUDE.md (hoje só estão no `todo.md`)
+- [ ] 🔔 **Lembrete do autor:** desenhar a tela "Arquivados" do quadro no Figma (visual final, desarquivar e apagar) e depois implementar o desenho
+- [ ] Conferir todas as ações do quadro pelo VoiceOver (o TalkBack fica para quando o Android voltar)
+- [ ] Testes do ViewModel do quadro (quando os testes voltarem)
+
+### 2. Desempenho (sempre em build de release: `npx expo run:ios --configuration Release --device`)
+> Criar os quadros grandes antes, no build de desenvolvimento (Ajustes, só em `__DEV__`): os dados continuam no aparelho no Release.
+- [ ] Arraste de um cartão: fluido até ~300 cartões (10 × 40, superlotado) e sem travar nem fechar com 2.000 (20 × 100)
+- [ ] 60fps em build de release com ~300 cartões num aparelho intermediário
+- [ ] 🔔 **Lembrete do autor:** testar o desempenho do **arraste em lote (pilha)** em quadros grandes: juntar, mover a pilha com a rolagem automática, soltar em outra coluna e cancelar na própria coluna
+- [ ] 🔔 **Lembrete do autor:** testar o desempenho do **modo "Selecionar"** em quadros grandes: entrar e sair do modo, marcar e desmarcar, "Selecionar todos" / "Limpar" da coluna e as ações em lote (Mover, Arquivar, Apagar)
+- [ ] Registrar os números medidos (e o que mudou com cada refatoração) no CLAUDE.md
+
+### 3. Refatoração dos arquivos acima de ~200 linhas (por último)
+- [ ] 🔔 **Antes de começar, perguntar ao autor, arquivo por arquivo, se vale a pena refatorar ou se é melhor deixar como está por causa do desempenho.** Parte desses arquivos é o caminho quente do arraste (worklets e mappers da UI thread): dividir pode criar objetos ou dependências novas nos worklets e piorar o arraste. Medir antes e depois de cada refatoração.
+- Alvos (contagem de 2026-11-10):
+  - [ ] `features/board/view/BoardScreen.tsx` (372)
+  - [ ] `features/board/view/components/useBoardDrag.ts` (301) · caminho quente do arraste
+  - [ ] `features/board/viewmodel/useBoardViewModel.ts` (281)
+  - [ ] `features/board/view/components/SortableColumn.tsx` (274) · caminho quente do arraste
+  - [ ] `features/board/view/components/SortableCard.tsx` (261) · caminho quente do arraste
+  - [ ] `features/dev/model/devDataService.ts` (243) · só desenvolvimento
+  - [ ] `features/card/model/cardRepository.ts` (223)
+  - [ ] `features/board/viewmodel/useColumnActions.ts` (219)
+  - [ ] `features/board/view/components/useSortableColumn.ts` (218) · caminho quente do arraste
+  - [ ] `features/history/model/actionHistory.ts` (210)
+  - [ ] `features/board/model/boardData.ts` (201)
+
+**Pronto quando:** as pendências da seção 1 estiverem resolvidas, as medições passarem em build de release e cada arquivo da lista tiver a decisão do autor (refatorado ou mantido de propósito).
 
 ---
 
@@ -194,7 +305,16 @@
 **Objetivo:** organizar vários quadros e começar rápido.
 
 - [ ] Criar, renomear e excluir pastas
+  - [x] Tela da pasta (`/folder/[folderId]`, aberta pelo "+N quadros" da Início): todos os quadros em grade, busca pelo nome, "Novo quadro" no fim, renomear no título e no "…", estado vazio e skeleton (adiantado em 2026-11-03)
+  - [ ] "Excluir pasta" no "…" da tela da pasta (confirmação e desfazer)
+  - [ ] Segurar e arrastar para reordenar os quadros na tela da pasta
+- [ ] Pastas arquivadas (pedido do autor, 2026-11-03)
+  - [ ] Opção "Arquivar" no "⋮" da pasta (Início) e no "…" da tela da pasta; a pasta arquivada sai da Início (e das fixadas)
+  - [ ] Botão de arquivados na Início: ícone ao lado da contagem de pastas ("Minhas pastas · N pastas"), que abre a tela das pastas arquivadas
+  - [ ] Tela das pastas arquivadas: ver os quadros, desarquivar e excluir (perguntar sobre skeleton antes de implementar)
 - [ ] Criar, renomear, mover e excluir quadros
+  - [x] Criar quadro pelo "+" da pasta (folha "Novo quadro", já com "Pendentes" e "Concluídas")
+  - [x] Excluir quadro segurando o quadro na tela da pasta (alerta de confirmação e desfazer)
 - [ ] Templates prontos (Estudos, Tarefas da semana, Projeto pessoal, Viagem)
 - [ ] Criar template personalizado a partir de um quadro
 - [ ] Testes
@@ -246,8 +366,9 @@
 - [ ] Tela de automações da coluna
 - [ ] Regra: ao mover para Concluído, marcar todo o checklist
 - [ ] Regra: arquivar concluídos após X dias
-- [ ] Shake to undo usando o histórico de ações
-- [ ] Snackbar "Desfazer" após ações importantes
+- [x] Shake to undo usando o histórico de ações (antecipado na etapa 6.1, 2026-10-29: acelerômetro + histórico global)
+- [x] Snackbar após mover: dica do chacoalhar na primeira vez; botão "Desfazer" sempre, para quem desligou o "Agitar para Desfazer" do iPhone
+- [ ] Toggle "Desfazer ao chacoalhar" em Ajustes (etapa 12)
 - [ ] Testes das automações e do desfazer
 
 **Pronto quando:** as automações rodarem corretamente, e mover, editar ou excluir puderem ser desfeitos tanto chacoalhando quanto pelo botão.
@@ -294,6 +415,7 @@
 **Objetivo:** um app pronto para as lojas e para o portfólio.
 
 - [ ] Revisão de performance em build de release
+- [ ] Skeleton loading das telas da tab bar (Início, Modelos, Agenda, Ajustes e Busca), no padrão do quadro (pedido do autor, 2026-11-09)
 - [ ] Teste completo com VoiceOver e TalkBack
 - [ ] Teste com fonte grande do sistema e "Reduzir movimento"
 - [ ] Revisão do tom amigável em todos os textos

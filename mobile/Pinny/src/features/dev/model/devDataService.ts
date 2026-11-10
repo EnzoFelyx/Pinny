@@ -1,7 +1,15 @@
 import { count } from 'drizzle-orm';
 
 import { db } from '@/db/client';
-import { boards, cards, checklistItems, columns, folders } from '@/db/schema';
+import {
+  boards,
+  cardLabels,
+  cards,
+  checklistItems,
+  columns,
+  folders,
+  preferences,
+} from '@/db/schema';
 import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { labelRepository } from '@/features/board/model/labelRepository';
@@ -9,8 +17,9 @@ import type { Card } from '@/features/card/model/card.schema';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { checklistRepository } from '@/features/card/model/checklistRepository';
 import { folderRepository } from '@/features/folders/model/folderRepository';
+import { createId } from '@/utils/id';
 
-// Operações de teste da etapa 4, usadas só pela galeria (sai na etapa 5).
+// Operações de teste, usadas só pela galeria de desenvolvimento.
 
 export interface DataSummary {
   folders: number;
@@ -22,6 +31,10 @@ export interface DataSummary {
 
 const HOURS_AHEAD = 5;
 const MS_PER_HOUR = 60 * 60 * 1000;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
+
+// Data relativa a hoje (negativo = no passado), para mostrar os estados de prazo.
+const daysFromNow = (days: number) => new Date(Date.now() + days * MS_PER_DAY).toISOString();
 
 export function getDataSummary(): DataSummary {
   const total = (table: typeof folders | typeof boards | typeof columns | typeof cards) =>
@@ -40,20 +53,53 @@ export async function seedSampleBoard(): Promise<void> {
   const folder = await folderRepository.create({ title: 'Pessoal', icon: 'heart', color: 'mint' });
   const board = await boardRepository.create(folder.id, 'Minha semana');
   const todo = await columnRepository.create(board.id, 'A fazer');
-  await columnRepository.create(board.id, 'Em andamento');
+  const doing = await columnRepository.create(board.id, 'Em andamento');
   await columnRepository.create(board.id, 'Concluído');
 
   const study = await labelRepository.create(board.id, { name: 'Estudos', color: 'lavender' });
-  const card = await cardRepository.create({
+  const home = await labelRepository.create(board.id, { name: 'Casa', color: 'mint' });
+  const work = await labelRepository.create(board.id, { name: 'Trabalho', color: 'babyBlue' });
+
+  // Coluna "A fazer" com cartões variados (alturas diferentes) para testar o arraste.
+  const exam = await cardRepository.create({
     columnId: todo.id,
     title: 'Revisar a matéria da prova',
     priority: 'high',
     dueAt: new Date(Date.now() + HOURS_AHEAD * MS_PER_HOUR).toISOString(),
   });
-  await labelRepository.setForCard(card.id, [study.id]);
-  await checklistRepository.add(card.id, 'Ler o capítulo 3');
-  await checklistRepository.add(card.id, 'Fazer os exercícios');
+  await labelRepository.setForCard(exam.id, [study.id]);
+  await checklistRepository.add(exam.id, 'Ler o capítulo 3');
+  await checklistRepository.add(exam.id, 'Fazer os exercícios');
+
   await cardRepository.create({ columnId: todo.id, title: 'Comprar caderno novo' });
+
+  const groceries = await cardRepository.create({
+    columnId: todo.id,
+    title: 'Fazer a lista do mercado da semana',
+    priority: 'low',
+    dueAt: daysFromNow(3),
+  });
+  await labelRepository.setForCard(groceries.id, [home.id]);
+
+  const report = await cardRepository.create({
+    columnId: todo.id,
+    title: 'Enviar o relatório do mês',
+    priority: 'medium',
+    dueAt: daysFromNow(-1),
+  });
+  await labelRepository.setForCard(report.id, [work.id]);
+
+  const plants = await cardRepository.create({ columnId: todo.id, title: 'Regar as plantas' });
+  await labelRepository.setForCard(plants.id, [home.id]);
+
+  const slides = await cardRepository.create({
+    columnId: doing.id,
+    title: 'Montar os slides da apresentação',
+    priority: 'medium',
+    dueAt: daysFromNow(2),
+  });
+  await labelRepository.setForCard(slides.id, [work.id, study.id]);
+  await checklistRepository.add(slides.id, 'Esboço');
 }
 
 // Primeiro cartão do primeiro quadro, para os botões de mover e excluir.
@@ -74,7 +120,124 @@ export async function findFirstCard(): Promise<{ card: Card; nextColumnId: strin
   return null;
 }
 
-// Mesmo efeito de "Apagar todos os meus dados": as pastas levam tudo junto (cascata).
+// Mesmo efeito de "Apagar todos os meus dados": as pastas levam tudo junto (cascata), e as
+// preferências voltam ao padrão (ex.: a dica do chacoalhar aparece de novo).
 export function clearAllData(): void {
   db.delete(folders).run();
+  db.delete(preferences).run();
+}
+
+const SAMPLE_TITLES = [
+  'Ligar para a dentista',
+  'Organizar a mesa de trabalho',
+  'Ler 20 páginas do livro',
+  'Planejar o fim de semana',
+  'Responder os e-mails pendentes',
+  'Separar roupas para doar',
+  'Estudar o capítulo novo',
+  'Marcar café com a Ana',
+] as const;
+const SAMPLE_PRIORITIES = [null, 'low', 'medium', 'high'] as const;
+const SAMPLE_MAX_DAYS_AHEAD = 7;
+
+const pick = <T>(items: readonly T[]): T => items[Math.floor(Math.random() * items.length)] as T;
+
+// Cartão de exemplo para testar a coluna crescendo. Provisório: o "Adicionar cartão" de verdade
+// (formulário) chega na etapa 7.
+export async function createSampleCard(columnId: string): Promise<Card> {
+  const hasDueDate = Math.random() < 0.5;
+  return cardRepository.create({
+    columnId,
+    title: pick(SAMPLE_TITLES),
+    priority: pick(SAMPLE_PRIORITIES),
+    dueAt: hasDueDate ? daysFromNow(Math.round(Math.random() * SAMPLE_MAX_DAYS_AHEAD)) : null,
+  });
+}
+
+// Quadro superlotado para testar performance (Ajustes, só em desenvolvimento).
+export interface StressSize {
+  columns: number;
+  cardsPerColumn: number;
+}
+
+export const STRESS_SIZES = {
+  heavy: { columns: 10, cardsPerColumn: 40 },
+  extreme: { columns: 20, cardsPerColumn: 100 },
+} as const satisfies Record<string, StressSize>;
+
+const STRESS_LABEL_EVERY = 3;
+const STRESS_CHECKLIST_EVERY = 5;
+const STRESS_CHECKLIST_ITEMS = 3;
+const STRESS_DUE_DAYS_RANGE = 10;
+
+// Grava tudo numa transação só, com as posições já em ordem (1, 2, 3...): pelo repositório, cada
+// cartão recalcularia os vizinhos e centenas deles levariam muito tempo. Devolve quantos cartões.
+export async function seedStressBoard({ columns: columnCount, cardsPerColumn }: StressSize) {
+  const folder = await folderRepository.create({ title: 'Testes de performance', color: 'peach' });
+  const board = await boardRepository.create(
+    folder.id,
+    `Superlotado ${columnCount} × ${cardsPerColumn}`,
+  );
+  const boardLabels = await Promise.all([
+    labelRepository.create(board.id, { name: 'Estudos', color: 'lavender' }),
+    labelRepository.create(board.id, { name: 'Casa', color: 'mint' }),
+    labelRepository.create(board.id, { name: 'Trabalho', color: 'babyBlue' }),
+  ]);
+
+  const now = new Date().toISOString();
+  db.transaction((tx) => {
+    for (let columnIndex = 0; columnIndex < columnCount; columnIndex += 1) {
+      const columnId = createId();
+      tx.insert(columns)
+        .values({
+          id: columnId,
+          boardId: board.id,
+          title: `Coluna ${columnIndex + 1}`,
+          position: columnIndex + 1,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .run();
+
+      for (let cardIndex = 0; cardIndex < cardsPerColumn; cardIndex += 1) {
+        const cardId = createId();
+        const hasDueDate = Math.random() < 0.5;
+        tx.insert(cards)
+          .values({
+            id: cardId,
+            columnId,
+            title: `${pick(SAMPLE_TITLES)} #${cardIndex + 1}`,
+            priority: pick(SAMPLE_PRIORITIES),
+            dueAt: hasDueDate
+              ? daysFromNow(Math.round(Math.random() * STRESS_DUE_DAYS_RANGE) - 2)
+              : null,
+            position: cardIndex + 1,
+            createdAt: now,
+            updatedAt: now,
+          })
+          .run();
+        if (cardIndex % STRESS_LABEL_EVERY === 0) {
+          tx.insert(cardLabels)
+            .values({ cardId, labelId: pick(boardLabels).id })
+            .run();
+        }
+        if (cardIndex % STRESS_CHECKLIST_EVERY === 0) {
+          for (let item = 0; item < STRESS_CHECKLIST_ITEMS; item += 1) {
+            tx.insert(checklistItems)
+              .values({
+                id: createId(),
+                cardId,
+                text: `Subtarefa ${item + 1}`,
+                isDone: item === 0,
+                position: item + 1,
+                createdAt: now,
+                updatedAt: now,
+              })
+              .run();
+          }
+        }
+      }
+    }
+  });
+  return columnCount * cardsPerColumn;
 }

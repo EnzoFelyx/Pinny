@@ -1,0 +1,201 @@
+import type { Card } from '@/features/card/model/card.schema';
+import { type CardRepository, cardRepository } from '@/features/card/model/cardRepository';
+import {
+  type ChecklistProgress,
+  type ChecklistRepository,
+  checklistRepository,
+} from '@/features/card/model/checklistRepository';
+import { type FolderRepository, folderRepository } from '@/features/folders/model/folderRepository';
+
+import type { Board, Column, Label } from './board.schema';
+import { type BoardRepository, boardRepository } from './boardRepository';
+import { type ColumnRepository, columnRepository } from './columnRepository';
+import { type LabelRepository, labelRepository } from './labelRepository';
+import { moveIndex } from './reorder';
+
+export interface BoardCard {
+  card: Card;
+  labels: Label[];
+  checklist: ChecklistProgress | null;
+}
+
+export interface BoardColumn {
+  column: Column;
+  cards: BoardCard[];
+}
+
+export interface BoardData {
+  board: Board;
+  folderTitle: string;
+  columns: BoardColumn[];
+}
+
+interface BoardRepositories {
+  boards: BoardRepository;
+  folders: FolderRepository;
+  columns: ColumnRepository;
+  cards: CardRepository;
+  labels: LabelRepository;
+  checklist: ChecklistRepository;
+}
+
+const defaultRepositories: BoardRepositories = {
+  boards: boardRepository,
+  folders: folderRepository,
+  columns: columnRepository,
+  cards: cardRepository,
+  labels: labelRepository,
+  checklist: checklistRepository,
+};
+
+// Tudo o que a tela do quadro mostra. Etiquetas e checklist vêm numa consulta só para todos
+// os cartões (sem uma consulta por cartão). null = o quadro não existe mais.
+export async function loadBoard(
+  boardId: string,
+  repositories: BoardRepositories = defaultRepositories,
+): Promise<BoardData | null> {
+  const board = await repositories.boards.getById(boardId);
+  if (!board) return null;
+
+  const [folder, columns] = await Promise.all([
+    repositories.folders.getById(board.folderId),
+    repositories.columns.listByBoard(board.id),
+  ]);
+  const cardsByColumn = await Promise.all(
+    columns.map((column) => repositories.cards.listByColumn(column.id)),
+  );
+
+  const cardIds = cardsByColumn.flat().map((card) => card.id);
+  const [labelsByCard, progressByCard] = await Promise.all([
+    repositories.labels.listByCards(cardIds),
+    repositories.checklist.progressByCards(cardIds),
+  ]);
+
+  return {
+    board,
+    folderTitle: folder?.title ?? '',
+    columns: columns.map((column, index) => ({
+      column,
+      cards: (cardsByColumn[index] ?? []).map((card) => ({
+        card,
+        labels: labelsByCard[card.id] ?? [],
+        checklist: progressByCard[card.id] ?? null,
+      })),
+    })),
+  };
+}
+
+// Colunas sem nenhum cartão (para sortear o estado vazio de cada uma).
+export function emptyColumnIdsOf(data: BoardData | null): string[] {
+  return (data?.columns ?? [])
+    .filter((item) => item.cards.length === 0)
+    .map((item) => item.column.id);
+}
+
+// Novo retrato do quadro com a coluna renomeada (para mostrar o nome novo antes de gravar).
+export function withColumnRenamed(data: BoardData, columnId: string, title: string): BoardData {
+  return {
+    ...data,
+    columns: data.columns.map((item) =>
+      item.column.id === columnId ? { ...item, column: { ...item.column, title } } : item,
+    ),
+  };
+}
+
+// Novo retrato do quadro com o nome novo (para mostrar antes de gravar).
+export function withBoardRenamed(data: BoardData, title: string): BoardData {
+  return { ...data, board: { ...data.board, title } };
+}
+
+// Novo retrato do quadro com a coluna na posição toIndex (para aparecer antes de gravar).
+export function withColumnMoved(data: BoardData, columnId: string, toIndex: number): BoardData {
+  const from = data.columns.findIndex((item) => item.column.id === columnId);
+  if (from < 0) return data;
+  return { ...data, columns: moveIndex(data.columns, from, toIndex) };
+}
+
+// Novo retrato do quadro sem a coluna (para ela sumir da tela antes de gravar a exclusão).
+export function withColumnRemoved(data: BoardData, columnId: string): BoardData {
+  return { ...data, columns: data.columns.filter((item) => item.column.id !== columnId) };
+}
+
+export interface CardMoveResult {
+  data: BoardData;
+  // Ordem final dos ids na coluna de destino (para calcular os vizinhos ao gravar).
+  orderedIds: string[];
+  // Coluna e posição do cartão antes do movimento (para o "Desfazer").
+  previousColumnId: string;
+  previousPosition: number;
+}
+
+// Novo retrato do quadro com o cartão levado para toIndex na coluna de destino (a mesma ou outra),
+// sem alterar o original. null = nada mudou (cartão ou coluna inexistente, ou mesma vaga).
+export function withCardMoved(
+  data: BoardData,
+  cardId: string,
+  toColumnId: string,
+  toIndex: number,
+): CardMoveResult | null {
+  const source = data.columns.find((item) => item.cards.some((entry) => entry.card.id === cardId));
+  const target = data.columns.find((item) => item.column.id === toColumnId);
+  const fromIndex = source?.cards.findIndex((item) => item.card.id === cardId) ?? -1;
+  const movedCard = source?.cards[fromIndex];
+  if (!source || !target || !movedCard) return null;
+  if (source === target && fromIndex === toIndex) return null;
+
+  const sourceCards = source.cards.filter((item) => item !== movedCard);
+  const targetBase = source === target ? sourceCards : target.cards;
+  const targetCards = [...targetBase.slice(0, toIndex), movedCard, ...targetBase.slice(toIndex)];
+  return {
+    data: {
+      ...data,
+      columns: data.columns.map((item) => {
+        if (item === target) return { ...item, cards: targetCards };
+        if (item === source) return { ...item, cards: sourceCards };
+        return item;
+      }),
+    },
+    orderedIds: targetCards.map((item) => item.card.id),
+    previousColumnId: source.column.id,
+    previousPosition: movedCard.card.position,
+  };
+}
+
+export interface CardsMoveResult {
+  data: BoardData;
+  // Cartão logo depois do lote na coluna de destino (null = o lote ficou no fim): a vaga que o
+  // banco grava (moveCards).
+  nextId: string | null;
+}
+
+// Novo retrato do quadro com o lote (na ordem dada) junto na vaga toIndex da coluna de destino.
+// toIndex conta os cartões da coluna sem os do lote. null = cartão ou coluna inexistente.
+export function withCardsMoved(
+  data: BoardData,
+  cardIds: readonly string[],
+  toColumnId: string,
+  toIndex: number,
+): CardsMoveResult | null {
+  const moving = new Set(cardIds);
+  const byId = new Map(
+    data.columns.flatMap((item) => item.cards).map((entry) => [entry.card.id, entry]),
+  );
+  const movedCards = cardIds.flatMap((id) => byId.get(id) ?? []);
+  const target = data.columns.find((item) => item.column.id === toColumnId);
+  if (!target || movedCards.length === 0) return null;
+
+  const rest = target.cards.filter((entry) => !moving.has(entry.card.id));
+  const index = Math.max(0, Math.min(toIndex, rest.length));
+  const targetCards = [...rest.slice(0, index), ...movedCards, ...rest.slice(index)];
+  return {
+    data: {
+      ...data,
+      columns: data.columns.map((item) => {
+        if (item === target) return { ...item, cards: targetCards };
+        const kept = item.cards.filter((entry) => !moving.has(entry.card.id));
+        return kept.length === item.cards.length ? item : { ...item, cards: kept };
+      }),
+    },
+    nextId: rest[index]?.card.id ?? null,
+  };
+}

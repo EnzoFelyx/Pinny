@@ -6,6 +6,7 @@ const palette = {
   cream0: '#FFFEFB',
   sand100: '#EFECE5',
   sand200: '#E8E2D8',
+  sand300: '#E0D9CD',
   stone500: '#8B867E',
   stone600: '#6F6A62',
   ink900: '#39352F',
@@ -18,12 +19,18 @@ const palette = {
   babyBlue200: '#DDEAF2',
   butter200: '#F6EDBE',
   terracotta700: '#9E4D42',
+  // Vermelho-coral vivo, só para ícones (4:1 sobre o creme; texto continua em terracotta700).
+  coral600: '#D9493C',
   honey800: '#8A622D',
   green600: '#537360',
   blue600: '#4F6F86',
   shadowCard: 'rgba(81, 68, 53, 0.05)',
   shadowLifted: 'rgba(81, 68, 53, 0.15)',
   inkOverlay: 'rgba(57, 53, 47, 0.4)',
+  // violet600 (#776098) a 55%: borda da coluna "Adicionar coluna" (Figma "Ghost column").
+  violet600Soft: 'rgba(119, 96, 152, 0.55)',
+  // Fundo vazio (ex.: espaço tracejado na coluna de origem do arraste).
+  clear: 'rgba(0, 0, 0, 0)',
 } as const;
 
 export const colors = {
@@ -52,6 +59,30 @@ export const colors = {
   inverseAction: palette.lavender200,
 
   alert: palette.terracotta700,
+  // Ícone de ação destrutiva nos botões de vidro (ex.: lixeira do modo de seleção).
+  destructiveIcon: palette.coral600,
+
+  // Espaço tracejado onde o cartão arrastado vai cair. A borda e o texto (primary) têm 4,55:1 sobre
+  // a coluna e ~4,9:1 sobre o fundo do destino. Na coluna de origem, só a borda; em outra coluna,
+  // preenchido.
+  dropZoneBorder: palette.violet600,
+  dropZoneOriginBackground: palette.clear,
+  dropZoneTargetBackground: palette.lavender100,
+  // Marca-texto da busca do quadro, atrás do trecho achado no título (textPrimary por cima: 9,4:1).
+  searchHighlight: palette.lavender200,
+
+  // Barras do skeleton loading (decorativas): um tom acima do fundo da coluna e do cartão, com a
+  // faixa de brilho do shimmer passando por cima.
+  skeleton: palette.sand300,
+  skeletonHighlight: palette.cream50,
+
+  // Coluna "Adicionar coluna" no fim do quadro: borda decorativa (quem identifica o botão é o
+  // ícone, em onSecondary, 6,5:1 ou mais).
+  addColumnBorder: palette.violet600Soft,
+
+  // Linha embaixo do título do quadro em edição: decorativa (o cursor e a seleção mostram a
+  // edição), num roxo mais claro que o primary.
+  inlineEditBorder: palette.violet600Soft,
 
   lavender: palette.lavender200,
   mint: palette.mint200,

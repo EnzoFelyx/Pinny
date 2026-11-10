@@ -13,14 +13,12 @@ import { PriorityChip } from '@/components/PriorityChip';
 import { ProgressBar } from '@/components/ProgressBar';
 import { Snackbar } from '@/components/Snackbar';
 import { Toggle } from '@/components/Toggle';
+import { COLUMN_GAP } from '@/hooks/useBoardColumnLayout';
 import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
 import { galleryText as text } from '../model/gallerySamples';
-import {
-  COLUMN_GAP,
-  useComponentGalleryViewModel,
-} from '../viewmodel/useComponentGalleryViewModel';
+import { useComponentGalleryViewModel } from '../viewmodel/useComponentGalleryViewModel';
 import { DevDataSection } from './components/DevDataSection';
 import { GallerySection } from './components/GallerySection';
 

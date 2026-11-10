@@ -19,6 +19,8 @@ export const textScale = {
   brand: { size: 24, family: fontFamily.extraBold },
   display: { size: 26, family: fontFamily.extraBold },
   title: { size: 22, family: fontFamily.extraBold },
+  // Título no topo de uma tela com botões ao lado (ex.: quadro), um pouco menor que o title.
+  'header-title': { size: 20, family: fontFamily.extraBold },
   subtitle: { size: 17, family: fontFamily.extraBold },
   'card-title': { size: 15, family: fontFamily.extraBold },
   body: { size: 14, family: fontFamily.medium },

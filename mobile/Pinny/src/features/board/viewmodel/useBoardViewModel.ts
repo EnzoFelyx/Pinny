@@ -1,29 +1,281 @@
-import { useEffect, useState } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { subscribeToDataChanges } from '@/db/changes';
+import { createSampleCard } from '@/features/dev/model/devDataService';
+import { snackbarStore } from '@/features/feedback/model/snackbarStore';
+import { historyStore } from '@/features/history/model/historyStore';
+import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
 
-import { boardRepository } from '../model/boardRepository';
+import { type BoardData, emptyColumnIdsOf, loadBoard, withCardMoved } from '../model/boardData';
+import { moveCardWithHistory } from '../model/cardMove';
+import { assignEmptyVariants, type EmptyVariantMap } from '../model/emptyVariants';
+import { toPlacement } from '../model/reorder';
+import { type BoardColumnItem, toColumnItems } from './boardItems';
+import { useBoardFilter } from './useBoardFilter';
+import { useBatchMove } from './useBatchMove';
+import { useBoardRename } from './useBoardRename';
+import { useBoardSearch } from './useBoardSearch';
+import { useCardBatchActions } from './useCardBatchActions';
+import { useCardSelection } from './useCardSelection';
+import { useColumnActions } from './useColumnActions';
+import { useBoardMenuActions } from './useBoardMenuActions';
+import { useVisibleCards } from './useVisibleCards';
 
-// Esqueleto da tela do quadro: o kanban em si chega na etapa 6.
+const text = ptBR.board;
+
 export function useBoardViewModel(boardId: string) {
-  const [title, setTitle] = useState('');
+  // Dados do quadro, o estado vazio sorteado de cada coluna vazia e as colunas prontas para exibir,
+  // atualizados juntos: a coluna que esvazia já aparece com a variação dela, quem já tinha uma
+  // continua com a mesma, e as colunas e cartões que não mudaram mantêm o mesmo objeto (não são
+  // redesenhados).
+  const [board, setBoard] = useState<{
+    data: BoardData | null;
+    emptyVariants: EmptyVariantMap;
+    columns: BoardColumnItem[];
+  }>({ data: null, emptyVariants: {}, columns: [] });
+  const { data, columns } = board;
+  const setData = useCallback((next: BoardData | null) => {
+    setBoard((current) => {
+      const emptyVariants = assignEmptyVariants(emptyColumnIdsOf(next), current.emptyVariants);
+      return {
+        data: next,
+        emptyVariants,
+        columns: toColumnItems(next, emptyVariants, current.columns, new Date()),
+      };
+    });
+  }, []);
+  // Filtro do quadro (só enquanto ele está aberto): todas as colunas, só os cartões que passam.
+  const filter = useBoardFilter(boardId, data);
+  // "Buscar lembrete": vale junto com o filtro.
+  const search = useBoardSearch();
+  const visible = useVisibleCards(data, columns, filter.applied, search.term);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const notifyUndoable = useUndoNotice();
+  // Coluna que acabou de aparecer (criada ou devolvida pelo "Desfazer"): o quadro rola até ela.
+  // Um objeto novo a cada pedido, para a mesma coluna poder ser focada de novo (desfazer e refazer).
+  const [focusRequest, setFocusRequest] = useState<{ columnId: string } | null>(null);
 
+  // Carrega ao abrir e recarrega a cada mudança no banco (inclusive as feitas por esta tela).
   useEffect(() => {
     let isActive = true;
-    boardRepository
-      .getById(boardId)
-      .then((board) => {
-        if (isActive) setTitle(board?.title ?? '');
-      })
-      .catch((error: unknown) => {
-        console.warn('Falha ao carregar o quadro.', error);
-        if (isActive) setErrorText(ptBR.common.loadError);
-      });
+    // Colunas da última carga (null = ainda não carregou: na abertura, nada é "novo").
+    let knownColumnIds: ReadonlySet<string> | null = null;
+    const reload = () => {
+      loadBoard(boardId)
+        .then((result) => {
+          if (!isActive) return;
+          // Quadro apagado com a tela aberta (ex.: desfazer a duplicação dentro da cópia): volta.
+          if (!result) {
+            router.back();
+            return;
+          }
+          const ids = result?.columns.map((item) => item.column.id) ?? [];
+          const added = knownColumnIds ? ids.find((id) => !knownColumnIds?.has(id)) : undefined;
+          knownColumnIds = new Set(ids);
+          setData(result);
+          setErrorText(null);
+          if (added) setFocusRequest({ columnId: added });
+        })
+        .catch((error: unknown) => {
+          console.warn('Falha ao carregar o quadro.', error);
+          if (isActive) setErrorText(text.loadError);
+        });
+    };
+
+    reload();
+    const unsubscribe = subscribeToDataChanges(reload);
     return () => {
       isActive = false;
+      unsubscribe();
     };
+  }, [boardId, setData]);
+
+  // Intenção final do arraste (ou das ações de acessibilidade): o cartão vai para toIndex na
+  // coluna de destino, a mesma ou outra.
+  const moveCard = useCallback(
+    async (cardId: string, toColumnId: string, toIndex: number) => {
+      if (!data) return;
+      const moved = withCardMoved(
+        data,
+        cardId,
+        toColumnId,
+        visible.toFullIndex(cardId, toColumnId, toIndex),
+      );
+      if (!moved) return;
+
+      setData(moved.data);
+      try {
+        await moveCardWithHistory(
+          cardId,
+          toColumnId,
+          toPlacement(moved.orderedIds, cardId),
+          { columnId: moved.previousColumnId, position: moved.previousPosition },
+          ptBR.history.actions.moveCard,
+        );
+        await notifyUndoable(text.cardMoved);
+      } catch (error: unknown) {
+        console.warn('Falha ao mover o cartão.', error);
+        setData(data);
+        setErrorText(ptBR.common.saveError);
+      }
+    },
+    [data, notifyUndoable, setData, visible],
+  );
+
+  // Alternativa sem gesto (CLAUDE.md, regra 15): leva o cartão ao topo da coluna vizinha e devolve
+  // o texto para o leitor de tela anunciar. null = não há coluna desse lado.
+  const moveCardToAdjacentColumn = useCallback(
+    (cardId: string, step: -1 | 1): string | null => {
+      const shown = visible.columns;
+      const columnIndex = shown.findIndex((column) =>
+        column.visibleCards.some((card) => card.id === cardId),
+      );
+      const target = shown[columnIndex + step];
+      if (columnIndex < 0 || !target) return null;
+      void moveCard(cardId, target.id, 0);
+      return text.movedToColumn(target.title, 1, target.visibleCards.length + 1);
+    },
+    [visible.columns, moveCard],
+  );
+
+  const openArchived = useCallback(() => {
+    router.push({ pathname: '/board/[boardId]/archived', params: { boardId } });
   }, [boardId]);
 
-  return { title, errorText };
+  const openMoveCard = useCallback((cardId: string) => {
+    router.push({ pathname: '/card/[cardId]/move', params: { cardId } });
+  }, []);
+
+  // Provisório até a etapa 7: cria um cartão de exemplo no fim da coluna. Se o filtro o esconder,
+  // avisa (senão pareceria que nada aconteceu).
+  const addCard = useCallback(
+    async (columnId: string) => {
+      try {
+        const card = await createSampleCard(columnId);
+        historyStore.record(ptBR.history.actions.createCard, {
+          kind: 'deleteCard',
+          cardId: card.id,
+        });
+        if (visible.hidesNewCard(card)) snackbarStore.show(text.filter.newCardHidden);
+      } catch (error: unknown) {
+        console.warn('Falha ao criar o cartão.', error);
+        setErrorText(ptBR.common.saveError);
+      }
+    },
+    [visible],
+  );
+
+  const selection = useCardSelection();
+  const { selectMany, deselectMany } = selection;
+  // "Selecionar todos" da coluna marca só os cartões à mostra (com filtro, só os que passam).
+  const selectColumnCards = useCallback(
+    (columnId: string) => {
+      const column = visible.columns.find((item) => item.id === columnId);
+      if (column) selectMany(column.visibleCards.map((card) => card.id));
+    },
+    [visible.columns, selectMany],
+  );
+  // "Limpar" desmarca todos os cartões da coluna, inclusive os escondidos pelo filtro.
+  const clearColumnSelection = useCallback(
+    (columnId: string) => {
+      const column = visible.columns.find((item) => item.id === columnId);
+      if (column) deselectMany(column.cards.map((card) => card.id));
+    },
+    [visible.columns, deselectMany],
+  );
+
+  const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
+  // Selecionados na ordem do quadro: é nela que chegam ao destino ao mover.
+  const { selectedIds: selectedSet, cancel: endSelection } = selection;
+  const orderedSelectedIds = useMemo(
+    () =>
+      selectedSet
+        ? columns.flatMap((column) =>
+            column.cards.filter((card) => selectedSet.has(card.id)).map((card) => card.id),
+          )
+        : [],
+    [columns, selectedSet],
+  );
+  const titleOf = useCallback(
+    (cardId: string) =>
+      columns.flatMap((column) => column.cards).find((card) => card.id === cardId)?.title,
+    [columns],
+  );
+  const batch = useCardBatchActions({
+    boardId,
+    selectedIds: orderedSelectedIds,
+    titleOf,
+    onDone: endSelection,
+    notifyUndoable,
+    onSaveError: reportSaveError,
+  });
+  const renameBoard = useBoardRename({ data, onDataChange: setData, onSaveError: reportSaveError });
+  const boardMenuActions = useBoardMenuActions({
+    board: data?.board,
+    notifyUndoable,
+    onSaveError: reportSaveError,
+  });
+  const columnActions = useColumnActions({
+    boardId,
+    data,
+    onDataChange: setData,
+    notifyUndoable,
+    onFocusColumn: setFocusRequest,
+    onSaveError: reportSaveError,
+  });
+  // Marcados na ordem em que foram marcados (o Set guarda a ordem de entrada).
+  const selectionOrder = useMemo(() => (selectedSet ? [...selectedSet] : []), [selectedSet]);
+  // Soltar a pilha do arraste em lote numa vaga.
+  const batchMove = useBatchMove({
+    data,
+    moveCard,
+    createColumnWithCards: columnActions.createColumnWithCards,
+    selectionOrder,
+    onDataChange: setData,
+    selectedIds: orderedSelectedIds,
+    toFullIndex: visible.toFullIndexMany,
+    onDone: endSelection,
+    notifyUndoable,
+    onSaveError: reportSaveError,
+  });
+
+  return {
+    title: data?.board.title ?? '',
+    subtitle: visible.subtitle,
+    columns: visible.columns,
+    // Ainda sem os dados do quadro (nem erro): a tela mostra o skeleton.
+    isLoading: data === null && errorText === null,
+    errorText,
+    focusRequest,
+    // O soltar do arraste: com a pilha (arraste em lote), leva todos os marcados.
+    moveCard: batchMove.dropCard,
+    startBatchDrag: batchMove.startBatchDrag,
+    endBatchDrag: batchMove.endBatchDrag,
+    // Solto na coluna "Adicionar coluna" (com a pilha, leva todos os marcados).
+    dropOnNewColumn: batchMove.dropOnNewColumn,
+    isBatchDragging: batchMove.isBatchDragging,
+    moveCardToAdjacentColumn,
+    openMoveCard,
+    openArchived,
+    addCard,
+    renameBoard,
+    ...boardMenuActions,
+    filter,
+    search,
+    // A busca sobrou com um cartão só: o quadro rola até ele. Com dois ou mais (ou nenhum), fica
+    // onde está.
+    searchMatch: visible.singleMatch,
+    // Leitor de tela: quantos cartões a busca encontrou (o subtítulo some durante a busca).
+    searchResultText: search.term ? text.search.results(visible.visibleCount) : null,
+    selection,
+    batch,
+    // Marcados na ordem do quadro (a pilha do arraste em lote segue essa ordem).
+    selectedInOrder: orderedSelectedIds,
+    selectColumnCards,
+    clearColumnSelection,
+    goBack: router.back,
+    ...columnActions,
+  };
 }

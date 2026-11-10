@@ -7,12 +7,83 @@ export const duration = {
   slow: 400,
 } as const;
 
+// Mola do cartão assentando na vaga ao ser solto. Passa ~4% do ponto antes de parar
+// (amortecimento 0,71; com damping 18 eram ~9%, o autor pediu metade do quique).
 export const dragSpring = {
-  damping: 18,
+  damping: 21,
   stiffness: 220,
+  // A mola "termina" quando sobra menos de ~0,1% do caminho (invisível). O padrão do Reanimated
+  // (6e-9) arrastava a cauda por segundos, e a cópia do cartão demorava a sumir depois de soltar.
+  energyThreshold: 1e-6,
 } as const;
 
+// Cartão segurado (Figma "Quadro · Arrastar cartão"): levemente girado, maior e elevado.
 export const dragLift = {
-  rotationDeg: 3,
+  rotationDeg: -5,
   scale: 1.03,
+} as const;
+
+// Arraste em lote (como no Fotos do iOS): os outros cartões marcados voam para baixo do segurado
+// e formam uma pilha que segue o dedo.
+export const batchStack = {
+  // Cartões à mostra na pilha, contando o segurado (os outros só entram na bolinha do total).
+  maxVisible: 5,
+  // Ângulos alternando os lados, a partir do segurado (dragLift.rotationDeg): -5°, -2°, -8°, +1°…
+  rotationStepDeg: 3,
+  // Voo de cada cartão até a pilha (e de volta, ao cancelar).
+  gatherMs: 220,
+  // Cada cartão de baixo desce um pouco, para a pilha aparecer pela borda.
+  offsetY: 4,
+} as const;
+
+// Coluna segurada pelo cabeçalho para reordenar (Figma "Quadro · Reordenar colunas"): levemente
+// girada no sentido anti-horário, com borda primary e sombra elevada.
+export const columnLift = {
+  rotationDeg: -3,
+  // Levantada, a coluna mostra só os primeiros cartões (o resto fica cortado).
+  visibleCards: 4,
+  // Mola ao soltar: quase sem quique (amortecimento ~0,94, passa ~1% do ponto), menos que a do
+  // cartão (pedido do autor em 2026-11-09).
+  spring: { damping: 28, stiffness: 220 },
+} as const;
+
+// Tempo segurando o cartão até o arraste começar (antes disso, o dedo rola a coluna).
+export const DRAG_ACTIVATION_MS = 300;
+
+// Bloco com menu de contexto nativo (segurar): depois deste tempo, soltar não conta mais como
+// toque. Menor que o tempo do menu do iOS (~0,5 s), para soltar junto com a vibração não abrir
+// o item.
+export const CONTEXT_MENU_HOLD_MS = 300;
+
+// Rolagem automática quando o cartão chega perto da borda (da coluna ou da tela).
+export const autoScroll = {
+  // Distância da borda, em pontos, em que a rolagem começa: em cima e embaixo da coluna.
+  edge: 60,
+  // Nas bordas esquerda e direita da tela, para o quadro rolar para os lados (50% maior, pedido
+  // do autor em 2026-10-30).
+  boardEdge: 90,
+  // Pontos por quadro na velocidade máxima (bem na borda).
+  maxSpeed: 12,
+  // Velocidade máxima do quadro para os lados (ajustada pelo autor no aparelho em 2026-10-30).
+  boardMaxSpeed: 16,
+} as const;
+
+// Puxar a coluna para baixo e segurar para excluir (alerta de confirmação no fim).
+export const pullToDelete = {
+  // Quanto puxar, em pontos, para começar a contar.
+  distance: 90,
+  // Tempo segurando puxado até pedir a confirmação.
+  holdMs: 500,
+} as const;
+
+// Skeleton loading (estilo do YouTube): uma faixa de brilho de shimmerBandWidth pontos atravessa a
+// tela a cada shimmerMs, em velocidade constante. minDurationMs segura o skeleton na tela por um
+// tempo mínimo; em 0 (decisão do autor, 2026-11-02), ele aparece só enquanto os dados não chegam.
+export const skeleton = {
+  minDurationMs: 0,
+  shimmerMs: 1400,
+  shimmerBandWidth: 160,
+  // Troca de filtro no quadro: o skeleton só aparece se a montagem passar deste tempo (trocas
+  // rápidas não piscam).
+  filterDelayMs: 150,
 } as const;

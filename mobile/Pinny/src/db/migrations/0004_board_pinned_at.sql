@@ -1,0 +1,1 @@
+ALTER TABLE `boards` ADD `pinned_at` text;

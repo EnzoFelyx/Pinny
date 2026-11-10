@@ -1,0 +1,1 @@
+ALTER TABLE `folders` ADD `pinned_at` text;

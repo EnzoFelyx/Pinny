@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, inArray } from 'drizzle-orm';
 
 import { type Database, db } from '@/db/client';
 import { cardLabels, labels } from '@/db/schema';
@@ -18,9 +18,13 @@ export interface LabelInput {
 export interface LabelRepository {
   listByBoard(boardId: string): Promise<Label[]>;
   listByCard(cardId: string): Promise<Label[]>;
+  // Etiquetas de vários cartões numa consulta só (tela do quadro), agrupadas por cartão.
+  listByCards(cardIds: readonly string[]): Promise<Record<string, Label[]>>;
   create(boardId: string, input: LabelInput): Promise<Label>;
   update(id: string, input: LabelInput): Promise<void>;
   remove(id: string): Promise<void>;
+  // Recria as etiquetas exatamente como eram (desfazer a exclusão do quadro).
+  restoreAll(labels: readonly Label[]): Promise<void>;
   // Substitui todas as etiquetas do cartão pelas informadas.
   setForCard(cardId: string, labelIds: readonly string[]): Promise<void>;
 }
@@ -52,6 +56,21 @@ export function createLabelRepository(database: Database = db): LabelRepository 
       );
     },
 
+    async listByCards(cardIds) {
+      if (cardIds.length === 0) return {};
+      const rows = database
+        .select({ cardId: cardLabels.cardId, label: labels })
+        .from(cardLabels)
+        .innerJoin(labels, eq(cardLabels.labelId, labels.id))
+        .where(inArray(cardLabels.cardId, [...cardIds]))
+        .orderBy(asc(labels.name))
+        .all();
+      return rows.reduce<Record<string, Label[]>>((byCard, row) => {
+        const label = parseRow(labelSchema, row.label, 'labels');
+        return { ...byCard, [row.cardId]: [...(byCard[row.cardId] ?? []), label] };
+      }, {});
+    },
+
     async create(boardId, { name, color }) {
       const now = nowIso();
       const row = database
@@ -72,6 +91,14 @@ export function createLabelRepository(database: Database = db): LabelRepository 
 
     async remove(id) {
       database.delete(labels).where(eq(labels.id, id)).run();
+    },
+
+    async restoreAll(boardLabels) {
+      if (boardLabels.length === 0) return;
+      database
+        .insert(labels)
+        .values([...boardLabels])
+        .run();
     },
 
     async setForCard(cardId, labelIds) {

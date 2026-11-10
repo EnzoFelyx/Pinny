@@ -26,6 +26,15 @@ export const folderIcons: Record<FolderIcon, LucideIcon> = {
   star: Star,
 };
 
+// Fundo pastel da pasta (ex.: selo do ícone no topo da tela da pasta).
+export const folderBackgroundClass: Record<LabelColor, string> = {
+  lavender: 'bg-lavender',
+  mint: 'bg-mint',
+  peach: 'bg-peach',
+  babyBlue: 'bg-baby-blue',
+  butter: 'bg-butter',
+};
+
 // Cor escura do acento: ícone da pasta e notas da miniatura dos quadros.
 export const folderInkColors: Record<LabelColor, string> = {
   lavender: colors.lavenderInk,

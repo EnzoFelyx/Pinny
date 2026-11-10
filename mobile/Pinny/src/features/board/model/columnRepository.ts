@@ -12,12 +12,17 @@ import { type Column, columnSchema } from './board.schema';
 
 export interface ColumnRepository {
   listByBoard(boardId: string): Promise<Column[]>;
+  getById(id: string): Promise<Column | null>;
   // Novas colunas entram no fim do quadro ("+ Adicionar coluna").
   create(boardId: string, title: string): Promise<Column>;
   rename(id: string, title: string): Promise<void>;
   move(id: string, placement: Placement): Promise<void>;
+  // Volta a coluna a uma posição exata (usado pelo "Desfazer").
+  moveToPosition(id: string, position: number): Promise<void>;
   // Apaga a coluna e os cartões dela (cascata).
   remove(id: string): Promise<void>;
+  // Recria uma coluna apagada exatamente como era (usado pelo "Desfazer").
+  restore(column: Column): Promise<void>;
 }
 
 export function createColumnRepository(database: Database = db): ColumnRepository {
@@ -42,6 +47,11 @@ export function createColumnRepository(database: Database = db): ColumnRepositor
         .orderBy(asc(columns.position))
         .all();
       return parseRows(columnSchema, rows, 'columns');
+    },
+
+    async getById(id) {
+      const row = database.select().from(columns).where(eq(columns.id, id)).get();
+      return row ? parseRow(columnSchema, row, 'columns') : null;
     },
 
     async create(boardId, title) {
@@ -84,8 +94,20 @@ export function createColumnRepository(database: Database = db): ColumnRepositor
       });
     },
 
+    async moveToPosition(id, position) {
+      database
+        .update(columns)
+        .set({ position, updatedAt: nowIso() })
+        .where(eq(columns.id, id))
+        .run();
+    },
+
     async remove(id) {
       database.delete(columns).where(eq(columns.id, id)).run();
+    },
+
+    async restore(column) {
+      database.insert(columns).values(column).run();
     },
   };
 }

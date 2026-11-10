@@ -15,7 +15,7 @@ export function useSearchViewModel() {
 
   const hasQuery = normalizeForSearch(query).length > 0;
   const folders = useMemo(
-    () => (hasQuery ? filterFoldersByQuery(items, query).map(toFolderItem) : []),
+    () => (hasQuery ? filterFoldersByQuery(items, query).map((item) => toFolderItem(item)) : []),
     [items, query, hasQuery],
   );
 

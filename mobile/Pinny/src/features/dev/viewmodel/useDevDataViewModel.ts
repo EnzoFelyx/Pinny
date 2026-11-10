@@ -1,5 +1,8 @@
 import { useCallback, useState } from 'react';
 
+import { boardRepository } from '@/features/board/model/boardRepository';
+import { columnRepository } from '@/features/board/model/columnRepository';
+import { labelRepository } from '@/features/board/model/labelRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import {
   applyUndo,
@@ -80,7 +83,12 @@ export function useDevDataViewModel() {
       run(async () => {
         const { entry, rest } = popEntry(history);
         if (!entry) return null;
-        await applyUndo(entry.undo, { cards: cardRepository });
+        await applyUndo(entry.undo, {
+          cards: cardRepository,
+          columns: columnRepository,
+          boards: boardRepository,
+          labels: labelRepository,
+        });
         setHistory(rest);
         return text.undone(entry.description);
       }),

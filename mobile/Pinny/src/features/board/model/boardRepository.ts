@@ -1,4 +1,4 @@
-import { and, asc, eq, ne } from 'drizzle-orm';
+import { and, asc, count, eq, isNotNull, ne } from 'drizzle-orm';
 
 import { type Database, db } from '@/db/client';
 import { applyPlacement } from '@/db/ordering';
@@ -17,7 +17,14 @@ export interface BoardRepository {
   rename(id: string, title: string): Promise<void>;
   // Pode trocar de pasta: folderId é a pasta de destino.
   move(id: string, folderId: string, placement: Placement): Promise<void>;
+  // Volta à pasta e à posição exatas de antes (desfazer o "Mover quadro").
+  moveToPosition(id: string, folderId: string, position: number): Promise<void>;
   remove(id: string): Promise<void>;
+  // Recria o quadro exatamente como era (desfazer a exclusão).
+  restore(board: Board): Promise<void>;
+  // Fixa na Início (pinnedAt = agora) ou desafixa (null).
+  setPinnedAt(id: string, pinnedAt: string | null): Promise<void>;
+  countPinnedInFolder(folderId: string): Promise<number>;
 }
 
 export function createBoardRepository(database: Database = db): BoardRepository {
@@ -85,8 +92,33 @@ export function createBoardRepository(database: Database = db): BoardRepository 
       });
     },
 
+    async moveToPosition(id, folderId, position) {
+      database
+        .update(boards)
+        .set({ folderId, position, updatedAt: nowIso() })
+        .where(eq(boards.id, id))
+        .run();
+    },
+
+    async setPinnedAt(id, pinnedAt) {
+      database.update(boards).set({ pinnedAt, updatedAt: nowIso() }).where(eq(boards.id, id)).run();
+    },
+
+    async countPinnedInFolder(folderId) {
+      const row = database
+        .select({ total: count() })
+        .from(boards)
+        .where(and(eq(boards.folderId, folderId), isNotNull(boards.pinnedAt)))
+        .get();
+      return row?.total ?? 0;
+    },
+
     async remove(id) {
       database.delete(boards).where(eq(boards.id, id)).run();
+    },
+
+    async restore(board) {
+      database.insert(boards).values(board).run();
     },
   };
 }
