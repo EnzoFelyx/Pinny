@@ -6,16 +6,17 @@ import { ptBR } from '@/i18n/pt-BR';
 const text = ptBR.folders.folderScreen;
 
 interface SelectionToolbarProps {
-  // null = sem fixar/desafixar para a seleção atual (ex.: passaria de 3 fixados).
-  pin: { accessibilityLabel: string; isUnpin: boolean } | null;
+  // null = sem fixar/desafixar para a seleção atual (passaria de 3 fixados). isEnabled = false:
+  // nada marcado, o alfinete aparece apagado.
+  pin: { accessibilityLabel: string; isUnpin: boolean; isEnabled: boolean } | null;
   canDelete: boolean;
   onTogglePin: () => void;
   onDelete: () => void;
 }
 
 // Botões de vidro flutuando embaixo da tela da pasta no modo "Selecionar": fixar (ou desafixar,
-// alfinete riscado) à esquerda e apagar (lixeira vermelha) à direita. Cada um só aparece quando
-// a ação vale para a seleção.
+// alfinete riscado) à esquerda e apagar (lixeira vermelha) à direita. Sem seleção, continuam
+// visíveis e apagados, como no quadro e nos apps da Apple.
 export function SelectionToolbar({ pin, canDelete, onTogglePin, onDelete }: SelectionToolbarProps) {
   return (
     <GlassToolbar
@@ -27,17 +28,17 @@ export function SelectionToolbar({ pin, canDelete, onTogglePin, onDelete }: Sele
               tone: 'accent',
               accessibilityLabel: pin.accessibilityLabel,
               onPress: onTogglePin,
+              disabled: !pin.isEnabled,
             }
           : null,
-        canDelete
-          ? {
-              key: 'delete',
-              icon: Trash2,
-              tone: 'destructive',
-              accessibilityLabel: text.deleteSelectedA11y,
-              onPress: onDelete,
-            }
-          : null,
+        {
+          key: 'delete',
+          icon: Trash2,
+          tone: 'destructive',
+          accessibilityLabel: text.deleteSelectedA11y,
+          onPress: onDelete,
+          disabled: !canDelete,
+        },
       ]}
     />
   );

@@ -12,8 +12,9 @@ import { ptBR } from '@/i18n/pt-BR';
 const text = ptBR.folders.folderScreen;
 
 // Modo "Selecionar" da tela da pasta, como a seleção de fotos do iOS: começa vazio, cada toque
-// marca ou desmarca e os botões de baixo fixam/desafixam ou excluem os escolhidos. "Fixar" some
-// quando a pasta passaria de PINNED_BOARDS_PER_FOLDER fixados (os já fixados contam).
+// marca ou desmarca e os botões de baixo fixam/desafixam ou excluem os escolhidos (sem seleção,
+// ficam apagados). "Fixar" some quando a pasta passaria de PINNED_BOARDS_PER_FOLDER fixados (os
+// já fixados contam).
 export function useBoardSelection(
   folderId: string,
   folderBoards: readonly Board[],
@@ -55,13 +56,14 @@ export function useBoardSelection(
     hint: pinAction.isLimitReached
       ? text.pinLimitHint(PINNED_BOARDS_PER_FOLDER)
       : text.selectionHint,
-    // Só aparece quando vale para a seleção: some se passaria do limite de fixados.
-    pin: pinAction.isEnabled
-      ? {
+    // Sem seleção, aparece apagado (como no quadro); some só se passaria do limite de fixados.
+    pin: pinAction.isLimitReached
+      ? null
+      : {
           accessibilityLabel: isUnpin ? text.unpinSelectedA11y : text.pinSelectedA11y,
           isUnpin,
-        }
-      : null,
+          isEnabled: pinAction.isEnabled,
+        },
     canDelete: selected.length > 0,
     start,
     cancel,
