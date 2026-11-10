@@ -57,6 +57,9 @@ export function DragOverlay({ drag, originRef, card, isReducedMotion }: DragOver
   return (
     <Animated.View
       ref={originRef}
+      // Medida no início do arraste (origem das posições): sem isto, vazia, o React Native a achata
+      // e o measure do Reanimated não acha a view.
+      collapsable={false}
       pointerEvents="none"
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"

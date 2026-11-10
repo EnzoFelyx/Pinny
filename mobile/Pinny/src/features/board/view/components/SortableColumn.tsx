@@ -189,7 +189,13 @@ export const SortableColumnView = memo(function SortableColumnView({
           </GestureDetector>
 
           {/* Sempre montada (altura 0 sem cartões): a vaga também aparece numa coluna vazia. */}
-          <Animated.View ref={sortable.listRef} onLayout={measureList} style={listStyle}>
+          <Animated.View
+            ref={sortable.listRef}
+            // Medida pelo arraste e pelo quique a cada quadro: não pode ser achatada.
+            collapsable={false}
+            onLayout={measureList}
+            style={listStyle}
+          >
             <DropPlaceholder
               columnId={column.id}
               column={sortable}
