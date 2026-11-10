@@ -219,10 +219,18 @@
 - [x] Modo "Selecionar cartões" (2026-11-09): bolinha em cada cartão, marcado em lavanda com borda roxa, topo com "N selecionados" e "Cancelar" de vidro, arraste desligado enquanto seleciona
 - [x] "Selecionar todos" / "Limpar" ao lado da contagem de cada coluna (2026-11-09)
 - [x] Barra de baixo com as ações em lote (2026-11-09): Mover (coluna ou outro quadro, numa folha só), Arquivar e Apagar, com desfazer
-- [ ] Tela da pasta: botões da barra de seleção visíveis e apagados sem seleção (hoje somem), como no quadro
+- [x] Tela da pasta: botões da barra de seleção visíveis e apagados sem seleção, como no quadro (2026-11-10)
 - [x] "Arquivados" no "…" do quadro (abaixo de "Nova coluna", 2026-11-09): tela provisória com os cartões arquivados numa coluna só de leitura
 - [ ] **Lembrete do autor:** desenhar a tela "Arquivados" do quadro no Figma (visual final, desarquivar e apagar) e depois implementar o desenho
-- [ ] Arraste em lote
+- [ ] Arraste em lote "pilha", como no Fotos do iOS (plano de 2026-11-10): com cartões marcados, segurar um junta os outros embaixo dele (no máximo 5 à mostra, ângulos alternando 3°: -5°, -2°, -8°, +1°, -11°), a pilha segue o dedo e cai junta na vaga; soltar em outra coluna sai da seleção com desfazer; soltar na própria coluna cancela (os cartões voltam voando e a seleção continua)
+  - [x] Parte 1 — Modelo: `moveCards` aceita a vaga (`nextId`), `withCardsMoved` (otimista), `toFullIndexExcluding` (vaga com filtro) e `useBatchMove` (`moveSelectionTo`: segurado primeiro, uma ação no histórico, fecha a seleção)
+  - [x] Parte 2 — Estado da pilha na UI thread (`useBatchDrag`, em `drag.batch`: ids da pilha, total, posições de partida, progresso do voo, coluna e vaga de origem), token `batchStack` no `motion.ts` e contas puras em `model/batchStack.ts` (`stackedIds`, `stackRotation`)
+  - [x] Parte 3 — Gesto na seleção: segurar só nos marcados (`isDragEnabled`); os outros medem de onde saem (`useBatchOrigin`) e saem da ordem das colunas na UI thread (`useBatchColumnOrder`, `liftedIds`), que fecham o espaço; o soltar do segurado vira o movimento do lote (`dropCard` no `useBatchMove`)
+  - [x] Parte 4 — Visual: `DragStack` (até 4 cópias embaixo do segurado, voo de 220 ms só dos cartões à vista; os de fora da tela aparecem com fade), toque tátil ao juntar e "Reduzir movimento" (sem voo nem giro). Sem bolinha do total, e as bolinhas de seleção somem durante o arraste (decisão do autor, 2026-11-10)
+  - [x] Parte 5 — Vaga e rolagem: vaga com a altura do segurado e a rolagem automática de hoje. Soltar a pilha na "Adicionar coluna" (que volta a aparecer durante a pilha, com "Solte para criar uma coluna com estes cartões") abre a folha "Nova coluna" com todos os marcados, na ordem em que foram marcados (pedido do autor, 2026-11-10)
+  - [x] Parte 6 — Soltar: em outra coluna, assenta e grava; **na própria coluna do segurado, em qualquer vaga, cancela** (decisão do autor, 2026-11-10: voo de volta, nada gravado, seleção continua). O segurado do lote assenta sem quique (só desliza, 150 ms), e as cópias têm o visual de marcado. A mola de assentar (`dragSpring`) ganhou `energyThreshold: 1e-6`: o padrão do Reanimated arrastava a cauda por ~3,5 s e a cópia ficava por cima
+  - [ ] Parte 7 — Casos de borda: filtro e busca, recarga do banco no meio, gesto interrompido
+  - [ ] Parte 8 — Textos (anúncio "Movendo N cartões", dica do topo), arquivos abaixo de ~200 linhas, CLAUDE.md
 
 ### 6.6 — Desempenho
 - [ ] Medir 60fps em build de release com ~300 cartões num aparelho intermediário
