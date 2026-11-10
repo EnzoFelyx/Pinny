@@ -651,3 +651,4 @@ O diferencial do app é o arraste de cards, que por natureza **não é acessíve
 - **Monorepo único na raiz** (`Pinny/`), com remote `https://github.com/EnzoFelyx/Pinny.git` e branch `main`. Decidido em 2026-10-26.
 - `mobile/Pinny` não pode ter `.git` próprio: um repositório aninhado divide o versionamento e os instincts do ECC.
 - `.gitignore` geral na raiz; cada pacote mantém o seu (ex.: `mobile/Pinny/.gitignore`, do Expo).
+- **Etapa 6R (Refac / Perform), decisão de 2026-11-10:** a refatoração dos arquivos acima de ~200 linhas e as medições de desempenho em build de release ficam numa branch própria, separada da `feat/kanban-board`. Antes de refatorar cada arquivo, perguntar ao autor se vale a pena ou se fica como está por causa do desempenho (ver `todo.md`).

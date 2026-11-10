@@ -17,7 +17,8 @@
 | 3 | Biblioteca de componentes | ✅ |
 | 4 | Dados local-first | ✅ |
 | 5 | Navegação e estrutura das telas | ✅ |
-| 6 | Quadro kanban (o diferencial) | 🟨 |
+| 6 | Quadro kanban (o diferencial) | ✅ |
+| 6R | Refac / Perform (branch própria) | ⬜ |
 | 7 | Card completo | ⬜ |
 | 8 | Pastas e templates | ⬜ |
 | 9 | Notificações e calendário | ⬜ |
@@ -204,15 +205,14 @@
   - [x] Levantada numa camada por cima de tudo, com só os 4 primeiros cartões, seguindo o dedo nos dois eixos e com rolagem automática horizontal do quadro
   - [x] Vaga: as colunas deslizam para abrir espaço e a vaga tracejada "Solte para reorganizar" aparece do tamanho da coluna
   - [x] Trocar a coluna de lugar ao soltar (cópia assenta na vaga, quadro encaixa, ordem gravada com desfazer)
-- [ ] Refatorar para ficar abaixo de ~200 linhas: `useBoardDrag.ts` (287), `SortableCard.tsx` (221) e `SortableColumn.tsx` (231) e `BoardScreen.tsx` (259)
 - [x] Alternativa acessível para reordenar colunas ("Mover para trás/frente" no menu da coluna, feito na 6.3)
-- [ ] Melhoria de performance do aplicativo
+- [x] Melhoria de performance do aplicativo (as medições ficaram para a etapa 6R)
   - [x] Objeto do arraste estável (o cartão segurado saiu dele) e ações com identidade fixa: segurar e soltar não redesenham mais todas as colunas e cartões
   - [x] Recarga do banco reaproveita as colunas e os cartões que não mudaram e junta os avisos do banco numa carga só
   - [x] Alturas dos cartões gravadas em lote (uma vez por quadro de animação)
   - [x] Animações de cada cartão dependem só dos valores que leem (antes rodavam a cada quadro do arraste, em todos os cartões)
   - [x] Montagem progressiva: uma coluna por quadro depois das 2 primeiras
-  - [ ] Medir em build de release: fluido até ~300 cartões (10 × 40 superlotado) e sem travar nem fechar com 2.000 (20 × 100)
+  - Medição em build de release: foi para a etapa 6R
   - Virtualização e paginação da montagem: fora da v1 (decisão do autor, 2026-11-03), ver Roadmap no CLAUDE.md
 
 ### 6.5 — Seleção em lote
@@ -221,22 +221,62 @@
 - [x] Barra de baixo com as ações em lote (2026-11-09): Mover (coluna ou outro quadro, numa folha só), Arquivar e Apagar, com desfazer
 - [x] Tela da pasta: botões da barra de seleção visíveis e apagados sem seleção, como no quadro (2026-11-10)
 - [x] "Arquivados" no "…" do quadro (abaixo de "Nova coluna", 2026-11-09): tela provisória com os cartões arquivados numa coluna só de leitura
-- [ ] **Lembrete do autor:** desenhar a tela "Arquivados" do quadro no Figma (visual final, desarquivar e apagar) e depois implementar o desenho
-- [ ] Arraste em lote "pilha", como no Fotos do iOS (plano de 2026-11-10): com cartões marcados, segurar um junta os outros embaixo dele (no máximo 5 à mostra, ângulos alternando 3°: -5°, -2°, -8°, +1°, -11°), a pilha segue o dedo e cai junta na vaga; soltar em outra coluna sai da seleção com desfazer; soltar na própria coluna cancela (os cartões voltam voando e a seleção continua)
+- [x] Arraste em lote "pilha", como no Fotos do iOS (plano de 2026-11-10): com cartões marcados, segurar um junta os outros embaixo dele (no máximo 5 à mostra, ângulos alternando 3°: -5°, -2°, -8°, +1°, -11°), a pilha segue o dedo e cai junta na vaga; soltar em outra coluna sai da seleção com desfazer; soltar na própria coluna cancela (os cartões voltam voando e a seleção continua)
   - [x] Parte 1 — Modelo: `moveCards` aceita a vaga (`nextId`), `withCardsMoved` (otimista), `toFullIndexExcluding` (vaga com filtro) e `useBatchMove` (`moveSelectionTo`: segurado primeiro, uma ação no histórico, fecha a seleção)
   - [x] Parte 2 — Estado da pilha na UI thread (`useBatchDrag`, em `drag.batch`: ids da pilha, total, posições de partida, progresso do voo, coluna e vaga de origem), token `batchStack` no `motion.ts` e contas puras em `model/batchStack.ts` (`stackedIds`, `stackRotation`)
   - [x] Parte 3 — Gesto na seleção: segurar só nos marcados (`isDragEnabled`); os outros medem de onde saem (`useBatchOrigin`) e saem da ordem das colunas na UI thread (`useBatchColumnOrder`, `liftedIds`), que fecham o espaço; o soltar do segurado vira o movimento do lote (`dropCard` no `useBatchMove`)
   - [x] Parte 4 — Visual: `DragStack` (até 4 cópias embaixo do segurado, voo de 220 ms só dos cartões à vista; os de fora da tela aparecem com fade), toque tátil ao juntar e "Reduzir movimento" (sem voo nem giro). Sem bolinha do total, e as bolinhas de seleção somem durante o arraste (decisão do autor, 2026-11-10)
   - [x] Parte 5 — Vaga e rolagem: vaga com a altura do segurado e a rolagem automática de hoje. Soltar a pilha na "Adicionar coluna" (que volta a aparecer durante a pilha, com "Solte para criar uma coluna com estes cartões") abre a folha "Nova coluna" com todos os marcados, na ordem em que foram marcados (pedido do autor, 2026-11-10)
   - [x] Parte 6 — Soltar: em outra coluna, assenta e grava; **na própria coluna do segurado, em qualquer vaga, cancela** (decisão do autor, 2026-11-10: voo de volta, nada gravado, seleção continua). O segurado do lote assenta sem quique (só desliza, 150 ms), e as cópias têm o visual de marcado. A mola de assentar (`dragSpring`) ganhou `energyThreshold: 1e-6`: o padrão do Reanimated arrastava a cauda por ~3,5 s e a cópia ficava por cima
-  - [ ] Parte 7 — Casos de borda: filtro e busca, recarga do banco no meio, gesto interrompido
-  - [ ] Parte 8 — Textos (anúncio "Movendo N cartões", dica do topo), arquivos abaixo de ~200 linhas, CLAUDE.md
+  - Partes 7 e 8 (casos de borda e textos): foram para a etapa 6R
 
-### 6.6 — Desempenho
-- [ ] Medir 60fps em build de release com ~300 cartões num aparelho intermediário
+> **Pendências passadas para a etapa 6R (decisão do autor, 2026-11-10):** Partes 7 e 8 do arraste em lote, a tela "Arquivados" no Figma, os testes do ViewModel do quadro, a conferência com o VoiceOver e as medições de desempenho.
+
+**Pronto quando:** as funcionalidades do quadro estiverem feitas; o que falta conferir e medir segue na etapa 6R.
+
+---
+
+## Etapa 6R — Refac / Perform
+
+**Objetivo:** fechar as pendências da etapa 6, medir o desempenho de verdade e só então organizar o código que cresceu, sem misturar com funcionalidade nova.
+
+> **Branch própria (decisão do autor, 2026-11-10):** a refatoração e as medições são feitas numa branch separada da `feat/kanban-board`. Antes de criar a branch, decidir com o autor se as pendências da seção 1 entram ainda na `feat/kanban-board`.
+
+> **Ordem desta etapa:** 1. pendências da etapa 6 → 2. desempenho → 3. refatoração (por último).
+
+> 🔔 **Lembrete do autor: medir o desempenho ANTES de refatorar.** Faça a seção 2 e registre os números antes da seção 3: eles são a base para comparar depois de cada refatoração e para decidir, arquivo por arquivo, se vale a pena mexer.
+
+### 1. Pendências que vieram da etapa 6
+- [ ] Arraste em lote, Parte 7 — casos de borda: filtro e busca (já conferidos pelo autor em 2026-11-10, falta marcar), recarga do banco no meio do arraste e gesto interrompido pelo sistema (os cartões voltam às colunas e a seleção continua)
+- [ ] Arraste em lote, Parte 8 — anúncio "Movendo N cartões" para o VoiceOver, dica do topo na seleção ("Segure um cartão marcado para arrastar todos") e registrar as decisões da pilha no CLAUDE.md (hoje só estão no `todo.md`)
+- [ ] 🔔 **Lembrete do autor:** desenhar a tela "Arquivados" do quadro no Figma (visual final, desarquivar e apagar) e depois implementar o desenho
+- [ ] Conferir todas as ações do quadro pelo VoiceOver (o TalkBack fica para quando o Android voltar)
 - [ ] Testes do ViewModel do quadro (quando os testes voltarem)
 
-**Pronto quando:** o arraste rodar a 60fps em build de release num Android intermediário, e todas as ações também funcionarem pelo VoiceOver e pelo TalkBack.
+### 2. Desempenho (sempre em build de release: `npx expo run:ios --configuration Release --device`)
+> Criar os quadros grandes antes, no build de desenvolvimento (Ajustes, só em `__DEV__`): os dados continuam no aparelho no Release.
+- [ ] Arraste de um cartão: fluido até ~300 cartões (10 × 40, superlotado) e sem travar nem fechar com 2.000 (20 × 100)
+- [ ] 60fps em build de release com ~300 cartões num aparelho intermediário
+- [ ] 🔔 **Lembrete do autor:** testar o desempenho do **arraste em lote (pilha)** em quadros grandes: juntar, mover a pilha com a rolagem automática, soltar em outra coluna e cancelar na própria coluna
+- [ ] 🔔 **Lembrete do autor:** testar o desempenho do **modo "Selecionar"** em quadros grandes: entrar e sair do modo, marcar e desmarcar, "Selecionar todos" / "Limpar" da coluna e as ações em lote (Mover, Arquivar, Apagar)
+- [ ] Registrar os números medidos (e o que mudou com cada refatoração) no CLAUDE.md
+
+### 3. Refatoração dos arquivos acima de ~200 linhas (por último)
+- [ ] 🔔 **Antes de começar, perguntar ao autor, arquivo por arquivo, se vale a pena refatorar ou se é melhor deixar como está por causa do desempenho.** Parte desses arquivos é o caminho quente do arraste (worklets e mappers da UI thread): dividir pode criar objetos ou dependências novas nos worklets e piorar o arraste. Medir antes e depois de cada refatoração.
+- Alvos (contagem de 2026-11-10):
+  - [ ] `features/board/view/BoardScreen.tsx` (372)
+  - [ ] `features/board/view/components/useBoardDrag.ts` (301) · caminho quente do arraste
+  - [ ] `features/board/viewmodel/useBoardViewModel.ts` (281)
+  - [ ] `features/board/view/components/SortableColumn.tsx` (274) · caminho quente do arraste
+  - [ ] `features/board/view/components/SortableCard.tsx` (261) · caminho quente do arraste
+  - [ ] `features/dev/model/devDataService.ts` (243) · só desenvolvimento
+  - [ ] `features/card/model/cardRepository.ts` (223)
+  - [ ] `features/board/viewmodel/useColumnActions.ts` (219)
+  - [ ] `features/board/view/components/useSortableColumn.ts` (218) · caminho quente do arraste
+  - [ ] `features/history/model/actionHistory.ts` (210)
+  - [ ] `features/board/model/boardData.ts` (201)
+
+**Pronto quando:** as pendências da seção 1 estiverem resolvidas, as medições passarem em build de release e cada arquivo da lista tiver a decisão do autor (refatorado ou mantido de propósito).
 
 ---
 
