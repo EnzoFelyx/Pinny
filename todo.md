@@ -186,7 +186,7 @@
 
 ### 6.4 — Reordenar colunas
 - [x] Skeleton loading do quadro (enquanto carrega): 2 colunas com 4 e 3 cartões, shimmer no estilo do YouTube, sem tempo mínimo.
-- [ ] Menu "…" do topo do quadro (menu nativo, igual ao da coluna), adiado da 6.3. Ordem decidida (2026-11-02):
+- [x] Menu "…" do topo do quadro (menu nativo, igual ao da coluna), adiado da 6.3. Ordem decidida (2026-11-02):
   - Grupo 1: Buscar lembrete · Selecionar cartões · Nova coluna ("Reorganizar colunas" saiu em 2026-11-09) (o "Filtrar…" saiu do menu em 2026-11-03: os filtros ficam na linha abaixo do título)
   - Grupo 2: Renomear quadro · Duplicar quadro · Mover para outra pasta
   - Grupo 3: Excluir quadro (vermelho, com desfazer)
@@ -196,7 +196,7 @@
   - [x] Duplicar quadro (cópia logo depois, na mesma pasta, com desfazer)
   - [x] Mover para outra pasta (folha com as pastas, fixação respeitando o limite, com desfazer)
   - [x] Modal "Filtrar" (centralizado): prazo, prioridade, etiquetas, concluídos e checklist pendente, com contagem ao vivo
-  - [ ] "Buscar lembrete" (lupa): definir como a busca funciona
+  - [x] "Buscar lembrete" (lupa, 2026-11-10): campo de vidro no lugar do título, "X" fecha; busca no título e na descrição a cada letra; um resultado só faz o quadro rolar até ele
   - [x] Linha de filtros abaixo do título: atalhos (Hoje, Atrasados, Alta) e "Filtros"; com filtro, chips removíveis e "Limpar"
   - [x] Aplicar o filtro no quadro: todas as colunas sempre visíveis, só os cartões que passam; arraste pelo vizinho visível; aviso de cartão novo escondido; contador e subtítulo com os visíveis
 - [x] Reordenar colunas segurando e arrastando
