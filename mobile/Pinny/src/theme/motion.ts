@@ -12,12 +12,28 @@ export const duration = {
 export const dragSpring = {
   damping: 21,
   stiffness: 220,
+  // A mola "termina" quando sobra menos de ~0,1% do caminho (invisível). O padrão do Reanimated
+  // (6e-9) arrastava a cauda por segundos, e a cópia do cartão demorava a sumir depois de soltar.
+  energyThreshold: 1e-6,
 } as const;
 
 // Cartão segurado (Figma "Quadro · Arrastar cartão"): levemente girado, maior e elevado.
 export const dragLift = {
   rotationDeg: -5,
   scale: 1.03,
+} as const;
+
+// Arraste em lote (como no Fotos do iOS): os outros cartões marcados voam para baixo do segurado
+// e formam uma pilha que segue o dedo.
+export const batchStack = {
+  // Cartões à mostra na pilha, contando o segurado (os outros só entram na bolinha do total).
+  maxVisible: 5,
+  // Ângulos alternando os lados, a partir do segurado (dragLift.rotationDeg): -5°, -2°, -8°, +1°…
+  rotationStepDeg: 3,
+  // Voo de cada cartão até a pilha (e de volta, ao cancelar).
+  gatherMs: 220,
+  // Cada cartão de baixo desce um pouco, para a pilha aparecer pela borda.
+  offsetY: 4,
 } as const;
 
 // Coluna segurada pelo cabeçalho para reordenar (Figma "Quadro · Reordenar colunas"): levemente

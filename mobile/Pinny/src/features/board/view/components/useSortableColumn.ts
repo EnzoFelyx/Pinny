@@ -14,6 +14,7 @@ import { computeOffsets, indexFromCenter, moveIndex, totalHeight } from '../../m
 
 import { CARD_GAP, ESTIMATED_CARD_HEIGHT, type SortableColumn } from './sortableColumn.types';
 import type { BoardDrag } from './useBoardDrag';
+import { restoreColumnOrder, useBatchColumnOrder } from './useBatchColumnOrder';
 import { useColumnAutoScroll } from './useColumnAutoScroll';
 
 // Resultado da vaga do cartão arrastado nesta coluna: fora de um arraste ou fora da coluna.
@@ -70,15 +71,20 @@ export function useSortableColumn({
     },
   });
 
-  // A ordem vinda do banco só é aplicada fora de um arraste, na própria UI thread.
+  // A ordem vinda do banco só é aplicada fora de um arraste, na própria UI thread. A última
+  // recebida fica guardada para o cancelamento do arraste em lote devolver os cartões.
+  const sourceIds = useSharedValue<string[]>([...ids]);
   const idsKey = ids.join();
   useEffect(() => {
     const nextIds = idsKey ? idsKey.split(',') : [];
     scheduleOnUI(() => {
       'worklet';
+      sourceIds.set(nextIds);
       if (activeId.get() === null) order.set(nextIds);
     });
-  }, [idsKey, activeId, order]);
+  }, [idsKey, activeId, order, sourceIds]);
+
+  useBatchColumnOrder({ batch: drag.batch, activeId, order, sourceIds, startIndex });
 
   const offsets = useDerivedValue(() =>
     computeOffsets(order.get(), heights.get(), CARD_GAP, ESTIMATED_CARD_HEIGHT),
@@ -162,6 +168,17 @@ export function useSortableColumn({
     scheduleOnRN(onLift);
   };
 
+  // Cancelamento do arraste em lote: a coluna volta à ordem de antes (com os levantados) antes do
+  // segurado assentar, e a vaga de partida passa a ser a dele nessa ordem: assim ele volta ao
+  // lugar de onde saiu e o soltar não grava nada.
+  const restoreOrder = () => {
+    'worklet';
+    restoreColumnOrder(order, sourceIds);
+    const id = activeId.get();
+    const index = id === null ? -1 : order.get().indexOf(id);
+    if (index >= 0) startIndex.set(index);
+  };
+
   const endDrag = () => {
     'worklet';
     const id = activeId.get();
@@ -194,6 +211,7 @@ export function useSortableColumn({
       isUserScrolling,
       listRef,
       startDrag,
+      restoreOrder,
       endDrag,
     },
   };

@@ -10,6 +10,7 @@ import {
   matchesCardFilter,
   matchesSearch,
   toFullIndex,
+  toFullIndexExcluding,
   visibleCardIds,
 } from '../model/cardFilter';
 import type { BoardCardItem, BoardColumnItem } from './boardItems';
@@ -93,6 +94,13 @@ export function useVisibleCards(
       if (!visibleIds || !target) return toIndex;
       const ids = target.cards.map((item) => item.card.id);
       return toFullIndex(ids, cardId, visibleIds, toIndex);
+    },
+    // O mesmo para um lote (arraste da pilha): a vaga não conta nenhum dos cartões movidos.
+    toFullIndexMany: (cardIds: readonly string[], toColumnId: string, toIndex: number) => {
+      const target = data?.columns.find((item) => item.column.id === toColumnId);
+      if (!target) return toIndex;
+      const ids = target.cards.map((item) => item.card.id);
+      return toFullIndexExcluding(ids, new Set(cardIds), visibleIds, toIndex);
     },
     // Cartão recém-criado que o filtro ou a busca esconderiam (sem etiquetas nem checklist ainda).
     hidesNewCard: (card: Card) => {

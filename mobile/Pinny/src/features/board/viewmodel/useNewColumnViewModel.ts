@@ -7,64 +7,78 @@ import type { UndoOperation } from '@/features/history/model/actionHistory';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
 
+import { moveCards } from '../model/cardBatch';
 import { columnRepository } from '../model/columnRepository';
+import { labelRepository } from '../model/labelRepository';
+import { cardsMovedSignal } from './cardsMovedSignal';
 
-// Folha "Nova coluna", aberta pela coluna "Adicionar coluna" no fim do quadro (ou soltando um
-// cartão nela: aí o cartão vai para a coluna nova). A coluna entra no fim do quadro e no
-// histórico como uma ação só (chacoalhar desfaz tudo); o quadro recarrega sozinho e rola até ela.
-export function useNewColumnViewModel(boardId: string, cardId?: string) {
+const text = ptBR.board.newColumn;
+
+// Folha "Nova coluna", aberta pela coluna "Adicionar coluna" no fim do quadro (ou soltando nela um
+// cartão ou a pilha do arraste em lote: aí os cartões vão para a coluna nova, na ordem dada). A
+// coluna entra no fim do quadro e no histórico como uma ação só (chacoalhar desfaz tudo); o quadro
+// recarrega sozinho e rola até ela.
+export function useNewColumnViewModel(boardId: string, cardIds?: readonly string[]) {
   const [name, setName] = useState('');
   const [errorText, setErrorText] = useState<string | null>(null);
-  const [card, setCard] = useState<Card | null>(null);
+  const [cards, setCards] = useState<Card[]>([]);
 
+  const idsKey = cardIds?.join() ?? '';
   useEffect(() => {
-    if (!cardId) return;
+    if (!idsKey) return;
     let isActive = true;
-    cardRepository
-      .getById(cardId)
+    Promise.all(idsKey.split(',').map((id) => cardRepository.getById(id)))
       .then((found) => {
-        if (isActive) setCard(found);
+        if (isActive) setCards(found.filter((card): card is Card => card !== null));
       })
       .catch((error: unknown) => {
-        console.warn('Falha ao carregar o cartão.', error);
+        console.warn('Falha ao carregar os cartões.', error);
       });
     return () => {
       isActive = false;
     };
-  }, [cardId]);
+  }, [idsKey]);
 
   const create = useCallback(async () => {
     const title = name.trim();
     if (!title) return;
     try {
       const column = await columnRepository.create(boardId, title);
-      // Desfaz na ordem: o cartão volta para onde estava e depois a coluna some.
+      // Desfaz na ordem: os cartões voltam para onde estavam e depois a coluna some.
       const undo: UndoOperation[] = [];
-      if (card) {
-        await cardRepository.move(card.id, column.id, { previousId: null, nextId: null });
-        undo.push({
-          kind: 'moveCard',
-          cardId: card.id,
-          columnId: card.columnId,
-          position: card.position,
-        });
+      if (cards.length > 0) {
+        undo.push(
+          await moveCards(
+            cards.map((card) => card.id),
+            { columnId: column.id, toBoardId: null },
+            { cards: cardRepository, labels: labelRepository },
+          ),
+        );
       }
       undo.push({ kind: 'deleteColumn', columnId: column.id });
       historyStore.record(
         ptBR.history.actions.createColumn,
-        undo.length === 1 ? undo[0] : { kind: 'sequence', operations: undo },
+        undo.length === 1 && undo[0] ? undo[0] : { kind: 'sequence', operations: undo },
       );
+      // A pilha do arraste em lote foi para a coluna: o quadro sai do modo de seleção.
+      if (cards.length > 1) cardsMovedSignal.emit();
       router.back();
     } catch (error: unknown) {
       console.warn('Falha ao criar a coluna.', error);
       setErrorText(ptBR.common.saveError);
     }
-  }, [boardId, card, name]);
+  }, [boardId, cards, name]);
 
+  const [first] = cards;
   return {
     name,
     errorText,
-    cardNotice: card ? ptBR.board.newColumn.cardNotice(card.title) : null,
+    cardNotice:
+      cards.length > 1
+        ? text.cardsNotice(cards.length)
+        : first
+          ? text.cardNotice(first.title)
+          : null,
     canCreate: name.trim().length > 0,
     changeName: setName,
     create,

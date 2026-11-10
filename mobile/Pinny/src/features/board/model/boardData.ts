@@ -160,3 +160,42 @@ export function withCardMoved(
     previousPosition: movedCard.card.position,
   };
 }
+
+export interface CardsMoveResult {
+  data: BoardData;
+  // Cartão logo depois do lote na coluna de destino (null = o lote ficou no fim): a vaga que o
+  // banco grava (moveCards).
+  nextId: string | null;
+}
+
+// Novo retrato do quadro com o lote (na ordem dada) junto na vaga toIndex da coluna de destino.
+// toIndex conta os cartões da coluna sem os do lote. null = cartão ou coluna inexistente.
+export function withCardsMoved(
+  data: BoardData,
+  cardIds: readonly string[],
+  toColumnId: string,
+  toIndex: number,
+): CardsMoveResult | null {
+  const moving = new Set(cardIds);
+  const byId = new Map(
+    data.columns.flatMap((item) => item.cards).map((entry) => [entry.card.id, entry]),
+  );
+  const movedCards = cardIds.flatMap((id) => byId.get(id) ?? []);
+  const target = data.columns.find((item) => item.column.id === toColumnId);
+  if (!target || movedCards.length === 0) return null;
+
+  const rest = target.cards.filter((entry) => !moving.has(entry.card.id));
+  const index = Math.max(0, Math.min(toIndex, rest.length));
+  const targetCards = [...rest.slice(0, index), ...movedCards, ...rest.slice(index)];
+  return {
+    data: {
+      ...data,
+      columns: data.columns.map((item) => {
+        if (item === target) return { ...item, cards: targetCards };
+        const kept = item.cards.filter((entry) => !moving.has(entry.card.id));
+        return kept.length === item.cards.length ? item : { ...item, cards: kept };
+      }),
+    },
+    nextId: rest[index]?.card.id ?? null,
+  };
+}

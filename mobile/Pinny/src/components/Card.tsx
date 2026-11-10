@@ -51,6 +51,8 @@ interface CardProps {
   // Modo de seleção: círculo no canto e, marcado, fundo lavanda com a borda roxa. O toque
   // (onPress) marca/desmarca. undefined = fora do modo.
   isSelected?: boolean;
+  // Esconde só a bolinha do modo de seleção (ex.: durante o arraste em lote).
+  isCheckHidden?: boolean;
 }
 
 type CardSurface = 'default' | 'unselected' | 'selected';
@@ -90,6 +92,7 @@ export const Card = memo(function Card({
   accessibilityActions,
   onAccessibilityAction,
   isSelected,
+  isCheckHidden = false,
 }: CardProps) {
   const isSelecting = isSelected !== undefined;
   const surface: CardSurface = isSelecting ? (isSelected ? 'selected' : 'unselected') : 'default';
@@ -148,7 +151,7 @@ export const Card = memo(function Card({
         </View>
       ) : null}
 
-      {isSelecting ? (
+      {isSelecting && !isCheckHidden ? (
         <SelectionCheck isSelected={isSelected === true} className="right-2.5 top-2.5" />
       ) : null}
     </Pressable>

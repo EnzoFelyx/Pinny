@@ -5,6 +5,7 @@ import { Card } from '@/components/Card';
 import { colors, dragLift, shadows } from '@/theme';
 
 import type { BoardCardItem } from '../../viewmodel/boardItems';
+import { DragStack } from './DragStack';
 import type { BoardDrag } from './useBoardDrag';
 
 const CARD_RADIUS = 18;
@@ -14,12 +15,24 @@ interface DragOverlayProps {
   // Camada que serve de origem para as medidas do arraste (useBoardDrag).
   originRef: AnimatedRef<View>;
   card: BoardCardItem | null;
+  // Modo de seleção: a cópia tem o visual de marcado, igual ao cartão da lista (sem a bolinha),
+  // para nada mudar quando um troca pelo outro.
+  isCardSelected: boolean;
+  // Arraste em lote: os outros cartões da pilha (null = arraste de um cartão só).
+  stack: { cards: readonly BoardCardItem[] } | null;
   isReducedMotion: boolean;
 }
 
 // Camada por cima da tela do quadro com o cartão segurado: levemente girado, maior e com
 // sombra elevada (Figma "Quadro · Arrastar cartão"). Só visual: o leitor de tela não a vê.
-export function DragOverlay({ drag, originRef, card, isReducedMotion }: DragOverlayProps) {
+export function DragOverlay({
+  drag,
+  originRef,
+  card,
+  isCardSelected,
+  stack,
+  isReducedMotion,
+}: DragOverlayProps) {
   const rotation = isReducedMotion ? 0 : dragLift.rotationDeg;
   const scale = isReducedMotion ? 1 : dragLift.scale;
 
@@ -65,6 +78,10 @@ export function DragOverlay({ drag, originRef, card, isReducedMotion }: DragOver
       importantForAccessibility="no-hide-descendants"
       style={StyleSheet.absoluteFill}
     >
+      {/* A pilha vem antes: fica por baixo do cartão segurado. */}
+      {stack ? (
+        <DragStack drag={drag} cards={stack.cards} isReducedMotion={isReducedMotion} />
+      ) : null}
       {card ? (
         <Animated.View
           // Novo cartão = nova medida: o original só some quando o fantasma já está na tela.
@@ -82,6 +99,8 @@ export function DragOverlay({ drag, originRef, card, isReducedMotion }: DragOver
             priority={card.priority}
             deadline={card.deadline}
             checklistText={card.checklistText}
+            isSelected={isCardSelected ? true : undefined}
+            isCheckHidden
           />
         </Animated.View>
       ) : null}

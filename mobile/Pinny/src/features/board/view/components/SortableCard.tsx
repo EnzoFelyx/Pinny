@@ -16,6 +16,7 @@ import type { BoardCardItem } from '../../viewmodel/boardItems';
 import type { CardActions } from './boardActions';
 import { ADD_COLUMN_SLOT } from './boardDrag.types';
 import type { BoardDrag } from './useBoardDrag';
+import { useBatchOrigin } from './useBatchOrigin';
 import { useCardAccessibilityActions } from './useCardAccessibilityActions';
 import { useInListBounce } from './useInListBounce';
 import type { SortableColumn } from './sortableColumn.types';
@@ -40,6 +41,8 @@ interface SortableCardProps {
   actions: CardActions;
   // Modo de seleção: marcado ou não (undefined = fora do modo); o toque marca/desmarca.
   isSelected?: boolean;
+  // Arraste em lote em andamento: as bolinhas de seleção somem.
+  isCheckHidden: boolean;
 }
 
 // Cartão do quadro: segurar e arrastar muda a ordem ou a coluna. Enquanto o dedo segura e
@@ -60,15 +63,19 @@ export const SortableCard = memo(function SortableCard({
   isReducedMotion,
   actions,
   isSelected,
+  isCheckHidden,
 }: SortableCardProps) {
   const { id } = card;
   // Só os valores que cada animação lê: um worklet que captura o objeto `drag` ou `column` inteiro
   // depende de todos os shared values dele e rodaria de novo a cada quadro do arraste, em todos
   // os cartões do quadro.
-  const { activeId, landingId, landingColumnId, visibleId, settleId } = drag;
+  const { activeId, landingId, landingColumnId, visibleId, settleId, batch } = drag;
   const { offsets } = column;
   // Começa em 0 e a reação abaixo posiciona o cartão já na montagem (sem ler shared value no render).
   const top = useSharedValue(0);
+  // Fora da ordem da coluna sem ser pelo filtro (levantado para a pilha, ou ainda chegando):
+  // não aparece no lugar antigo.
+  const isOutOfOrder = useSharedValue(false);
   const reorderDuration = isReducedMotion ? duration.fast : duration.normal;
 
   // Os outros cartões deslizam até a nova vaga quando a ordem muda.
@@ -76,6 +83,7 @@ export const SortableCard = memo(function SortableCard({
     // null = fora da ordem da coluna (escondido pelo filtro).
     () => offsets.get()[id] ?? null,
     (next, previous) => {
+      isOutOfOrder.set(next === null);
       if (next === previous || activeId.get() === id) return;
       // A vaga mudou ou sumiu no meio do quique (ex.: troca de filtro): o quique acaba na hora.
       // Escondido, o cartão some; senão, vai direto ao lugar novo (o fantasma iria ao antigo).
@@ -99,11 +107,19 @@ export const SortableCard = memo(function SortableCard({
 
   // Vai direto para a vaga (invisível) e o quique é desenhado pelo fantasma, por cima de tudo,
   // grudado na posição da vaga na lista (acompanha as rolagens).
+  // Com a pilha (arraste em lote), o segurado só desliza até a vaga, sem quique (pedido do autor):
+  // o quique deixava a cópia por cima por mais tempo.
+  const { heldId: batchHeldId } = batch;
   const settle = (from: { top: number; left: number }, target: number) => {
     'worklet';
     top.set(target);
-    drag.settle(id, columnId, column.listRef, from, target, isReducedMotion);
+    const isBatchHeld = batchHeldId.get() === id;
+    drag.settle(id, columnId, column.listRef, from, target, isReducedMotion || isBatchHeld);
   };
+
+  // Arraste em lote: se este cartão vai para a pilha, avisa de onde sai voando (antes de sair da
+  // coluna). Escondido pelo filtro, não tem de onde voar: aparece na pilha com fade.
+  useBatchOrigin({ id, isHidden, batch, drag, column, top });
 
   const bounce = useInListBounce({ id, drag, top, isReducedMotion });
   const { left: bounceLeft, lift: bounceLift, rotation, scale } = bounce;
@@ -131,6 +147,8 @@ export const SortableCard = memo(function SortableCard({
         event.absoluteX,
       );
       column.startDrag(id);
+      // Marcado com outros marcados: os outros voam para baixo dele (pilha).
+      batch.begin(id);
     },
     onUpdate: (event) => {
       'worklet';
@@ -139,10 +157,20 @@ export const SortableCard = memo(function SortableCard({
     onDeactivate: () => {
       'worklet';
       const over = drag.overColumnId.get();
-      if (over !== null && over !== columnId && drag.slotIndex.get() >= 0) {
-        drag.dropInOtherColumn();
-        return;
+      const isBatch = batch.stackCount.get() > 1;
+      if (over !== null && over !== columnId && over !== ADD_COLUMN_SLOT) {
+        if (drag.slotIndex.get() >= 0) {
+          drag.dropInOtherColumn();
+          if (isBatch) batch.commit();
+          return;
+        }
       }
+      // Pilha solta na própria coluna do segurado (em qualquer vaga) ou sem destino: cancela
+      // (decisão do autor). Na "Adicionar coluna", também volta tudo ao lugar e a folha "Nova
+      // coluna" abre com todos os marcados. A coluna volta à ordem de antes já, para o segurado
+      // assentar no lugar de onde saiu.
+      const isBatchCancel = isBatch;
+      if (isBatchCancel) column.restoreOrder();
       // Assume do mesmo ponto e jeito da cópia e assenta na vaga dentro da lista. Solto na coluna
       // "Adicionar coluna", volta para a vaga de antes e a folha "Nova coluna" abre com ele.
       const fromTop = column.dragTop.get();
@@ -151,12 +179,14 @@ export const SortableCard = memo(function SortableCard({
       if (over === ADD_COLUMN_SLOT) drag.releaseToNewColumn();
       else drag.release();
       settle({ top: fromTop, left: fromLeft }, target);
+      if (isBatchCancel) batch.cancel();
     },
   });
 
   // Invisível enquanto o fantasma o representa (arraste e quique).
+  const { liftedIds } = batch;
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: visibleId.get() === id ? 0 : 1,
+    opacity: visibleId.get() === id || isOutOfOrder.get() || liftedIds.get().includes(id) ? 0 : 1,
     zIndex: bounceLift.get() > 0 ? 1 : 0,
     transform: [
       { translateX: bounceLeft.get() },
@@ -203,6 +233,7 @@ export const SortableCard = memo(function SortableCard({
           accessibilityActions={accessibility.accessibilityActions}
           onAccessibilityAction={accessibility.onAccessibilityAction}
           isSelected={isSelected}
+          isCheckHidden={isCheckHidden}
           onPress={isSelected !== undefined ? toggleHere : undefined}
         />
       </Animated.View>

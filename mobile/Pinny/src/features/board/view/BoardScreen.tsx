@@ -86,6 +86,7 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
     columnDrag,
     draggedColumnId,
     markColumnOrderCommitted,
+    batchStack,
     boardScrollHandler,
     originRef,
     boardScrollRef,
@@ -96,8 +97,14 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
     gutter: SCREEN_GUTTER,
     onMove: cardActions.move,
     onDrop: haptics.drop,
-    onDropOnNewColumn: vm.createColumnWithCard,
+    onDropOnNewColumn: vm.dropOnNewColumn,
     onMoveColumn: columnActions.moveTo,
+    batchOptions: {
+      selectedIds: vm.selectedInOrder,
+      onBegin: vm.startBatchDrag,
+      onEnd: vm.endBatchDrag,
+      onGathered: haptics.tick,
+    },
     isReducedMotion,
   });
   // Coluna solta numa vaga nova: avisa quando a nova ordem é desenhada (antes da pintura); a cópia
@@ -110,6 +117,14 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   const draggedColumn = draggedColumnId
     ? (vm.columns.find((column) => column.id === draggedColumnId) ?? null)
     : null;
+  // Pilha do arraste em lote: o conteúdo dos outros cartões.
+  const stackCards = batchStack
+    ? batchStack.ids.flatMap((id) => {
+        const found = vm.columns.flatMap((column) => column.cards).find((item) => item.id === id);
+        return found ? [found] : [];
+      })
+    : [];
+  const dragStack = batchStack ? { cards: stackCards } : null;
   // Conteúdo do cartão segurado, desenhado na camada de arraste.
   const draggedCard = activeCardId
     ? (vm.columns
@@ -265,13 +280,20 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
                       haptics={haptics}
                       columnDrag={columnDrag}
                       selectedIds={selection.selectedIds}
+                      isBatchDragging={vm.isBatchDragging}
                     />
                   </ColumnSlot>
                 </Animated.View>
               ))}
               {/* Selecionando, a coluna "Adicionar coluna" sai: uma tarefa de cada vez. */}
-              {isFullyMounted && !selection.isSelecting ? (
-                <AddColumnButton style={columnStyle} drag={drag} onPress={vm.createColumn} />
+              {/* Durante a pilha do arraste em lote, ela volta: soltar ali cria a coluna com todos. */}
+              {isFullyMounted && (!selection.isSelecting || vm.isBatchDragging) ? (
+                <AddColumnButton
+                  style={columnStyle}
+                  drag={drag}
+                  isBatch={vm.isBatchDragging}
+                  onPress={vm.createColumn}
+                />
               ) : null}
             </>
           )}
@@ -324,6 +346,8 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
         drag={drag}
         originRef={originRef}
         card={draggedCard}
+        isCardSelected={activeCardId !== null && selection.selectedIds?.has(activeCardId) === true}
+        stack={dragStack}
         isReducedMotion={isReducedMotion}
       />
       <ColumnDragOverlay

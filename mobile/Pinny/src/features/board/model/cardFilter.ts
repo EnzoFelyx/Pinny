@@ -160,19 +160,29 @@ export function visibleCardIds(
 }
 
 // Com filtro, a vaga do arraste conta só os cartões visíveis; o banco guarda a ordem de todos.
-// Converte a vaga visível (toIndex) no índice da lista completa da coluna, sem o cartão movido:
+// Converte a vaga visível (toIndex) no índice da lista completa da coluna, sem os cartões movidos:
 // logo depois do vizinho visível de cima ou, na primeira vaga, logo antes do primeiro visível.
-// Os cartões escondidos mantêm a ordem entre si.
+// Os cartões escondidos mantêm a ordem entre si. visible null = sem filtro (todos visíveis).
+export function toFullIndexExcluding(
+  columnIds: readonly string[],
+  movedIds: ReadonlySet<string>,
+  visible: ReadonlySet<string> | null,
+  toIndex: number,
+): number {
+  const others = columnIds.filter((id) => !movedIds.has(id));
+  const visibleOthers = visible ? others.filter((id) => visible.has(id)) : others;
+  const first = visibleOthers[0];
+  if (toIndex <= 0 || first === undefined) return first === undefined ? 0 : others.indexOf(first);
+  const previous = visibleOthers[Math.min(toIndex, visibleOthers.length) - 1];
+  return previous === undefined ? 0 : others.indexOf(previous) + 1;
+}
+
+// O mesmo, para um cartão só (arraste normal).
 export function toFullIndex(
   columnIds: readonly string[],
   movedId: string,
   visible: ReadonlySet<string>,
   toIndex: number,
 ): number {
-  const others = columnIds.filter((id) => id !== movedId);
-  const visibleOthers = others.filter((id) => visible.has(id));
-  const first = visibleOthers[0];
-  if (toIndex <= 0 || first === undefined) return first === undefined ? 0 : others.indexOf(first);
-  const previous = visibleOthers[Math.min(toIndex, visibleOthers.length) - 1];
-  return previous === undefined ? 0 : others.indexOf(previous) + 1;
+  return toFullIndexExcluding(columnIds, new Set([movedId]), visible, toIndex);
 }

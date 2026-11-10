@@ -14,6 +14,7 @@ import { assignEmptyVariants, type EmptyVariantMap } from '../model/emptyVariant
 import { toPlacement } from '../model/reorder';
 import { type BoardColumnItem, toColumnItems } from './boardItems';
 import { useBoardFilter } from './useBoardFilter';
+import { useBatchMove } from './useBatchMove';
 import { useBoardRename } from './useBoardRename';
 import { useBoardSearch } from './useBoardSearch';
 import { useCardBatchActions } from './useCardBatchActions';
@@ -224,6 +225,21 @@ export function useBoardViewModel(boardId: string) {
     onFocusColumn: setFocusRequest,
     onSaveError: reportSaveError,
   });
+  // Marcados na ordem em que foram marcados (o Set guarda a ordem de entrada).
+  const selectionOrder = useMemo(() => (selectedSet ? [...selectedSet] : []), [selectedSet]);
+  // Soltar a pilha do arraste em lote numa vaga.
+  const batchMove = useBatchMove({
+    data,
+    moveCard,
+    createColumnWithCards: columnActions.createColumnWithCards,
+    selectionOrder,
+    onDataChange: setData,
+    selectedIds: orderedSelectedIds,
+    toFullIndex: visible.toFullIndexMany,
+    onDone: endSelection,
+    notifyUndoable,
+    onSaveError: reportSaveError,
+  });
 
   return {
     title: data?.board.title ?? '',
@@ -233,7 +249,13 @@ export function useBoardViewModel(boardId: string) {
     isLoading: data === null && errorText === null,
     errorText,
     focusRequest,
-    moveCard,
+    // O soltar do arraste: com a pilha (arraste em lote), leva todos os marcados.
+    moveCard: batchMove.dropCard,
+    startBatchDrag: batchMove.startBatchDrag,
+    endBatchDrag: batchMove.endBatchDrag,
+    // Solto na coluna "Adicionar coluna" (com a pilha, leva todos os marcados).
+    dropOnNewColumn: batchMove.dropOnNewColumn,
+    isBatchDragging: batchMove.isBatchDragging,
     moveCardToAdjacentColumn,
     openMoveCard,
     openArchived,
@@ -249,6 +271,8 @@ export function useBoardViewModel(boardId: string) {
     searchResultText: search.term ? text.search.results(visible.visibleCount) : null,
     selection,
     batch,
+    // Marcados na ordem do quadro (a pilha do arraste em lote segue essa ordem).
+    selectedInOrder: orderedSelectedIds,
     selectColumnCards,
     clearColumnSelection,
     goBack: router.back,

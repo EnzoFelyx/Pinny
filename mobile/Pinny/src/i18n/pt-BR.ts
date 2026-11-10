@@ -201,8 +201,10 @@ export const ptBR = {
       placeholder: 'Em revisão',
       submit: 'Criar coluna',
       cardNotice: (title: string) => `O cartão "${title}" vai para a coluna nova.`,
+      cardsNotice: (count: number) => `Os ${count} cartões vão para a coluna nova.`,
     },
     addColumnDropHint: 'Solte para criar uma\ncoluna com este cartão',
+    addColumnDropHintMany: 'Solte para criar uma\ncoluna com estes cartões',
     addColumnHint: 'Toque para adicionar\numa nova coluna',
     emptyColumn: 'Todo plano começa com uma notinha.',
     // Uma frase por variação do estado vazio da coluna (mesma ordem das ilustrações). Curtas, para

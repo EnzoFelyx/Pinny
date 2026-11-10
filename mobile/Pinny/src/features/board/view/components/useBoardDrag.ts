@@ -14,6 +14,7 @@ import { duration } from '@/theme';
 
 import { columnIndexAt } from '../../model/reorder';
 import { ADD_COLUMN_SLOT, type BoardDrag } from './boardDrag.types';
+import { type BatchDragOptions, type BatchStackContent, useBatchDrag } from './useBatchDrag';
 import { useBoardScroll } from './useBoardScroll';
 import { type BoardColumnDrag, useColumnDrag } from './useColumnDrag';
 import { useColumnReorder } from './useColumnReorder';
@@ -36,6 +37,8 @@ interface BoardDragOptions {
   onDropOnNewColumn: (cardId: string) => void;
   // Coluna solta numa vaga nova (arraste pelo cabeçalho).
   onMoveColumn: (columnId: string, toIndex: number) => void;
+  // Arraste em lote: marcados na ordem do quadro e os avisos da pilha (useBatchDrag).
+  batchOptions: Omit<BatchDragOptions, 'isReducedMotion'>;
   isReducedMotion: boolean;
 }
 
@@ -51,6 +54,7 @@ export function useBoardDrag({
   onDrop,
   onDropOnNewColumn,
   onMoveColumn,
+  batchOptions,
   isReducedMotion,
 }: BoardDragOptions): {
   drag: BoardDrag;
@@ -69,11 +73,14 @@ export function useBoardDrag({
   draggedColumnId: string | null;
   // A tela chama quando a nova ordem das colunas já foi desenhada.
   markColumnOrderCommitted: () => void;
+  // Cartões da pilha do arraste em lote, desenhados na camada (null = sem lote).
+  batchStack: BatchStackContent | null;
 } {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
   const originRef = useAnimatedRef<View>();
   const values = useDragValues();
   const reportHeight = useHeightBatch(values.heights);
+  const { batch, stack: batchStack } = useBatchDrag({ ...batchOptions, isReducedMotion });
   const {
     activeId,
     fromColumnId,
@@ -272,6 +279,7 @@ export function useBoardDrag({
     columnDrag,
     draggedColumnId,
     markColumnOrderCommitted: columnReorder.markOrderCommitted,
+    batchStack,
     drag: {
       ...values,
       ...settle.state,
@@ -287,6 +295,7 @@ export function useBoardDrag({
       takeOver,
       markVisible,
       focusColumn: board.focusColumn,
+      batch,
     },
   };
 }

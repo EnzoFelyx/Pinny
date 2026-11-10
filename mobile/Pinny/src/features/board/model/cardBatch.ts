@@ -72,13 +72,15 @@ interface MoveTarget {
   columnId: string;
   // Quadro de destino diferente do de origem: as etiquetas são trocadas pelas de lá.
   toBoardId: string | null;
+  // Os cartões entram logo antes deste (null ou ausente = no fim da coluna).
+  nextId?: string | null;
 }
 
-// Mover: os cartões vão para o fim da coluna de destino, na ordem dada (a do quadro). Desfazer
-// volta cada um à coluna, à posição e às etiquetas de antes.
+// Mover: os cartões vão juntos para a vaga da coluna de destino (antes de nextId ou no fim), na
+// ordem dada. Desfazer volta cada um à coluna, à posição e às etiquetas de antes.
 export async function moveCards(
   cardIds: readonly string[],
-  { columnId, toBoardId }: MoveTarget,
+  { columnId, toBoardId, nextId = null }: MoveTarget,
   { cards, labels }: CardBatchRepositories,
 ): Promise<UndoOperation> {
   const moving = await existingCards(cardIds, cards);
@@ -87,10 +89,15 @@ export async function moveCards(
   const labelMap = toBoardId ? await labelMapFor([...movingIds], toBoardId, labels) : null;
   const previousLabels = labelMap ? await labels.listByCards([...movingIds]) : {};
 
+  // Um vizinho que também está sendo movido não serve de referência: vira o fim da coluna.
+  const next = nextId && !movingIds.has(nextId) ? nextId : null;
+  const nextIndex = next ? siblings.findIndex((card) => card.id === next) : -1;
   const operations: UndoOperation[] = [];
-  let previousId = siblings.at(-1)?.id ?? null;
+  // Cada cartão entra logo depois do anterior (o primeiro, depois do vizinho de cima da vaga).
+  let previousId =
+    nextIndex >= 0 ? (siblings[nextIndex - 1]?.id ?? null) : (siblings.at(-1)?.id ?? null);
   for (const card of moving) {
-    await cards.move(card.id, columnId, { previousId, nextId: null });
+    await cards.move(card.id, columnId, { previousId, nextId: nextIndex >= 0 ? next : null });
     previousId = card.id;
     operations.push({
       kind: 'moveCard',

@@ -23,6 +23,9 @@ export interface SortableColumn {
   // Lista dos cartões (sem transform), medida para posicionar o cartão na camada de arraste.
   listRef: AnimatedRef<View>;
   startDrag: (id: string) => void;
+  // Arraste em lote cancelado: a coluna volta à ordem de antes, com os levantados, e o segurado
+  // volta à vaga de onde saiu.
+  restoreOrder: () => void;
   // Solta o cartão na própria coluna e devolve o topo da vaga final.
   endDrag: () => number;
 }

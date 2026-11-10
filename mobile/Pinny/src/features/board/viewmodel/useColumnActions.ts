@@ -54,10 +54,11 @@ export function useColumnActions({
     router.push({ pathname: '/column/new', params: { boardId } });
   }, [boardId]);
 
-  // Cartão solto na coluna "Adicionar coluna": a mesma folha, avisando que ele vai para a coluna.
-  const createColumnWithCard = useCallback(
-    (cardId: string) => {
-      router.push({ pathname: '/column/new', params: { boardId, cardId } });
+  // Cartões soltos na coluna "Adicionar coluna" (um ou a pilha do arraste em lote): a mesma folha,
+  // avisando que eles vão para a coluna, na ordem dada.
+  const createColumnWithCards = useCallback(
+    (cardIds: readonly string[]) => {
+      router.push({ pathname: '/column/new', params: { boardId, cardIds: cardIds.join(',') } });
     },
     [boardId],
   );
@@ -205,7 +206,7 @@ export function useColumnActions({
 
   return {
     createColumn,
-    createColumnWithCard,
+    createColumnWithCards,
     moveColumn,
     moveColumnTo,
     renameColumn,

@@ -38,6 +38,8 @@ interface SortableColumnViewProps {
   // Arraste da coluna pelo cabeçalho (reordenar colunas).
   columnDrag: ColumnDrag;
   // Modo de seleção: os cartões marcados (null = fora do modo). Selecionando, nada arrasta.
+  // Arraste em lote em andamento: as bolinhas de seleção dos cartões somem.
+  isBatchDragging: boolean;
   selectedIds: ReadonlySet<string> | null;
 }
 
@@ -55,6 +57,7 @@ export const SortableColumnView = memo(function SortableColumnView({
   haptics,
   columnDrag,
   selectedIds,
+  isBatchDragging,
 }: SortableColumnViewProps) {
   const isSelecting = selectedIds !== null;
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -216,8 +219,12 @@ export const SortableColumnView = memo(function SortableColumnView({
                 total={cardCount}
                 column={sortable}
                 drag={drag}
-                isDragEnabled={!isEditingTitle && !isSelecting}
+                // Selecionando, só os marcados arrastam (e levam os outros juntos, na pilha).
+                isDragEnabled={
+                  !isEditingTitle && (!isSelecting || selectedIds?.has(card.id) === true)
+                }
                 isSelected={selectedIds ? selectedIds.has(card.id) : undefined}
+                isCheckHidden={isBatchDragging}
                 isReducedMotion={isReducedMotion}
                 actions={cardActions}
               />
