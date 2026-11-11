@@ -18,7 +18,7 @@
 | 4 | Dados local-first | ✅ |
 | 5 | Navegação e estrutura das telas | ✅ |
 | 6 | Quadro kanban (o diferencial) | ✅ |
-| 6R | Refac / Perform (branch própria) | ⬜ |
+| 6R | Refac / Perform (branch própria) | 🟨 |
 | 7 | Card completo | ⬜ |
 | 8 | Pastas e templates | ⬜ |
 | 9 | Notificações e calendário | ⬜ |
@@ -247,9 +247,9 @@
 > 🔔 **Lembrete do autor: medir o desempenho ANTES de refatorar.** Faça a seção 2 e registre os números antes da seção 3: eles são a base para comparar depois de cada refatoração e para decidir, arquivo por arquivo, se vale a pena mexer.
 
 ### 1. Pendências que vieram da etapa 6
-- [ ] Arraste em lote, Parte 7 — casos de borda: filtro e busca (já conferidos pelo autor em 2026-11-10, falta marcar), recarga do banco no meio do arraste e gesto interrompido pelo sistema (os cartões voltam às colunas e a seleção continua)
-- [ ] Arraste em lote, Parte 8 — anúncio "Movendo N cartões" para o VoiceOver, dica do topo na seleção ("Segure um cartão marcado para arrastar todos") e registrar as decisões da pilha no CLAUDE.md (hoje só estão no `todo.md`)
-- [ ] 🔔 **Lembrete do autor:** desenhar a tela "Arquivados" do quadro no Figma (visual final, desarquivar e apagar) e depois implementar o desenho
+- [x] Arraste em lote, Parte 7 — casos de borda: filtro e busca (conferidos pelo autor em 2026-11-10), recarga do banco no meio do arraste e gesto interrompido pelo sistema (os cartões voltam às colunas e a seleção continua; conferidos pelo autor em 2026-11-11)
+- [x] Arraste em lote, Parte 8 — decisões da pilha registradas no CLAUDE.md. Sem anúncio do VoiceOver nem dica no topo (decisão do autor, 2026-11-11): a pilha é só gesto, e a alternativa acessível é o botão "Mover" da barra de ações em lote
+- [x] Tela "Arquivados" (2026-11-11, pedido do autor): busca, desarquivar ao segurar e o "…" com Buscar, Selecionar (Desarquivar/Apagar em lote), Filtrar, Ordenar e Apagar todos
 - [ ] Conferir todas as ações do quadro pelo VoiceOver (o TalkBack fica para quando o Android voltar)
 - [ ] Testes do ViewModel do quadro (quando os testes voltarem)
 
