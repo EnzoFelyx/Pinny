@@ -45,6 +45,8 @@ export function useSortableColumn({
   onDrop,
 }: SortableColumnOptions): {
   column: SortableColumn;
+  // A lista da coluna (o mesmo `column.listRef`), para o `ref` do JSX.
+  listRef: AnimatedRef<View>;
   // Fica fora do objeto da coluna: os worklets capturam esse objeto, e o manipulador de rolagem
   // não pode ser copiado para a UI thread.
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
@@ -198,6 +200,9 @@ export function useSortableColumn({
 
   return {
     scrollHandler,
+    // Também fora do objeto: o `ref` do JSX precisa do identificador (ler `column.listRef` no
+    // render conta como acesso a ref e faz o React Compiler pular a coluna inteira).
+    listRef,
     column: {
       order,
       offsets,

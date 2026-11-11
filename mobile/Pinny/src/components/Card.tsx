@@ -1,5 +1,5 @@
 import { Check, Clock3, ListChecks, type LucideIcon } from 'lucide-react-native';
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 import {
   type AccessibilityActionEvent,
   type AccessibilityActionInfo,
@@ -53,6 +53,13 @@ interface CardProps {
   isSelected?: boolean;
   // Esconde só a bolinha do modo de seleção (ex.: durante o arraste em lote).
   isCheckHidden?: boolean;
+  // Seleção desenhada por fora, na UI thread (quadro): só o leitor de tela recebe o estado, sem o
+  // visual do isSelected. undefined = fora do modo (ou leitor de tela desligado).
+  accessibilitySelected?: boolean;
+  // Camadas desenhadas por fora (ex.: seleção animada do quadro): background fica atrás do
+  // conteúdo e overlay por cima, as duas no lugar do cartão.
+  background?: ReactNode;
+  overlay?: ReactNode;
 }
 
 type CardSurface = 'default' | 'unselected' | 'selected';
@@ -66,6 +73,8 @@ const surfaceClass: Record<CardSurface, string> = {
 };
 
 const META_ICON_SIZE = 14;
+// Lugar da bolinha de seleção no cartão (também usado pela seleção animada do quadro).
+export const CARD_CHECK_POSITION = 'right-2.5 top-2.5';
 
 const deadlineStyle: Record<
   DeadlineStatus,
@@ -93,24 +102,30 @@ export const Card = memo(function Card({
   onAccessibilityAction,
   isSelected,
   isCheckHidden = false,
+  accessibilitySelected,
+  background,
+  overlay,
 }: CardProps) {
   const isSelecting = isSelected !== undefined;
+  const checked = isSelected ?? accessibilitySelected;
+  const isCheckable = checked !== undefined;
   const surface: CardSurface = isSelecting ? (isSelected ? 'selected' : 'unselected') : 'default';
   const hasTags = labels.length > 0 || priority !== undefined;
   const hasMeta = deadline !== undefined || checklistText !== undefined;
 
   return (
     <Pressable
-      accessibilityRole={isSelecting ? 'checkbox' : 'button'}
-      accessibilityState={isSelecting ? { checked: isSelected } : undefined}
+      accessibilityRole={isCheckable ? 'checkbox' : 'button'}
+      accessibilityState={isCheckable ? { checked } : undefined}
       accessibilityLabel={accessibilityLabel}
       // Selecionando, o toque só marca: as ações de mover voltam ao sair do modo.
-      accessibilityActions={isSelecting ? undefined : accessibilityActions}
-      onAccessibilityAction={isSelecting ? undefined : onAccessibilityAction}
+      accessibilityActions={isCheckable ? undefined : accessibilityActions}
+      onAccessibilityAction={isCheckable ? undefined : onAccessibilityAction}
       onPress={onPress}
       onLongPress={onLongPress}
       className={`w-full gap-2 rounded-[18px] border-2 p-3 shadow-card ${surfaceClass[surface]}`}
     >
+      {background}
       {thumbnail ? (
         <Image source={thumbnail} resizeMode="cover" className="h-14 w-full rounded-[12px]" />
       ) : null}
@@ -152,8 +167,9 @@ export const Card = memo(function Card({
       ) : null}
 
       {isSelecting && !isCheckHidden ? (
-        <SelectionCheck isSelected={isSelected === true} className="right-2.5 top-2.5" />
+        <SelectionCheck isSelected={isSelected === true} className={CARD_CHECK_POSITION} />
       ) : null}
+      {overlay}
     </Pressable>
   );
 });

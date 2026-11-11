@@ -17,7 +17,9 @@ import type { CardActions, ColumnActions, DragHaptics } from './boardActions';
 import type { BoardDrag } from './useBoardDrag';
 import type { ColumnDrag } from './useColumnDrag';
 import { usePullToDelete } from './usePullToDelete';
+import type { SelectionValues } from './useSelectionValues';
 import { useColumnLift } from './useColumnLift';
+import { useIdentityWarning } from '@/hooks/useIdentityWarning';
 import { useSortableColumn } from './useSortableColumn';
 
 // ScrollView do Gesture Handler: quando o arraste começa, ele para de rolar a coluna.
@@ -37,10 +39,14 @@ interface SortableColumnViewProps {
   haptics: DragHaptics;
   // Arraste da coluna pelo cabeçalho (reordenar colunas).
   columnDrag: ColumnDrag;
-  // Modo de seleção: os cartões marcados (null = fora do modo). Selecionando, nada arrasta.
-  // Arraste em lote em andamento: as bolinhas de seleção dos cartões somem.
-  isBatchDragging: boolean;
-  selectedIds: ReadonlySet<string> | null;
+  // Modo de seleção. Os marcados ficam na UI thread (selection), para marcar um cartão não
+  // redesenhar a coluna nem os cartões; a coluna só sabe se está no modo e se tem marcado.
+  isSelecting: boolean;
+  hasSelected: boolean;
+  selection: SelectionValues;
+  // Só com o leitor de tela ligado: os marcados, para cada cartão se anunciar como caixa de
+  // seleção (null = fora do modo ou leitor de tela desligado).
+  accessibilitySelectedIds: ReadonlySet<string> | null;
 }
 
 // Coluna do quadro inteira rolável (como no kanban antigo): o cabeçalho fica preso no topo e o
@@ -56,12 +62,20 @@ export const SortableColumnView = memo(function SortableColumnView({
   columnActions,
   haptics,
   columnDrag,
-  selectedIds,
-  isBatchDragging,
+  isSelecting,
+  hasSelected,
+  selection,
+  accessibilitySelectedIds,
 }: SortableColumnViewProps) {
-  const isSelecting = selectedIds !== null;
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-  const { column: sortable, scrollHandler } = useSortableColumn({
+  // Identidade fixa esperada: se um destes mudar, todos os cartões da coluna redesenham.
+  useIdentityWarning(drag, 'drag');
+  useIdentityWarning(columnDrag, 'columnDrag');
+  const {
+    column: sortable,
+    scrollHandler,
+    listRef,
+  } = useSortableColumn({
     columnId: column.id,
     ids: column.visibleCards.map((card) => card.id),
     scrollRef,
@@ -118,14 +132,17 @@ export const SortableColumnView = memo(function SortableColumnView({
     () => clearSelection(column.id),
     [clearSelection, column.id],
   );
-  const hasSelected = selectedIds ? column.cards.some((card) => selectedIds.has(card.id)) : false;
   const renameHere = useCallback((title: string) => rename(column.id, title), [rename, column.id]);
   // Enquanto o título é editado, a coluna não rola (nem o "puxar para excluir") e os cartões não
   // arrastam: um gesto sem querer não tira o foco do campo.
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   // Segurar o cabeçalho levanta a coluna: a cópia segue o dedo por cima de tudo e esta fica
   // invisível no lugar (trocar de lugar vem depois).
-  const columnLift = useColumnLift({
+  const {
+    gesture: liftGesture,
+    frameRef,
+    hiddenStyle: liftHiddenStyle,
+  } = useColumnLift({
     columnId: column.id,
     isEnabled: !isEditingTitle && !isSelecting,
     columnDrag,
@@ -133,7 +150,7 @@ export const SortableColumnView = memo(function SortableColumnView({
   });
 
   return (
-    <Animated.View style={[styles.wrapper, columnLift.hiddenStyle]}>
+    <Animated.View style={[styles.wrapper, liftHiddenStyle]}>
       {/* Atrás da coluna: aparece no espaço que o iOS revela ao puxar para baixo. */}
       <PullToDeleteIndicator
         pull={pullToDelete.pull}
@@ -141,7 +158,7 @@ export const SortableColumnView = memo(function SortableColumnView({
         visibility={pullToDelete.visibility}
       />
       {/* Parte visível da coluna (altura do conteúdo, até a da tela): de onde a cópia começa. */}
-      <Animated.View ref={columnLift.frameRef} collapsable={false} style={styles.frame}>
+      <Animated.View ref={frameRef} collapsable={false} style={styles.frame}>
         <AnimatedScrollView
           ref={scrollRef}
           onScroll={scrollHandler}
@@ -154,7 +171,7 @@ export const SortableColumnView = memo(function SortableColumnView({
           style={styles.scroll}
           contentContainerStyle={styles.content}
         >
-          <GestureDetector gesture={columnLift.gesture}>
+          <GestureDetector gesture={liftGesture}>
             <Animated.View collapsable={false}>
               <ColumnHeader
                 title={column.title}
@@ -193,7 +210,7 @@ export const SortableColumnView = memo(function SortableColumnView({
 
           {/* Sempre montada (altura 0 sem cartões): a vaga também aparece numa coluna vazia. */}
           <Animated.View
-            ref={sortable.listRef}
+            ref={listRef}
             // Medida pelo arraste e pelo quique a cada quadro: não pode ser achatada.
             collapsable={false}
             onLayout={measureList}
@@ -219,12 +236,11 @@ export const SortableColumnView = memo(function SortableColumnView({
                 total={cardCount}
                 column={sortable}
                 drag={drag}
-                // Selecionando, só os marcados arrastam (e levam os outros juntos, na pilha).
-                isDragEnabled={
-                  !isEditingTitle && (!isSelecting || selectedIds?.has(card.id) === true)
+                isDragEnabled={!isEditingTitle}
+                selection={selection}
+                accessibilitySelected={
+                  accessibilitySelectedIds ? accessibilitySelectedIds.has(card.id) : undefined
                 }
-                isSelected={selectedIds ? selectedIds.has(card.id) : undefined}
-                isCheckHidden={isBatchDragging}
                 isReducedMotion={isReducedMotion}
                 actions={cardActions}
               />

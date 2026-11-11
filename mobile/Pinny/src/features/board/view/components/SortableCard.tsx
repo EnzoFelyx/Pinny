@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { type LayoutChangeEvent, StyleSheet } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
@@ -16,10 +16,12 @@ import type { BoardCardItem } from '../../viewmodel/boardItems';
 import type { CardActions } from './boardActions';
 import { ADD_COLUMN_SLOT } from './boardDrag.types';
 import type { BoardDrag } from './useBoardDrag';
+import { CardSelectionBackground, CardSelectionCheck } from './CardSelectionLayers';
 import { useBatchOrigin } from './useBatchOrigin';
 import { useCardAccessibilityActions } from './useCardAccessibilityActions';
 import { useInListBounce } from './useInListBounce';
 import type { SortableColumn } from './sortableColumn.types';
+import type { SelectionValues } from './useSelectionValues';
 
 const CARD_RADIUS = 18;
 
@@ -39,10 +41,12 @@ interface SortableCardProps {
   isDragEnabled: boolean;
   isReducedMotion: boolean;
   actions: CardActions;
-  // Modo de seleção: marcado ou não (undefined = fora do modo); o toque marca/desmarca.
-  isSelected?: boolean;
-  // Arraste em lote em andamento: as bolinhas de seleção somem.
-  isCheckHidden: boolean;
+  // Modo de seleção na UI thread: o visual e o arraste (só os marcados arrastam) leem daqui, sem
+  // redesenhar o cartão. O toque marca/desmarca (fora do modo, não faz nada).
+  selection: SelectionValues;
+  // Só com o leitor de tela ligado: marcado ou não, para ele ler o cartão como caixa de seleção
+  // (undefined = fora do modo).
+  accessibilitySelected?: boolean;
 }
 
 // Cartão do quadro: segurar e arrastar muda a ordem ou a coluna. Enquanto o dedo segura e
@@ -62,8 +66,8 @@ export const SortableCard = memo(function SortableCard({
   isDragEnabled,
   isReducedMotion,
   actions,
-  isSelected,
-  isCheckHidden,
+  selection,
+  accessibilitySelected,
 }: SortableCardProps) {
   const { id } = card;
   // Só os valores que cada animação lê: um worklet que captura o objeto `drag` ou `column` inteiro
@@ -133,11 +137,20 @@ export const SortableCard = memo(function SortableCard({
     },
   );
 
+  // Selecionando, só os marcados arrastam (e levam os outros juntos, na pilha). Decidido na UI
+  // thread ao ativar, não pelo `enabled`: um shared value no `enabled` faz o RNGH reconfigurar o
+  // handler nativo de cada cartão a cada mudança (400 chamadas ao entrar e sair do modo), e uma
+  // prop boolean redesenharia todos os cartões. Segurar um cartão não marcado só não faz nada.
+  const { marked } = selection;
+  const isDragging = useSharedValue(false);
   const gesture = usePanGesture({
     enabled: isDragEnabled,
     activateAfterLongPress: DRAG_ACTIVATION_MS,
     onActivate: (event) => {
       'worklet';
+      const map = marked.get();
+      if (map !== null && map[id] !== true) return;
+      isDragging.set(true);
       drag.begin(
         id,
         columnId,
@@ -152,10 +165,13 @@ export const SortableCard = memo(function SortableCard({
     },
     onUpdate: (event) => {
       'worklet';
+      if (!isDragging.get()) return;
       drag.move(event.translationX, event.translationY, event.absoluteX);
     },
     onDeactivate: () => {
       'worklet';
+      if (!isDragging.get()) return;
+      isDragging.set(false);
       const over = drag.overColumnId.get();
       const isBatch = batch.stackCount.get() > 1;
       if (over !== null && over !== columnId && over !== ADD_COLUMN_SLOT) {
@@ -204,6 +220,14 @@ export const SortableCard = memo(function SortableCard({
 
   const { toggleSelect } = actions;
   const toggleHere = useCallback(() => toggleSelect(id), [toggleSelect, id]);
+  const selectionBackground = useMemo(
+    () => <CardSelectionBackground id={id} selection={selection} />,
+    [id, selection],
+  );
+  const selectionCheck = useMemo(
+    () => <CardSelectionCheck id={id} selection={selection} />,
+    [id, selection],
+  );
 
   const accessibility = useCardAccessibilityActions({
     cardId: id,
@@ -232,9 +256,10 @@ export const SortableCard = memo(function SortableCard({
           checklistText={card.checklistText}
           accessibilityActions={accessibility.accessibilityActions}
           onAccessibilityAction={accessibility.onAccessibilityAction}
-          isSelected={isSelected}
-          isCheckHidden={isCheckHidden}
-          onPress={isSelected !== undefined ? toggleHere : undefined}
+          accessibilitySelected={accessibilitySelected}
+          background={selectionBackground}
+          overlay={selectionCheck}
+          onPress={toggleHere}
         />
       </Animated.View>
     </GestureDetector>

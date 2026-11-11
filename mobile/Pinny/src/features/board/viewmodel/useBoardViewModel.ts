@@ -202,6 +202,18 @@ export function useBoardViewModel(boardId: string) {
         : [],
     [columns, selectedSet],
   );
+  // Colunas com algum cartão marcado (o "Selecionar todos" vira "Limpar" só nelas).
+  const selectedColumnIds = useMemo(
+    () =>
+      selectedSet
+        ? new Set(
+            columns
+              .filter((column) => column.cards.some((card) => selectedSet.has(card.id)))
+              .map((column) => column.id),
+          )
+        : null,
+    [columns, selectedSet],
+  );
   const titleOf = useCallback(
     (cardId: string) =>
       columns.flatMap((column) => column.cards).find((card) => card.id === cardId)?.title,
@@ -277,6 +289,7 @@ export function useBoardViewModel(boardId: string) {
     batch,
     // Marcados na ordem do quadro (a pilha do arraste em lote segue essa ordem).
     selectedInOrder: orderedSelectedIds,
+    selectedColumnIds,
     selectColumnCards,
     clearColumnSelection,
     goBack: router.back,

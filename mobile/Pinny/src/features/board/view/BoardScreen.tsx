@@ -14,6 +14,7 @@ import { useDestructiveConfirm } from '@/hooks/useDestructiveConfirm';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useMinimumDuration } from '@/hooks/useMinimumDuration';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useScreenReaderEnabled } from '@/hooks/useScreenReaderEnabled';
 import { ptBR } from '@/i18n/pt-BR';
 import { colors, duration, skeleton } from '@/theme';
 
@@ -28,6 +29,7 @@ import { ColumnSlot } from './components/ColumnSlot';
 import { DragOverlay } from './components/DragOverlay';
 import { FilterSkeletonOverlay } from './components/FilterSkeletonOverlay';
 import { SortableColumnView } from './components/SortableColumn';
+import { useSelectionValues } from './components/useSelectionValues';
 import { useBoardActions } from './components/useBoardActions';
 import { useBoardDrag } from './components/useBoardDrag';
 
@@ -76,10 +78,15 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   useEffect(() => {
     if (searchResultText) AccessibilityInfo.announceForAccessibility(searchResultText);
   }, [searchResultText]);
-  const { cardActions, columnActions } = useBoardActions({
-    ...vm,
-    toggleCardSelection: selection.toggle,
-  });
+  // Seleção na UI thread para os cartões; com o leitor de tela ligado, eles também recebem os
+  // marcados pelo React (caixa de seleção).
+  const selectionValues = useSelectionValues(selection.selectedIds, vm.isBatchDragging);
+  const isScreenReaderOn = useScreenReaderEnabled();
+  const { cardActions, columnActions, dropOnNewColumn, startBatchDrag, endBatchDrag } =
+    useBoardActions({
+      ...vm,
+      toggleCardSelection: selection.toggle,
+    });
   const {
     drag,
     activeCardId,
@@ -97,12 +104,12 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
     gutter: SCREEN_GUTTER,
     onMove: cardActions.move,
     onDrop: haptics.drop,
-    onDropOnNewColumn: vm.dropOnNewColumn,
+    onDropOnNewColumn: dropOnNewColumn,
     onMoveColumn: columnActions.moveTo,
     batchOptions: {
       selectedIds: vm.selectedInOrder,
-      onBegin: vm.startBatchDrag,
-      onEnd: vm.endBatchDrag,
+      onBegin: startBatchDrag,
+      onEnd: endBatchDrag,
       onGathered: haptics.tick,
     },
     isReducedMotion,
@@ -279,8 +286,10 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
                       columnActions={columnActions}
                       haptics={haptics}
                       columnDrag={columnDrag}
-                      selectedIds={selection.selectedIds}
-                      isBatchDragging={vm.isBatchDragging}
+                      isSelecting={selection.isSelecting}
+                      hasSelected={vm.selectedColumnIds?.has(column.id) ?? false}
+                      selection={selectionValues}
+                      accessibilitySelectedIds={isScreenReaderOn ? selection.selectedIds : null}
                     />
                   </ColumnSlot>
                 </Animated.View>
