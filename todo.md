@@ -306,7 +306,7 @@
 
 - [ ] Criar, renomear e excluir pastas
   - [x] Tela da pasta (`/folder/[folderId]`, aberta pelo "+N quadros" da Início): todos os quadros em grade, busca pelo nome, "Novo quadro" no fim, renomear no título e no "…", estado vazio e skeleton (adiantado em 2026-11-03)
-  - [ ] "Excluir pasta" no "…" da tela da pasta (confirmação e desfazer)
+  - [x] "Apagar" pasta no "⋮" da Início e no "…" da tela da pasta, com confirmação e desfazer (adiantado em 2026-11-11: o item existia mas não fazia nada)
   - [ ] Segurar e arrastar para reordenar os quadros na tela da pasta
 - [ ] Pastas arquivadas (pedido do autor, 2026-11-03)
   - [ ] Opção "Arquivar" no "⋮" da pasta (Início) e no "…" da tela da pasta; a pasta arquivada sai da Início (e das fixadas)
