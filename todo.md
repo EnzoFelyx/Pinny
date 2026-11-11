@@ -259,6 +259,8 @@
 - [ ] 60fps em build de release com ~300 cartões num aparelho intermediário
 - [ ] 🔔 **Lembrete do autor:** testar o desempenho do **arraste em lote (pilha)** em quadros grandes: juntar, mover a pilha com a rolagem automática, soltar em outra coluna e cancelar na própria coluna
 - [ ] 🔔 **Lembrete do autor:** testar o desempenho do **modo "Selecionar"** em quadros grandes: entrar e sair do modo, marcar e desmarcar, "Selecionar todos" / "Limpar" da coluna e as ações em lote (Mover, Arquivar, Apagar)
+- [x] Modo "Selecionar" no 40×10 (2026-11-11): seleção levada para a UI thread e, na investigação, achado o vazamento geral: `drag`/`columnDrag` perdiam a identidade (callbacks do VM sem `useStableCallback` e bailouts do React Compiler em `SortableColumn` e `useColumnReorder`), redesenhando os 400 cartões a cada render do quadro. Detalhes no CLAUDE.md (6.4, performance)
+- [ ] Antes e depois de cada refatoração da seção 3, rodar `npm run compiler:check -- <arquivo>`: um bailout novo no caminho quente desfaz a memoização do arquivo inteiro
 - [ ] Registrar os números medidos (e o que mudou com cada refatoração) no CLAUDE.md
 
 ### 3. Refatoração dos arquivos acima de ~200 linhas (por último)
