@@ -71,13 +71,13 @@ export function matchesCardFilter(item: BoardCard, filter: CardFilter, now: Date
   return matchesDeadline(item, filter.deadline, now);
 }
 
-// Quantos cartões do quadro passam no filtro (o botão "Mostrar N cartões").
-export function countMatchingCards(data: BoardData, filter: CardFilter, now: Date): number {
-  return data.columns.reduce(
-    (total, column) =>
-      total + column.cards.filter((item) => matchesCardFilter(item, filter, now)).length,
-    0,
-  );
+// Quantos cartões passam no filtro (o botão "Mostrar N cartões").
+export function countMatchingCards(
+  cards: readonly BoardCard[],
+  filter: CardFilter,
+  now: Date,
+): number {
+  return cards.filter((item) => matchesCardFilter(item, filter, now)).length;
 }
 
 // Liga ou desliga um valor numa lista (seleção múltipla), sem alterar a original.

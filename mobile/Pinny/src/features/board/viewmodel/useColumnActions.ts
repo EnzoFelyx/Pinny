@@ -168,16 +168,24 @@ export function useColumnActions({
   );
 
   // Puxar e segurar a coluna (ou "Excluir coluna" no menu) pede a confirmação no alerta nativo.
+  // O alerta conta também os arquivados da coluna, que vão embora junto com ela.
   const requestDeleteColumn = useCallback(
-    (columnId: string) => {
+    async (columnId: string) => {
       const target = data?.columns.find((item) => item.column.id === columnId);
       if (!target) return;
-      const cardCount = target.cards.length;
+      const archived = await cardRepository
+        .listArchivedByColumns([columnId])
+        .then((cards) => cards.length)
+        .catch((error: unknown) => {
+          console.warn('Falha ao contar os arquivados da coluna.', error);
+          return 0;
+        });
+      const active = target.cards.length;
       setColumnToDelete({
         id: columnId,
         title: target.column.title,
         // Sem cartões, o alerta fica só com o título.
-        message: cardCount > 0 ? text.deleteColumnMessage(cardCount) : undefined,
+        message: active + archived > 0 ? text.deleteColumnMessage(active, archived) : undefined,
       });
     },
     [data],

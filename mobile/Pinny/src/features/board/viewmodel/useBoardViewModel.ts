@@ -47,7 +47,11 @@ export function useBoardViewModel(boardId: string) {
     });
   }, []);
   // Filtro do quadro (só enquanto ele está aberto): todas as colunas, só os cartões que passam.
-  const filter = useBoardFilter(boardId, data);
+  const allCards = useMemo(
+    () => (data ? data.columns.flatMap((column) => column.cards) : null),
+    [data],
+  );
+  const filter = useBoardFilter(boardId, allCards);
   // "Buscar lembrete": vale junto com o filtro.
   const search = useBoardSearch();
   const visible = useVisibleCards(data, columns, filter.applied, search.term);

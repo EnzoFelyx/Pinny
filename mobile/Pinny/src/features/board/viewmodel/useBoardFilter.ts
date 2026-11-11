@@ -5,7 +5,7 @@ import { PRIORITIES } from '@/db/schema';
 import { ptBR } from '@/i18n/pt-BR';
 
 import type { Label } from '../model/board.schema';
-import type { BoardData } from '../model/boardData';
+import type { BoardCard } from '../model/boardData';
 import {
   type ActiveFilterPart,
   activeFilterParts,
@@ -23,9 +23,10 @@ import { labelRepository } from '../model/labelRepository';
 
 const text = ptBR.board.filter;
 
-// Modal "Filtrar" do quadro: as escolhas ficam num rascunho até "Mostrar N cartões"; fechar
+// Modal "Filtrar" (quadro e Arquivados): as escolhas ficam num rascunho até "Mostrar N cartões"; fechar
 // descarta o rascunho. O botão mostra, ao vivo, quantos cartões passam.
-export function useBoardFilter(boardId: string, data: BoardData | null) {
+// cards: os cartões que o filtro percorre (todos do quadro ou os arquivados). null = carregando.
+export function useBoardFilter(boardId: string, cards: readonly BoardCard[] | null) {
   const [isOpen, setIsOpen] = useState(false);
   const [applied, setAppliedNow] = useState<CardFilter>(EMPTY_CARD_FILTER);
   // O quadro filtrado é montado em segundo plano (transição): a tela não trava e, se demorar,
@@ -62,8 +63,8 @@ export function useBoardFilter(boardId: string, data: BoardData | null) {
   }, [draft, setApplied]);
 
   const matchCount = useMemo(
-    () => (data ? countMatchingCards(data, draft, new Date()) : 0),
-    [data, draft],
+    () => (cards ? countMatchingCards(cards, draft, new Date()) : 0),
+    [cards, draft],
   );
 
   // Texto do chip de cada parte ligada do filtro (etiqueta apagada não vira chip).

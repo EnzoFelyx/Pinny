@@ -126,6 +126,7 @@ export const ptBR = {
       deleteBoard: 'Apagar Quadro',
       deleteBoards: 'Apagar Quadros',
       archiveCards: 'Arquivar Cartões',
+      unarchiveCards: 'Desarquivar Cartões',
       deleteCards: 'Apagar Cartões',
       moveCards: 'Movimento de Cartões',
       duplicateBoard: 'Duplicação de Quadro',
@@ -174,9 +175,34 @@ export const ptBR = {
       cardsMoved: (count: number, column: string) =>
         count === 1 ? `Cartão movido para ${column}` : `${count} cartões movidos para ${column}`,
     },
-    // Tela "Arquivados" (… do quadro), provisória até o desenho no Figma.
+    // Tela "Arquivados" (… do quadro). A busca usa os textos de "search" abaixo.
     archived: {
       title: 'Arquivados',
+      options: 'Opções dos arquivados',
+      // "…" do topo. O "Ordenar" abre um submenu; o item em uso leva o check.
+      menu: {
+        search: 'Buscar',
+        select: 'Selecionar',
+        filter: 'Filtrar',
+        sort: 'Ordenar',
+        sortOptions: {
+          recent: 'Mais recentes',
+          oldest: 'Mais antigos',
+          byColumn: 'Por coluna de origem',
+        },
+        deleteAll: 'Apagar todos',
+      },
+      // Segurar o cartão (menu de contexto) e a barra da seleção: cada um volta ao topo da coluna
+      // de onde saiu.
+      unarchive: 'Desarquivar',
+      unarchiveA11y: 'Desarquivar os cartões selecionados',
+      // column null = os cartões voltaram para colunas diferentes.
+      unarchived: (count: number, column: string | null) => {
+        const what = count === 1 ? 'Cartão desarquivado' : `${count} cartões desarquivados`;
+        return column ? `${what} em ${column}` : what;
+      },
+      deleteAllTitle: (count: number) =>
+        count === 1 ? 'Apagar o cartão arquivado?' : `Apagar os ${count} cartões arquivados?`,
       columnTitle: 'Cartões arquivados',
       empty: 'Nenhum cartão arquivado por aqui.',
       loadError: 'Não conseguimos abrir os arquivados agora. Tente de novo em instantes.',
@@ -334,10 +360,17 @@ export const ptBR = {
     },
     dragHint: 'Segure um cartão ou uma coluna para mudar a ordem.',
     deleteColumnTitle: (title: string) => `Apagar a coluna "${title}"?`,
-    deleteColumnMessage: (count: number) =>
-      count === 1
-        ? 'O cartão dela também vai embora.'
-        : `Os ${count} cartões dela também vão embora.`,
+    // Conta também os arquivados da coluna, que vão embora junto com ela.
+    deleteColumnMessage: (active: number, archived: number) => {
+      const goes = (count: number) => (count === 1 ? 'vai' : 'vão');
+      const archivedOnly =
+        archived === 1 ? 'O cartão arquivado dela' : `Os ${archived} cartões arquivados dela`;
+      if (active === 0) return `${archivedOnly} também ${goes(archived)} embora.`;
+      const activePart = active === 1 ? 'O cartão dela' : `Os ${active} cartões dela`;
+      if (archived === 0) return `${activePart} também ${goes(active)} embora.`;
+      const archivedPart = archived === 1 ? '1 arquivado' : `${archived} arquivados`;
+      return `${activePart} e ${archivedPart} também vão embora.`;
+    },
     deleteColumnConfirm: 'Apagar',
     deleteColumnCancel: 'Cancelar',
     columnDeleted: 'Coluna apagada',
