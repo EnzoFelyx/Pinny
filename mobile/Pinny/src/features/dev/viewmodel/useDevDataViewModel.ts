@@ -4,6 +4,7 @@ import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { labelRepository } from '@/features/board/model/labelRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
+import { folderRepository } from '@/features/folders/model/folderRepository';
 import {
   applyUndo,
   type HistoryEntry,
@@ -88,6 +89,7 @@ export function useDevDataViewModel() {
           columns: columnRepository,
           boards: boardRepository,
           labels: labelRepository,
+          folders: folderRepository,
         });
         setHistory(rest);
         return text.undone(entry.description);

@@ -15,6 +15,12 @@ import { type BoardPlace, restoreBoardPlace } from '@/features/board/model/board
 import type { BoardRepository } from '@/features/board/model/boardRepository';
 import type { ColumnRepository } from '@/features/board/model/columnRepository';
 import type { LabelRepository } from '@/features/board/model/labelRepository';
+import {
+  type FolderSnapshot,
+  removeFolderWithContent,
+  restoreFolderWithContent,
+} from '@/features/folders/model/folderRemoval';
+import type { FolderRepository } from '@/features/folders/model/folderRepository';
 
 // Histórico de ações (base do "Desfazer"). Cada entrada guarda como voltar ao estado anterior.
 // Novos tipos entram conforme as ações chegam (ex.: excluir coluna na etapa 6).
@@ -50,6 +56,10 @@ export type UndoOperation =
   | { kind: 'restoreBoard'; snapshot: BoardSnapshot }
   // Desfaz "Mover quadro": volta à pasta, à posição e à fixação de antes.
   | { kind: 'moveBoard'; place: BoardPlace }
+  // Refaz a exclusão de uma pasta: apaga de novo, guardando o retrato.
+  | { kind: 'deleteFolder'; folderId: string }
+  // Desfaz uma exclusão de pasta: recria a pasta e todos os quadros dela.
+  | { kind: 'restoreFolder'; snapshot: FolderSnapshot }
   // Várias operações como uma ação só (ex.: criar a coluna e levar o cartão para ela). Desfaz na
   // ordem dada; a inversa refaz na ordem contrária.
   | { kind: 'sequence'; operations: UndoOperation[] };
@@ -97,6 +107,7 @@ export interface UndoRepositories {
   columns: ColumnRepository;
   boards: BoardRepository;
   labels: LabelRepository;
+  folders: FolderRepository;
 }
 
 // Campos do patch com os valores atuais do cartão: o que é preciso para voltar uma edição.
@@ -206,5 +217,12 @@ export async function applyUndo(
       const place = await restoreBoardPlace(operation.place, boards);
       return place ? { kind: 'moveBoard', place } : null;
     }
+    case 'deleteFolder': {
+      const snapshot = await removeFolderWithContent(operation.folderId, repositories);
+      return snapshot ? { kind: 'restoreFolder', snapshot } : null;
+    }
+    case 'restoreFolder':
+      await restoreFolderWithContent(operation.snapshot, repositories);
+      return { kind: 'deleteFolder', folderId: operation.snapshot.folder.id };
   }
 }

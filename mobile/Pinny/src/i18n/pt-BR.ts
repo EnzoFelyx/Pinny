@@ -52,6 +52,13 @@ export const ptBR = {
     deleteBoardCancel: 'Cancelar',
     boardDeleted: 'Quadro apagado',
     boardsDeleted: (count: number) => `${count} quadros apagados`,
+    // "Apagar" do "⋮" da pasta (Início) e do "…" da tela da pasta.
+    deleteFolderTitle: (title: string) => `Apagar a pasta "${title}"?`,
+    deleteFolderMessage: (boardCount: number) =>
+      boardCount === 1
+        ? 'O quadro dela, com as colunas e os cartões, também vai embora.'
+        : `Os ${boardCount} quadros dela, com as colunas e os cartões, também vão embora.`,
+    folderDeleted: 'Pasta apagada',
     createBoardA11y: (folderTitle: string) => `Criar um quadro na pasta ${folderTitle}`,
     createFirstBoard: 'Criar o primeiro quadro',
     // Última vaga da pasta na Início quando há quadros de fora (abre a tela da pasta).
@@ -125,6 +132,7 @@ export const ptBR = {
       renameBoard: 'Renomeação de Quadro',
       deleteBoard: 'Apagar Quadro',
       deleteBoards: 'Apagar Quadros',
+      deleteFolder: 'Apagar Pasta',
       archiveCards: 'Arquivar Cartões',
       unarchiveCards: 'Desarquivar Cartões',
       deleteCards: 'Apagar Cartões',

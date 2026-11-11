@@ -6,13 +6,12 @@ import { ptBR } from '@/i18n/pt-BR';
 import { formatWeekdayAndDate } from '@/utils/date';
 
 import { toFolderItem, useFolderItems } from './useFolderItems';
+import { useDeleteFolder } from './useDeleteFolder';
 import { useTogglePin } from './useTogglePin';
 
 const text = ptBR.folders;
 // Provisório: o nome virá da primeira abertura do app, guardado só no aparelho.
 const USER_NAME = 'Enzo';
-
-function noop() {}
 
 export function useHomeViewModel() {
   // "+" depois dos quadros da pasta, "Criar o primeiro quadro" e "Novo quadro" do "⋮": folha
@@ -21,6 +20,7 @@ export function useHomeViewModel() {
     router.push({ pathname: '/folder/[folderId]/new-board', params: { folderId } });
   }, []);
   const togglePin = useTogglePin();
+  const deleteFolder = useDeleteFolder();
   const folderActions = useMemo(
     () => ({
       customize: (folderId: string) => {
@@ -28,9 +28,9 @@ export function useHomeViewModel() {
       },
       createBoard,
       pin: togglePin,
-      delete: noop,
+      delete: deleteFolder.request,
     }),
-    [createBoard, togglePin],
+    [createBoard, togglePin, deleteFolder.request],
   );
   const { items, loadErrorText, openBoard } = useFolderItems();
   const folders = useMemo(() => {
@@ -50,8 +50,11 @@ export function useHomeViewModel() {
     // As folhas são rotas com apresentação nativa ("formSheet", ver app/_layout.tsx).
     createFolder: useCallback(() => router.push('/folder/new'), []),
     // "⋮" da pasta. Personalizar abre, por enquanto, a folha de renomear (cor e ícone chegam na
-    // etapa 8); Fixar no topo / Desafixar funciona; Excluir ainda não faz nada.
+    // etapa 8); Fixar no topo / Desafixar e Apagar (alerta e desfazer).
     folderActions,
+    deleteFolderRequest: deleteFolder.confirmRequest,
+    confirmDeleteFolder: deleteFolder.confirm,
+    cancelDeleteFolder: deleteFolder.cancel,
     // "+N quadros": abre a tela da pasta, com todos os quadros.
     openFolder: useCallback((folderId: string) => {
       router.push({ pathname: '/folder/[folderId]', params: { folderId } });

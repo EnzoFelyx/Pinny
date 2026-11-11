@@ -1,6 +1,7 @@
 import { ScrollView, Text, View } from 'react-native';
 
 import { EmptyState } from '@/components/EmptyState';
+import { useDestructiveConfirm } from '@/hooks/useDestructiveConfirm';
 import { ptBR } from '@/i18n/pt-BR';
 
 import { useHomeViewModel } from '../viewmodel/useHomeViewModel';
@@ -12,6 +13,10 @@ const text = ptBR.folders;
 // Tela Início: pastas e seus quadros. A busca fica na aba própria, ao lado da tab bar.
 export function HomeScreen() {
   const vm = useHomeViewModel();
+  useDestructiveConfirm(vm.deleteFolderRequest, {
+    onConfirm: vm.confirmDeleteFolder,
+    onCancel: vm.cancelDeleteFolder,
+  });
 
   return (
     <View className="flex-1 bg-background">
