@@ -155,3 +155,16 @@ export function toColumnItems(
     return old && isSameColumnItem(old, column) ? old : column;
   });
 }
+
+// Cartões pelos ids, na ordem dada (os que não estão mais no quadro ficam de fora). Usado pela
+// camada de arraste: o cartão segurado e os da pilha.
+export function findCardItems(
+  columns: readonly BoardColumnItem[],
+  ids: readonly string[],
+): BoardCardItem[] {
+  const byId = new Map(columns.flatMap((column) => column.cards.map((card) => [card.id, card])));
+  return ids.flatMap((id) => {
+    const card = byId.get(id);
+    return card ? [card] : [];
+  });
+}

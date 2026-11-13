@@ -9,10 +9,9 @@ import {
   type CardFilter,
   matchesCardFilter,
   matchesSearch,
-  toFullIndex,
-  toFullIndexExcluding,
   visibleCardIds,
 } from '../model/cardFilter';
+import { toFullIndex, toFullIndexExcluding } from '../model/reorder';
 import type { BoardCardItem, BoardColumnItem } from './boardItems';
 
 const text = ptBR.board;
@@ -112,3 +111,5 @@ export function useVisibleCards(
     },
   };
 }
+
+export type VisibleCards = ReturnType<typeof useVisibleCards>;

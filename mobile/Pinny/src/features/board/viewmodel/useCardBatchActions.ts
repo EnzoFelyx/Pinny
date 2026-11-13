@@ -81,3 +81,5 @@ export function useCardBatchActions({
     cancelDelete,
   };
 }
+
+export type CardBatchActions = ReturnType<typeof useCardBatchActions>;

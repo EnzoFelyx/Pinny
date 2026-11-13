@@ -5,12 +5,8 @@ import { columnRepository } from '@/features/board/model/columnRepository';
 import { labelRepository } from '@/features/board/model/labelRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { folderRepository } from '@/features/folders/model/folderRepository';
-import {
-  applyUndo,
-  type HistoryEntry,
-  popEntry,
-  pushEntry,
-} from '@/features/history/model/actionHistory';
+import { type HistoryEntry, popEntry, pushEntry } from '@/features/history/model/actionHistory';
+import { applyUndo } from '@/features/history/model/applyUndo';
 import { createId } from '@/utils/id';
 import { nowIso } from '@/utils/time';
 
