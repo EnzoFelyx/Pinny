@@ -265,18 +265,15 @@
 
 ### 3. Refatoração dos arquivos acima de ~200 linhas (por último)
 - [ ] 🔔 **Antes de começar, perguntar ao autor, arquivo por arquivo, se vale a pena refatorar ou se é melhor deixar como está por causa do desempenho.** Parte desses arquivos é o caminho quente do arraste (worklets e mappers da UI thread): dividir pode criar objetos ou dependências novas nos worklets e piorar o arraste. Medir antes e depois de cada refatoração.
-- Alvos (contagem de 2026-11-10):
-  - [ ] `features/board/view/BoardScreen.tsx` (372)
-  - [ ] `features/board/view/components/useBoardDrag.ts` (301) · caminho quente do arraste
-  - [ ] `features/board/viewmodel/useBoardViewModel.ts` (281)
-  - [ ] `features/board/view/components/SortableColumn.tsx` (274) · caminho quente do arraste
-  - [ ] `features/board/view/components/SortableCard.tsx` (261) · caminho quente do arraste
-  - [ ] `features/dev/model/devDataService.ts` (243) · só desenvolvimento
-  - [ ] `features/card/model/cardRepository.ts` (223)
-  - [ ] `features/board/viewmodel/useColumnActions.ts` (219)
-  - [ ] `features/board/view/components/useSortableColumn.ts` (218) · caminho quente do arraste
-  - [ ] `features/history/model/actionHistory.ts` (210)
-  - [ ] `features/board/model/boardData.ts` (201)
+- Alvos (contagem de 2026-11-10; decisões do autor em 2026-11-13):
+  - [x] `features/board/viewmodel/useBoardViewModel.ts` (298 → 97): carga dos dados em `useBoardData`, ações de cartão em `useCardActions`, seleção e arraste em lote em `useBoardSelection`
+  - [x] `features/board/view/BoardScreen.tsx` (381 → 210): `BoardScreenHeader`, `BoardSelectionToolbar`, `BoardColumnList`, `useBoardConfirms`, `useBoardFocus` e `useStagedColumns`; o que sobrou é a ligação do `useBoardDrag`, que precisa ficar na tela
+  - [x] `features/board/viewmodel/useColumnActions.ts` (227 → 177): apagar coluna em `useDeleteColumn` (mesmo formato de `useDeleteBoard`/`useDeleteFolder`, com o alerta pronto); corrigido também um bailout do React Compiler (`?.`/`??` dentro de try/catch), que deixava o hook sem memoização nenhuma
+  - [x] `features/history/model/actionHistory.ts` (228 → 89): o `applyUndo` (e `UndoRepositories`) foi para `applyUndo.ts`
+  - [x] `features/board/model/cardFilter.ts` (188 → 160): `toFullIndex`/`toFullIndexExcluding` (vaga do arraste com filtro) foram para `reorder.ts`
+  - [ ] `features/board/view/components/SortableColumn.tsx` (290) · opcional, por último: extrair o cabeçalho num componente memo, com `compiler:check` antes e depois
+  - Mantidos de propósito (caminho quente do arraste, lógica amarrada na UI thread): `useBoardDrag.ts` (301), `SortableCard.tsx` (286), `useSortableColumn.ts` (223)
+  - Mantidos de propósito (coesos ou fora do app publicado): `pt-BR.ts` (textos num lugar só, REGRAS.md), `cardRepository.ts` (223), `boardData.ts` (201), `devDataService.ts` (243, só desenvolvimento)
 
 **Pronto quando:** as pendências da seção 1 estiverem resolvidas, as medições passarem em build de release e cada arquivo da lista tiver a decisão do autor (refatorado ou mantido de propósito).
 
