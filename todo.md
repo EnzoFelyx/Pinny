@@ -18,7 +18,7 @@
 | 4 | Dados local-first | ✅ |
 | 5 | Navegação e estrutura das telas | ✅ |
 | 6 | Quadro kanban (o diferencial) | ✅ |
-| 6R | Refac / Perform (branch própria) | 🟨 |
+| 6R | Refac / Perform (branch própria) | ✅ |
 | 7 | Card completo | ⬜ |
 | 8 | Pastas e templates | ⬜ |
 | 9 | Notificações e calendário | ⬜ |
@@ -27,6 +27,14 @@
 | 12 | Configurações e privacidade | ⬜ |
 | 13 | Widgets e Live Activities | ⬜ |
 | 14 | Polimento, testes e publicação | ⬜ |
+
+---
+
+## 🎬 Animações (lista contínua do autor)
+
+> Animações que o autor quer no app, anotadas conforme surgem (desde 2026-11-13). Não é uma etapa da ordem acima: cada item entra quando o autor pedir. Seguir os tokens de `motion.ts` e respeitar o "Reduzir movimento".
+
+- [ ] Abrir o campo de busca animado
 
 ---
 
@@ -250,28 +258,28 @@
 - [x] Arraste em lote, Parte 7 — casos de borda: filtro e busca (conferidos pelo autor em 2026-11-10), recarga do banco no meio do arraste e gesto interrompido pelo sistema (os cartões voltam às colunas e a seleção continua; conferidos pelo autor em 2026-11-11)
 - [x] Arraste em lote, Parte 8 — decisões da pilha registradas no CLAUDE.md. Sem anúncio do VoiceOver nem dica no topo (decisão do autor, 2026-11-11): a pilha é só gesto, e a alternativa acessível é o botão "Mover" da barra de ações em lote
 - [x] Tela "Arquivados" (2026-11-11, pedido do autor): busca, desarquivar ao segurar e o "…" com Buscar, Selecionar (Desarquivar/Apagar em lote), Filtrar, Ordenar e Apagar todos
-- [ ] Conferir todas as ações do quadro pelo VoiceOver (o TalkBack fica para quando o Android voltar)
-- [ ] Testes do ViewModel do quadro (quando os testes voltarem)
+- [x] Conferir todas as ações do quadro pelo VoiceOver (conferido pelo autor em 2026-11-13; o TalkBack fica para quando o Android voltar)
+- Testes do ViewModel do quadro: passaram para a etapa 14 (os testes automatizados continuam adiados)
 
 ### 2. Desempenho (sempre em build de release: `npx expo run:ios --configuration Release --device`)
 > Criar os quadros grandes antes, no build de desenvolvimento (Ajustes, só em `__DEV__`): os dados continuam no aparelho no Release.
-- [ ] Arraste de um cartão: fluido até ~300 cartões (10 × 40, superlotado) e sem travar nem fechar com 2.000 (20 × 100)
-- [ ] 60fps em build de release com ~300 cartões num aparelho intermediário
-- [ ] 🔔 **Lembrete do autor:** testar o desempenho do **arraste em lote (pilha)** em quadros grandes: juntar, mover a pilha com a rolagem automática, soltar em outra coluna e cancelar na própria coluna
-- [ ] 🔔 **Lembrete do autor:** testar o desempenho do **modo "Selecionar"** em quadros grandes: entrar e sair do modo, marcar e desmarcar, "Selecionar todos" / "Limpar" da coluna e as ações em lote (Mover, Arquivar, Apagar)
+- [x] Arraste de um cartão: fluido até ~300 cartões (10 × 40, superlotado) e sem travar nem fechar com 2.000 (20 × 100)
+- [x] 60fps em build de release com ~300 cartões num aparelho intermediário
+- [x] 🔔 **Lembrete do autor:** testar o desempenho do **arraste em lote (pilha)** em quadros grandes: juntar, mover a pilha com a rolagem automática, soltar em outra coluna e cancelar na própria coluna
+- [x] 🔔 **Lembrete do autor:** testar o desempenho do **modo "Selecionar"** em quadros grandes: entrar e sair do modo, marcar e desmarcar, "Selecionar todos" / "Limpar" da coluna e as ações em lote (Mover, Arquivar, Apagar)
 - [x] Modo "Selecionar" no 40×10 (2026-11-11): seleção levada para a UI thread e, na investigação, achado o vazamento geral: `drag`/`columnDrag` perdiam a identidade (callbacks do VM sem `useStableCallback` e bailouts do React Compiler em `SortableColumn` e `useColumnReorder`), redesenhando os 400 cartões a cada render do quadro. Detalhes no CLAUDE.md (6.4, performance)
-- [ ] Antes e depois de cada refatoração da seção 3, rodar `npm run compiler:check -- <arquivo>`: um bailout novo no caminho quente desfaz a memoização do arquivo inteiro
-- [ ] Registrar os números medidos (e o que mudou com cada refatoração) no CLAUDE.md
+- [x] `npm run compiler:check -- <arquivo>` rodado antes e depois da refatoração, sem bailouts (vale como regra daqui em diante, ver CLAUDE.md)
+- [x] Medições em Release conferidas pelo autor no aparelho (2026-11-13), sem números anotados; o que mudou está no CLAUDE.md (6.4, performance)
 
 ### 3. Refatoração dos arquivos acima de ~200 linhas (por último)
-- [ ] 🔔 **Antes de começar, perguntar ao autor, arquivo por arquivo, se vale a pena refatorar ou se é melhor deixar como está por causa do desempenho.** Parte desses arquivos é o caminho quente do arraste (worklets e mappers da UI thread): dividir pode criar objetos ou dependências novas nos worklets e piorar o arraste. Medir antes e depois de cada refatoração.
+- [x] 🔔 **Antes de começar, perguntar ao autor, arquivo por arquivo, se vale a pena refatorar ou se é melhor deixar como está por causa do desempenho.** Parte desses arquivos é o caminho quente do arraste (worklets e mappers da UI thread): dividir pode criar objetos ou dependências novas nos worklets e piorar o arraste. Medir antes e depois de cada refatoração.
 - Alvos (contagem de 2026-11-10; decisões do autor em 2026-11-13):
   - [x] `features/board/viewmodel/useBoardViewModel.ts` (298 → 97): carga dos dados em `useBoardData`, ações de cartão em `useCardActions`, seleção e arraste em lote em `useBoardSelection`
   - [x] `features/board/view/BoardScreen.tsx` (381 → 210): `BoardScreenHeader`, `BoardSelectionToolbar`, `BoardColumnList`, `useBoardConfirms`, `useBoardFocus` e `useStagedColumns`; o que sobrou é a ligação do `useBoardDrag`, que precisa ficar na tela
   - [x] `features/board/viewmodel/useColumnActions.ts` (227 → 177): apagar coluna em `useDeleteColumn` (mesmo formato de `useDeleteBoard`/`useDeleteFolder`, com o alerta pronto); corrigido também um bailout do React Compiler (`?.`/`??` dentro de try/catch), que deixava o hook sem memoização nenhuma
   - [x] `features/history/model/actionHistory.ts` (228 → 89): o `applyUndo` (e `UndoRepositories`) foi para `applyUndo.ts`
   - [x] `features/board/model/cardFilter.ts` (188 → 160): `toFullIndex`/`toFullIndexExcluding` (vaga do arraste com filtro) foram para `reorder.ts`
-  - [ ] `features/board/view/components/SortableColumn.tsx` (290) · opcional, por último: extrair o cabeçalho num componente memo, com `compiler:check` antes e depois
+  - Mantido de propósito (decisão do autor, 2026-11-13): `SortableColumn.tsx` (290), caminho quente, sem refatorar o cabeçalho
   - Mantidos de propósito (caminho quente do arraste, lógica amarrada na UI thread): `useBoardDrag.ts` (301), `SortableCard.tsx` (286), `useSortableColumn.ts` (223)
   - Mantidos de propósito (coesos ou fora do app publicado): `pt-BR.ts` (textos num lugar só, REGRAS.md), `cardRepository.ts` (223), `boardData.ts` (201), `devDataService.ts` (243, só desenvolvimento)
 
@@ -415,6 +423,7 @@
 
 - [ ] Revisão de performance em build de release
 - [ ] Skeleton loading das telas da tab bar (Início, Modelos, Agenda, Ajustes e Busca), no padrão do quadro (pedido do autor, 2026-11-09)
+- [ ] Testes do ViewModel do quadro (vieram da etapa 6R; quando os testes automatizados voltarem)
 - [ ] Teste completo com VoiceOver e TalkBack
 - [ ] Teste com fonte grande do sistema e "Reduzir movimento"
 - [ ] Revisão do tom amigável em todos os textos
