@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
 import type { Board } from '@/features/board/model/board.schema';
@@ -15,6 +15,7 @@ import { normalizeForSearch } from '@/utils/text';
 import type { Folder } from '../model/folder.schema';
 import { folderRepository } from '../model/folderRepository';
 import { useBoardSelection } from './useBoardSelection';
+import { useDeleteFolder } from './useDeleteFolder';
 import { toBoardItem } from './useFolderItems';
 
 const text = ptBR.folders;
@@ -28,6 +29,8 @@ export function useFolderViewModel(folderId: string) {
   } | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  // A tela já voltou para a Início ao apagar a pasta: a recarga não volta de novo.
+  const isLeavingRef = useRef(false);
 
   useEffect(() => {
     let isActive = true;
@@ -37,7 +40,7 @@ export function useFolderViewModel(folderId: string) {
           if (!isActive) return;
           // Pasta apagada (ex.: em outra tela): volta para a Início.
           if (!folder) {
-            router.back();
+            if (!isLeavingRef.current) router.back();
             return;
           }
           setData({ folder, boards });
@@ -55,6 +58,16 @@ export function useFolderViewModel(folderId: string) {
       unsubscribe();
     };
   }, [folderId]);
+
+  // "Apagar" do "…": ao confirmar, volta para a Início antes de apagar.
+  const deleteFolder = useDeleteFolder({
+    onConfirmed: () => {
+      isLeavingRef.current = true;
+      router.back();
+    },
+  });
+
+  const requestFolderDelete = deleteFolder.request;
 
   const folderBoards = useMemo(() => data?.boards ?? [], [data]);
   const deleteBoard = useDeleteBoard(folderBoards);
@@ -139,6 +152,13 @@ export function useFolderViewModel(folderId: string) {
     deleteBoardRequest: deleteBoard.confirmRequest,
     confirmDeleteBoard,
     cancelDeleteBoard: deleteBoard.cancel,
+    requestDeleteFolder: useCallback(
+      () => requestFolderDelete(folderId),
+      [requestFolderDelete, folderId],
+    ),
+    deleteFolderRequest: deleteFolder.confirmRequest,
+    confirmDeleteFolder: deleteFolder.confirm,
+    cancelDeleteFolder: deleteFolder.cancel,
     goBack: router.back,
   };
 }

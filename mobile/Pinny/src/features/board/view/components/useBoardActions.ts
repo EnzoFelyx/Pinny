@@ -16,6 +16,11 @@ type BoardActionsSource = Pick<CardActions, 'openMoveCard'> & {
   requestDeleteColumn: ColumnActions['requestDelete'];
   selectColumnCards: ColumnActions['selectAllCards'];
   clearColumnSelection: ColumnActions['clearSelection'];
+  // Entram no objeto `drag` (useBoardDrag): se mudarem de identidade, `drag` muda e todas as
+  // colunas e cartões redesenham. dropOnNewColumn, por exemplo, é recriado a cada seleção.
+  dropOnNewColumn: (cardId: string) => void;
+  startBatchDrag: (heldId: string) => void;
+  endBatchDrag: () => void;
 };
 
 // Ações que a tela repassa às colunas e aos cartões, com identidade fixa: as do ViewModel mudam a
@@ -33,6 +38,9 @@ export function useBoardActions(vm: BoardActionsSource) {
   const requestDeleteColumn = useStableCallback(vm.requestDeleteColumn);
   const selectAllCards = useStableCallback(vm.selectColumnCards);
   const clearSelection = useStableCallback(vm.clearColumnSelection);
+  const dropOnNewColumn = useStableCallback(vm.dropOnNewColumn);
+  const startBatchDrag = useStableCallback(vm.startBatchDrag);
+  const endBatchDrag = useStableCallback(vm.endBatchDrag);
 
   const cardActions = useMemo<CardActions>(
     () => ({
@@ -65,5 +73,5 @@ export function useBoardActions(vm: BoardActionsSource) {
       clearSelection,
     ],
   );
-  return { cardActions, columnActions };
+  return { cardActions, columnActions, dropOnNewColumn, startBatchDrag, endBatchDrag };
 }

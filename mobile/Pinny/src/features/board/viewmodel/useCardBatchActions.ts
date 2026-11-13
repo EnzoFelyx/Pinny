@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { historyStore } from '@/features/history/model/historyStore';
-import type { DestructiveConfirmRequest } from '@/hooks/useDestructiveConfirm';
 import { ptBR } from '@/i18n/pt-BR';
 
-import { archiveCards, removeCards } from '../model/cardBatch';
+import { archiveCards } from '../model/cardBatch';
 import { cardsMovedSignal } from './cardsMovedSignal';
+import { useCardDelete } from './useCardDelete';
 
 const text = ptBR.board.selection;
 const actionNames = ptBR.history.actions;
@@ -34,7 +34,6 @@ export function useCardBatchActions({
   notifyUndoable,
   onSaveError,
 }: CardBatchOptions) {
-  const [pendingDelete, setPendingDelete] = useState<readonly string[] | null>(null);
   const hasSelection = selectedIds.length > 0;
 
   // A folha "Mover" terminou: os cartões já estão no destino.
@@ -62,38 +61,15 @@ export function useCardBatchActions({
     }
   }, [hasSelection, selectedIds, onDone, notifyUndoable, onSaveError]);
 
+  const { request, deleteRequest, confirmDelete, cancelDelete } = useCardDelete({
+    titleOf,
+    onDone,
+    notifyUndoable,
+    onSaveError,
+  });
   const requestDelete = useCallback(() => {
-    if (hasSelection) setPendingDelete([...selectedIds]);
-  }, [hasSelection, selectedIds]);
-
-  const deleteRequest = useMemo<DestructiveConfirmRequest | null>(() => {
-    if (!pendingDelete) return null;
-    const [first] = pendingDelete;
-    const title = pendingDelete.length === 1 && first ? titleOf(first) : undefined;
-    return {
-      title: title ? text.deleteOneTitle(title) : text.deleteManyTitle(pendingDelete.length),
-      message: text.deleteMessage(pendingDelete.length),
-      confirmLabel: text.deleteConfirm,
-      cancelLabel: text.cancel,
-    };
-  }, [pendingDelete, titleOf]);
-
-  const confirmDelete = useCallback(async () => {
-    const ids = pendingDelete;
-    setPendingDelete(null);
-    if (!ids) return;
-    try {
-      const undo = await removeCards(ids, cardRepository);
-      historyStore.record(actionNames.deleteCards, undo);
-      onDone();
-      await notifyUndoable(text.cardsDeleted(ids.length));
-    } catch (error: unknown) {
-      console.warn('Falha ao apagar os cartões.', error);
-      onSaveError();
-    }
-  }, [pendingDelete, onDone, notifyUndoable, onSaveError]);
-
-  const cancelDelete = useCallback(() => setPendingDelete(null), []);
+    if (hasSelection) request(selectedIds);
+  }, [hasSelection, selectedIds, request]);
 
   return {
     canAct: hasSelection,
@@ -105,3 +81,5 @@ export function useCardBatchActions({
     cancelDelete,
   };
 }
+
+export type CardBatchActions = ReturnType<typeof useCardBatchActions>;

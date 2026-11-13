@@ -97,3 +97,31 @@ export function edgePlacement(
     ? { previousId: null, nextId: others[0] ?? null }
     : { previousId: others.at(-1) ?? null, nextId: null };
 }
+
+// Com filtro, a vaga do arraste conta só os cartões visíveis; o banco guarda a ordem de todos.
+// Converte a vaga visível (toIndex) no índice da lista completa da coluna, sem os cartões movidos:
+// logo depois do vizinho visível de cima ou, na primeira vaga, logo antes do primeiro visível.
+// Os cartões escondidos mantêm a ordem entre si. visible null = sem filtro (todos visíveis).
+export function toFullIndexExcluding(
+  columnIds: readonly string[],
+  movedIds: ReadonlySet<string>,
+  visible: ReadonlySet<string> | null,
+  toIndex: number,
+): number {
+  const others = columnIds.filter((id) => !movedIds.has(id));
+  const visibleOthers = visible ? others.filter((id) => visible.has(id)) : others;
+  const first = visibleOthers[0];
+  if (toIndex <= 0 || first === undefined) return first === undefined ? 0 : others.indexOf(first);
+  const previous = visibleOthers[Math.min(toIndex, visibleOthers.length) - 1];
+  return previous === undefined ? 0 : others.indexOf(previous) + 1;
+}
+
+// O mesmo, para um cartão só (arraste normal).
+export function toFullIndex(
+  columnIds: readonly string[],
+  movedId: string,
+  visible: ReadonlySet<string>,
+  toIndex: number,
+): number {
+  return toFullIndexExcluding(columnIds, new Set([movedId]), visible, toIndex);
+}

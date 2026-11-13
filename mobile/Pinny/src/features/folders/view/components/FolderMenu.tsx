@@ -6,8 +6,6 @@ import { ptBR } from '@/i18n/pt-BR';
 const text = ptBR.folders.folderScreen;
 const cardText = ptBR.folders.folderMenu;
 
-function noop() {}
-
 interface FolderMenuProps {
   // Nome, cor e ícone (por enquanto, a folha de renomear), como no "⋮" da Início.
   onCustomize: () => void;
@@ -15,12 +13,13 @@ interface FolderMenuProps {
   onCreateBoard: () => void;
   // Modo "Selecionar": escolher quadros para fixar na Início ou excluir.
   onSelect: () => void;
+  // "Apagar": alerta de confirmação; ao confirmar, volta para a Início e apaga (com desfazer).
+  onDelete: () => void;
 }
 
 // "…" do topo da pasta (menu nativo do iOS). Renomear é tocar no nome; fixar a pasta na Início
-// fica só no "⋮" da Início. "Excluir pasta" ainda não faz nada: a exclusão (com confirmação e
-// desfazer) chega depois.
-export function FolderMenu({ onCustomize, onCreateBoard, onSelect }: FolderMenuProps) {
+// fica só no "⋮" da Início.
+export function FolderMenu({ onCustomize, onCreateBoard, onSelect, onDelete }: FolderMenuProps) {
   return (
     <GlassMenu accessibilityLabel={text.options}>
       <Button label={text.select} systemImage="checkmark.circle" onPress={onSelect} />
@@ -31,7 +30,7 @@ export function FolderMenu({ onCustomize, onCreateBoard, onSelect }: FolderMenuP
         onPress={onCreateBoard}
       />
       <Divider />
-      <Button label={text.delete} systemImage="trash" role="destructive" onPress={noop} />
+      <Button label={text.delete} systemImage="trash" role="destructive" onPress={onDelete} />
     </GlassMenu>
   );
 }

@@ -2,18 +2,18 @@ import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { labelRepository } from '@/features/board/model/labelRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
+import { folderRepository } from '@/features/folders/model/folderRepository';
 import { createId } from '@/utils/id';
 import { nowIso } from '@/utils/time';
 
 import {
-  applyUndo,
   type HistoryEntry,
   popEntry,
   pushEntry,
   restoresPinnedBoardIn,
   type UndoOperation,
-  type UndoRepositories,
 } from './actionHistory';
+import { applyUndo, type UndoRepositories } from './applyUndo';
 
 // Histórico de ações do app inteiro (só em memória, como o "Desfazer" de qualquer app).
 // Duas pilhas: desfazer leva a ação para "refazer", e refazer a devolve para "desfazer".
@@ -27,6 +27,7 @@ const defaultRepositories: UndoRepositories = {
   columns: columnRepository,
   boards: boardRepository,
   labels: labelRepository,
+  folders: folderRepository,
 };
 
 // Tira a última entrada de uma pilha, aplica e guarda a inversa na outra.

@@ -34,6 +34,10 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
     onConfirm: vm.confirmDeleteBoard,
     onCancel: vm.cancelDeleteBoard,
   });
+  useDestructiveConfirm(vm.deleteFolderRequest, {
+    onConfirm: vm.confirmDeleteFolder,
+    onCancel: vm.cancelDeleteFolder,
+  });
 
   return (
     <SafeAreaView edges={['top']} style={styles.screen}>
@@ -58,6 +62,7 @@ export function FolderScreen({ folderId }: FolderScreenProps) {
               onCustomize={vm.customizeFolder}
               onCreateBoard={vm.createBoard}
               onSelect={vm.selection.start}
+              onDelete={vm.requestDeleteFolder}
             />
           )}
         />

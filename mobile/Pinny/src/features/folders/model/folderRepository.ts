@@ -29,6 +29,8 @@ export interface FolderRepository {
   countPinned(): Promise<number>;
   // Apaga a pasta e, em cascata, tudo o que está dentro dela.
   remove(id: string): Promise<void>;
+  // Recria a pasta com os mesmos dados (usado pelo "Desfazer").
+  restore(folder: Folder): Promise<void>;
 }
 
 export function createFolderRepository(database: Database = db): FolderRepository {
@@ -108,6 +110,10 @@ export function createFolderRepository(database: Database = db): FolderRepositor
 
     async remove(id) {
       database.delete(folders).where(eq(folders.id, id)).run();
+    },
+
+    async restore(folder) {
+      database.insert(folders).values(folder).run();
     },
   };
 }

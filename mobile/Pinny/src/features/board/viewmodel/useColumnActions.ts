@@ -1,20 +1,15 @@
 import { router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
 
-import {
-  type BoardData,
-  withColumnMoved,
-  withColumnRemoved,
-  withColumnRenamed,
-} from '../model/boardData';
+import { type BoardData, withColumnMoved, withColumnRenamed } from '../model/boardData';
 import { duplicateColumn } from '../model/columnCopy';
-import { removeColumnWithCards } from '../model/columnRemoval';
 import { columnRepository } from '../model/columnRepository';
 import { toPlacement } from '../model/reorder';
+import { useDeleteColumn } from './useDeleteColumn';
 
 const text = ptBR.board;
 const repositories = { columns: columnRepository, cards: cardRepository };
@@ -30,14 +25,7 @@ interface ColumnActionsOptions {
   onSaveError: () => void;
 }
 
-// Coluna aguardando a confirmação de exclusão, com o texto do alerta já pronto.
-export interface ColumnToDelete {
-  id: string;
-  title: string;
-  message?: string;
-}
-
-// Ações das colunas do quadro: criar, mover, renomear, duplicar e excluir. Todas entram no
+// Ações das colunas do quadro: criar, mover, renomear, duplicar e apagar (em useDeleteColumn). Todas entram no
 // histórico (chacoalhar desfaz); o quadro recarrega sozinho quando o banco muda.
 export function useColumnActions({
   boardId,
@@ -47,7 +35,7 @@ export function useColumnActions({
   onFocusColumn,
   onSaveError,
 }: ColumnActionsOptions) {
-  const [columnToDelete, setColumnToDelete] = useState<ColumnToDelete | null>(null);
+  const deleteColumn = useDeleteColumn({ data, onDataChange, notifyUndoable, onSaveError });
 
   // "+ Adicionar coluna": abre a folha "Nova coluna".
   const createColumn = useCallback(() => {
@@ -148,11 +136,13 @@ export function useColumnActions({
       const index = list.findIndex((item) => item.column.id === columnId);
       const target = list[index];
       if (!target) return;
+      // Fora do try: o React Compiler não aceita `?.`/`??` dentro de try/catch e pularia o hook.
+      const nextColumnId = list[index + 1]?.column.id ?? null;
       try {
         const copy = await duplicateColumn(
           target.column,
           text.columnCopyTitle(target.column.title),
-          list[index + 1]?.column.id ?? null,
+          nextColumnId,
           repositories,
         );
         historyStore.record(ptBR.history.actions.duplicateColumn, {
@@ -167,43 +157,6 @@ export function useColumnActions({
     [data, onSaveError],
   );
 
-  // Puxar e segurar a coluna (ou "Excluir coluna" no menu) pede a confirmação no alerta nativo.
-  const requestDeleteColumn = useCallback(
-    (columnId: string) => {
-      const target = data?.columns.find((item) => item.column.id === columnId);
-      if (!target) return;
-      const cardCount = target.cards.length;
-      setColumnToDelete({
-        id: columnId,
-        title: target.column.title,
-        // Sem cartões, o alerta fica só com o título.
-        message: cardCount > 0 ? text.deleteColumnMessage(cardCount) : undefined,
-      });
-    },
-    [data],
-  );
-
-  const closeDeleteColumn = useCallback(() => setColumnToDelete(null), []);
-
-  // "Excluir" do alerta: apaga a coluna e os cartões dela, com desfazer (chacoalhar ou snackbar).
-  // A coluna some da tela na hora (sem esperar a gravação e a recarga); se falhar, ela volta.
-  const confirmDeleteColumn = useCallback(async () => {
-    const target = columnToDelete;
-    setColumnToDelete(null);
-    if (!target) return;
-    if (data) onDataChange(withColumnRemoved(data, target.id));
-    try {
-      const snapshot = await removeColumnWithCards(target.id, repositories);
-      if (!snapshot) return;
-      historyStore.record(ptBR.history.actions.deleteColumn, { kind: 'restoreColumn', snapshot });
-      await notifyUndoable(text.columnDeleted);
-    } catch (error: unknown) {
-      console.warn('Falha ao excluir a coluna.', error);
-      if (data) onDataChange(data);
-      onSaveError();
-    }
-  }, [columnToDelete, data, onDataChange, notifyUndoable, onSaveError]);
-
   return {
     createColumn,
     createColumnWithCards,
@@ -211,9 +164,10 @@ export function useColumnActions({
     moveColumnTo,
     renameColumn,
     duplicateColumn: duplicate,
-    columnToDelete,
-    requestDeleteColumn,
-    closeDeleteColumn,
-    confirmDeleteColumn,
+    // Apagar: alerta de confirmação pronto e as ações dele.
+    requestDeleteColumn: deleteColumn.request,
+    columnDeleteRequest: deleteColumn.confirmRequest,
+    confirmDeleteColumn: deleteColumn.confirm,
+    closeDeleteColumn: deleteColumn.cancel,
   };
 }

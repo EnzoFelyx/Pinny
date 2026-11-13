@@ -60,10 +60,13 @@ export function useColumnReorder({
 
   // base: deslocamento do lugar final em relação ao início do arraste, com a rolagem em zero.
   // O que falta para a coluna verdadeira chegar lá vem da posição atual da cópia.
-  const handOffAt = (columnId: string, base: number) => {
-    'worklet';
-    releasing.handOff(columnId, translationX.get() - (base - scrollX.get()), translationY.get());
-  };
+  const handOffAt = useCallback(
+    (columnId: string, base: number) => {
+      'worklet';
+      releasing.handOff(columnId, translationX.get() - (base - scrollX.get()), translationY.get());
+    },
+    [releasing, translationX, translationY, scrollX],
+  );
 
   const begin = (columnId: string, frameRef: AnimatedRef<View>, absoluteX: number) => {
     'worklet';
@@ -105,9 +108,10 @@ export function useColumnReorder({
       pendingId.set(null);
       handOffAt(id, pendingBase.get());
     });
-    // handOffAt só lê shared values e o objeto de soltar (estável).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingId, pendingBase]);
+    // handOffAt só lê shared values e o objeto de soltar (estável): com o React Compiler, ele
+    // também é estável. (Uma regra do ESLint desligada faz o compiler pular o hook inteiro, e aí
+    // o retorno mudava a cada render e redesenhava todas as colunas.)
+  }, [pendingId, pendingBase, handOffAt]);
 
   return { begin, end, markOrderCommitted };
 }

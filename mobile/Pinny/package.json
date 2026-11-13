@@ -53,6 +53,7 @@
     "lint": "expo lint",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
+    "compiler:check": "node scripts/reactCompilerCheck.js",
     "db:generate": "drizzle-kit generate"
   },
   "private": true
