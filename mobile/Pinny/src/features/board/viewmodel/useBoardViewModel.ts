@@ -65,6 +65,19 @@ export function useBoardViewModel(boardId: string) {
     onSaveError: reportSaveError,
   });
 
+  // Toque no cartão: no modo "Selecionar", marca ou desmarca; fora dele, abre a folha do detalhe.
+  const { isSelecting, toggle } = selection.selection;
+  const pressCard = useCallback(
+    (cardId: string) => {
+      if (isSelecting) {
+        toggle(cardId);
+        return;
+      }
+      router.push({ pathname: '/card/[cardId]', params: { cardId } });
+    },
+    [isSelecting, toggle],
+  );
+
   const openArchived = useCallback(() => {
     router.push({ pathname: '/board/[boardId]/archived', params: { boardId } });
   }, [boardId]);
@@ -81,6 +94,7 @@ export function useBoardViewModel(boardId: string) {
     // Por último entre as ações de cartão: o soltar do arraste passa pela seleção (com a pilha,
     // leva todos os marcados), e substitui o moveCard simples.
     ...selection,
+    pressCard,
     openArchived,
     renameBoard,
     ...boardMenuActions,

@@ -56,10 +56,7 @@ export function BoardScreen({ boardId }: BoardScreenProps) {
   const selectionValues = useSelectionValues(selection.selectedIds, vm.isBatchDragging);
   const isScreenReaderOn = useScreenReaderEnabled();
   const { cardActions, columnActions, dropOnNewColumn, startBatchDrag, endBatchDrag } =
-    useBoardActions({
-      ...vm,
-      toggleCardSelection: selection.toggle,
-    });
+    useBoardActions(vm);
   const {
     drag,
     activeCardId,

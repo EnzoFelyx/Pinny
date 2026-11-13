@@ -134,6 +134,10 @@ export const ptBR = {
       deleteBoards: 'Apagar Quadros',
       deleteFolder: 'Apagar Pasta',
       archiveCards: 'Arquivar Cartões',
+      archiveCard: 'Arquivar Cartão',
+      deleteCard: 'Apagar Cartão',
+      editCard: 'Edição de Cartão',
+      editChecklist: 'Edição do Checklist',
       unarchiveCards: 'Desarquivar Cartões',
       deleteCards: 'Apagar Cartões',
       moveCards: 'Movimento de Cartões',
@@ -408,6 +412,26 @@ export const ptBR = {
     summaryDeadline: (text: string) => `prazo ${text}`,
     summaryChecklist: (done: number, total: number) =>
       `${done} de ${total} ${total === 1 ? 'subtarefa concluída' : 'subtarefas concluídas'}`,
+    // Tocar no cartão do quadro.
+    openHint: 'Abre o cartão',
+    // Folha do detalhe (Figma "Cartão · Proposta para a Marina").
+    detail: {
+      breadcrumb: (folder: string, column: string) => `${folder} / ${column}`,
+      titleLabel: 'Título do cartão',
+      titlePlaceholder: 'Dê um título ao seu cartão',
+      descriptionLabel: 'Descrição',
+      descriptionPlaceholder: 'Escreva os detalhes, se quiser.',
+      statusLabel: 'Status',
+      statusA11y: (column: string) => `Status ${column}. Toque para mudar de coluna.`,
+      options: 'Opções do cartão',
+      menu: {
+        move: 'Mover para…',
+        archive: 'Arquivar',
+        delete: 'Apagar',
+      },
+      archived: 'Cartão arquivado',
+      loadError: 'Não conseguimos abrir o cartão agora. Tente de novo em instantes.',
+    },
   },
   calendar: {
     title: 'Agenda',

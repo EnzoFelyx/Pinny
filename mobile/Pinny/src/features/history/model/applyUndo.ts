@@ -1,5 +1,6 @@
 import type { Card } from '@/features/card/model/card.schema';
 import type { CardPatch, CardRepository } from '@/features/card/model/cardRepository';
+import type { ChecklistRepository } from '@/features/card/model/checklistRepository';
 import {
   removeColumnWithCards,
   restoreColumnWithCards,
@@ -30,6 +31,7 @@ export interface UndoRepositories {
   boards: BoardRepository;
   labels: LabelRepository;
   folders: FolderRepository;
+  checklist: ChecklistRepository;
 }
 
 // Campos do patch com os valores atuais do cartão: o que é preciso para voltar uma edição.
@@ -142,6 +144,27 @@ export async function applyUndo(
     case 'deleteFolder': {
       const snapshot = await removeFolderWithContent(operation.folderId, repositories);
       return snapshot ? { kind: 'restoreFolder', snapshot } : null;
+    }
+    case 'deleteChecklistItem': {
+      const item = await repositories.checklist.getById(operation.itemId);
+      if (!item) return null;
+      await repositories.checklist.remove(item.id);
+      return { kind: 'restoreChecklistItem', item };
+    }
+    case 'restoreChecklistItem':
+      await repositories.checklist.restore(operation.item);
+      return { kind: 'deleteChecklistItem', itemId: operation.item.id };
+    case 'setChecklistItemDone': {
+      const before = await repositories.checklist.getById(operation.itemId);
+      if (!before) return null;
+      await repositories.checklist.setDone(operation.itemId, operation.isDone);
+      return { kind: 'setChecklistItemDone', itemId: before.id, isDone: before.isDone };
+    }
+    case 'renameChecklistItem': {
+      const before = await repositories.checklist.getById(operation.itemId);
+      if (!before) return null;
+      await repositories.checklist.rename(operation.itemId, operation.text);
+      return { kind: 'renameChecklistItem', itemId: before.id, text: before.text };
     }
     case 'restoreFolder':
       await restoreFolderWithContent(operation.snapshot, repositories);

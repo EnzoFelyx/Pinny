@@ -7,7 +7,7 @@ import type { CardActions, ColumnActions } from './boardActions';
 type BoardActionsSource = Pick<CardActions, 'openMoveCard'> & {
   moveCard: CardActions['move'];
   moveCardToAdjacentColumn: CardActions['moveToAdjacentColumn'];
-  toggleCardSelection: CardActions['toggleSelect'];
+  pressCard: CardActions['press'];
   addCard: ColumnActions['addCard'];
   moveColumn: ColumnActions['move'];
   moveColumnTo: ColumnActions['moveTo'];
@@ -29,7 +29,7 @@ export function useBoardActions(vm: BoardActionsSource) {
   const moveCard = useStableCallback(vm.moveCard);
   const moveCardToAdjacentColumn = useStableCallback(vm.moveCardToAdjacentColumn);
   const openMoveCard = useStableCallback(vm.openMoveCard);
-  const toggleSelect = useStableCallback(vm.toggleCardSelection);
+  const press = useStableCallback(vm.pressCard);
   const addCard = useStableCallback(vm.addCard);
   const moveColumn = useStableCallback(vm.moveColumn);
   const moveColumnTo = useStableCallback(vm.moveColumnTo);
@@ -47,9 +47,9 @@ export function useBoardActions(vm: BoardActionsSource) {
       move: moveCard,
       moveToAdjacentColumn: moveCardToAdjacentColumn,
       openMoveCard,
-      toggleSelect,
+      press,
     }),
-    [moveCard, moveCardToAdjacentColumn, openMoveCard, toggleSelect],
+    [moveCard, moveCardToAdjacentColumn, openMoveCard, press],
   );
   const columnActions = useMemo<ColumnActions>(
     () => ({

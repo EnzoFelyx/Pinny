@@ -39,7 +39,7 @@ export interface BoardColumnItem {
 }
 
 // "Hoje, 10h · Em breve", "17 mai · Atrasado" ou só "20 mai" (prazo normal).
-function toDeadline(card: Card, now: Date): CardDeadline | undefined {
+export function toDeadline(card: Card, now: Date): CardDeadline | undefined {
   const status = getDeadlineStatus(card, now);
   if (!status) return undefined;
 

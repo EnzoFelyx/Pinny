@@ -37,6 +37,14 @@ const scrollableSheetScreenOptions = {
   sheetAllowedDetents: SCROLLABLE_SHEET_DETENTS,
 };
 
+// Folha do detalhe do cartão: começa na metade da tela e a tela troca as paradas para [altura do
+// conteúdo do cartão, tela toda] assim que mede (useSheetFitDetent no CardDetailScreen).
+const DETAIL_SHEET_DETENTS: number[] = [0.5, 1];
+const detailSheetScreenOptions = {
+  ...sheetScreenOptions,
+  sheetAllowedDetents: DETAIL_SHEET_DETENTS,
+};
+
 export default function RootLayout() {
   const databaseStatus = useDatabaseStatus();
 
@@ -61,6 +69,7 @@ export default function RootLayout() {
             <Stack.Screen name="folder/new" options={sheetScreenOptions} />
             <Stack.Screen name="folder/[folderId]/rename" options={sheetScreenOptions} />
             <Stack.Screen name="folder/[folderId]/new-board" options={sheetScreenOptions} />
+            <Stack.Screen name="card/[cardId]/index" options={detailSheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/move" options={sheetScreenOptions} />
             <Stack.Screen name="column/new" options={sheetScreenOptions} />
           </Stack>

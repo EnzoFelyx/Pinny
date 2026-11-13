@@ -4,6 +4,7 @@ import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { labelRepository } from '@/features/board/model/labelRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
+import { checklistRepository } from '@/features/card/model/checklistRepository';
 import { folderRepository } from '@/features/folders/model/folderRepository';
 import { type HistoryEntry, popEntry, pushEntry } from '@/features/history/model/actionHistory';
 import { applyUndo } from '@/features/history/model/applyUndo';
@@ -86,6 +87,7 @@ export function useDevDataViewModel() {
           boards: boardRepository,
           labels: labelRepository,
           folders: folderRepository,
+          checklist: checklistRepository,
         });
         setHistory(rest);
         return text.undone(entry.description);

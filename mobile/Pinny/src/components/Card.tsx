@@ -1,4 +1,4 @@
-import { Check, Clock3, ListChecks, type LucideIcon } from 'lucide-react-native';
+import { ListChecks } from 'lucide-react-native';
 import { memo, type ReactNode } from 'react';
 import {
   type AccessibilityActionEvent,
@@ -10,25 +10,22 @@ import {
   View,
 } from 'react-native';
 
-import type { DeadlineStatus, LabelColor, Priority } from '@/features/card/model/card.types';
+import type { LabelColor, Priority } from '@/features/card/model/card.types';
 import { colors } from '@/theme';
 import type { TextPart } from '@/utils/text';
 
-import { Chip, type ChipEmphasis } from './Chip';
+import { type CardDeadline, DeadlineChip } from './DeadlineChip';
 import { Label } from './Label';
+
 import { PriorityChip } from './PriorityChip';
 import { SelectionCheck } from './SelectionCheck';
+
+export type { CardDeadline } from './DeadlineChip';
 
 export interface CardLabel {
   id: string;
   name: string;
   color: LabelColor;
-}
-
-export interface CardDeadline {
-  // Texto pronto do ViewModel, sempre com o estado escrito (ex.: "17 mai · Atrasado").
-  text: string;
-  status: DeadlineStatus;
 }
 
 interface CardProps {
@@ -45,6 +42,8 @@ interface CardProps {
   thumbnail?: ImageSourcePropType;
   onPress?: () => void;
   onLongPress?: () => void;
+  // O que o toque faz, para o leitor de tela (ex.: "Abre o cartão").
+  accessibilityHint?: string;
   // Alternativas ao gesto para o leitor de tela (ex.: "Mover para cima" no quadro).
   accessibilityActions?: readonly AccessibilityActionInfo[];
   onAccessibilityAction?: (event: AccessibilityActionEvent) => void;
@@ -76,16 +75,6 @@ const META_ICON_SIZE = 14;
 // Lugar da bolinha de seleção no cartão (também usado pela seleção animada do quadro).
 export const CARD_CHECK_POSITION = 'right-2.5 top-2.5';
 
-const deadlineStyle: Record<
-  DeadlineStatus,
-  { tone: LabelColor; icon: LucideIcon; emphasis: ChipEmphasis }
-> = {
-  normal: { tone: 'babyBlue', icon: Clock3, emphasis: 'default' },
-  soon: { tone: 'butter', icon: Clock3, emphasis: 'default' },
-  overdue: { tone: 'peach', icon: Clock3, emphasis: 'alert' },
-  done: { tone: 'mint', icon: Check, emphasis: 'default' },
-};
-
 // Post-it do quadro. Memoizado porque vive em listas longas.
 export const Card = memo(function Card({
   title,
@@ -98,6 +87,7 @@ export const Card = memo(function Card({
   thumbnail,
   onPress,
   onLongPress,
+  accessibilityHint,
   accessibilityActions,
   onAccessibilityAction,
   isSelected,
@@ -118,6 +108,7 @@ export const Card = memo(function Card({
       accessibilityRole={isCheckable ? 'checkbox' : 'button'}
       accessibilityState={isCheckable ? { checked } : undefined}
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={isCheckable ? undefined : accessibilityHint}
       // Selecionando, o toque só marca: as ações de mover voltam ao sair do modo.
       accessibilityActions={isCheckable ? undefined : accessibilityActions}
       onAccessibilityAction={isCheckable ? undefined : onAccessibilityAction}
@@ -156,7 +147,7 @@ export const Card = memo(function Card({
 
       {hasMeta ? (
         <View className="flex-row items-center justify-between">
-          {deadline ? <Chip label={deadline.text} {...deadlineStyle[deadline.status]} /> : <View />}
+          {deadline ? <DeadlineChip deadline={deadline} /> : <View />}
           {checklistText ? (
             <View className="flex-row items-center gap-1">
               <ListChecks size={META_ICON_SIZE} color={colors.textSecondary} />
