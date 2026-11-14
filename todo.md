@@ -291,12 +291,12 @@
 
 **Objetivo:** o detalhe do card com todos os campos.
 
-> **Decisões do autor (2026-11-13):** detalhe e "Criar cartão" em **folha nativa** (o Figma desenha os dois em tela cheia: "Cartão · Proposta para a Marina", node `3:45511`, e "Criar cartão · Texto ou voz", node `3:45582`; o conteúdo segue o Figma, a apresentação não). Salva **na hora**, sem botão "Salvar", e cada edição entra no histórico. Sem skeleton. Fotos com `expo-image-picker` e `expo-image-manipulator`. O lembrete ("Lembrete às 9:45", do Figma) fica para a etapa 9.
+> **Decisões do autor (2026-11-13):** o detalhe é uma **tela cheia**, como no Figma ("Cartão · Proposta para a Marina", node `3:45511`; começou como folha e virou tela no mesmo dia). "Criar cartão" continua em **folha nativa** (o Figma a desenha em tela cheia: "Criar cartão · Texto ou voz", node `3:45582`). Salva **na hora**, sem botão "Salvar", e cada edição entra no histórico. Sem skeleton. Fotos com `expo-image-picker` e `expo-image-manipulator`. O lembrete ("Lembrete às 9:45", do Figma) fica para a etapa 9.
 
 **Partes (ordem de construção):**
 - [x] Parte 1 — Modelo: carregar o detalhe (cartão, coluna, quadro, pasta, etiquetas, checklist, anexos), repositório de anexos e as operações novas do histórico (checklist)
-- [x] Parte 2 — Folha do detalhe: tocar no cartão abre (fora do modo "Selecionar"); título e descrição editáveis, chips de etiquetas, prioridade e prazo, status (coluna, abre a folha "Mover para…") e o "…" (Mover, Arquivar, Apagar)
-- [ ] Parte 3 — Prioridade (menu nativo) e etiquetas (escolher as do quadro e criar uma nova com nome e cor)
+- [x] Parte 2 — Tela do detalhe: tocar no cartão abre (fora do modo "Selecionar"); título e descrição editáveis, chips de etiquetas, prioridade e prazo, status (coluna, abre a folha "Mover para…") e o "…" (Mover, Arquivar, Apagar)
+- [x] Parte 3 — Prioridade (menu nativo) e etiquetas (escolher as do quadro e criar uma nova com nome e cor)
 - [ ] Parte 4 — Data e horário (DatePicker do `@expo/ui`) e remover o prazo
 - [ ] Parte 5 — Checklist: adicionar, marcar, renomear e apagar itens, com a barra de progresso
 - [ ] Parte 6 — Fotos: instalar as bibliotecas, textos de permissão, tela curta explicando antes do pedido, câmera e galeria, sem EXIF de localização, miniatura, ver e apagar
@@ -306,8 +306,8 @@
 **Tarefas (marcadas conforme as partes terminam):**
 - [ ] Tela/bottom sheet de detalhe do card
 - [x] Título e descrição
-- [ ] Etiquetas coloridas
-- [ ] Prioridade
+- [x] Etiquetas coloridas
+- [x] Prioridade
 - [ ] Data e horário
 - [ ] Checklist de subtarefas com barra de progresso
 - [ ] Anexar foto pela câmera ou galeria (permissão just-in-time, sem EXIF de localização, miniatura)
