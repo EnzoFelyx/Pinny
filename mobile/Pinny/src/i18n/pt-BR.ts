@@ -416,6 +416,7 @@ export const ptBR = {
     openHint: 'Abre o cartão',
     // Folha do detalhe (Figma "Cartão · Proposta para a Marina").
     detail: {
+      screenTitle: 'Seu cartão',
       breadcrumb: (folder: string, column: string) => `${folder} / ${column}`,
       titleLabel: 'Título do cartão',
       titlePlaceholder: 'Dê um título ao seu cartão',
@@ -431,6 +432,31 @@ export const ptBR = {
       },
       archived: 'Cartão arquivado',
       loadError: 'Não conseguimos abrir o cartão agora. Tente de novo em instantes.',
+      // "+" no fim da linha de etiquetas: abre a folha "Prioridade e etiquetas".
+      add: 'Escolher a prioridade e as etiquetas',
+      editTagsHint: 'Abre a prioridade e as etiquetas',
+    },
+    // Folha "Etiquetas" do cartão.
+    labels: {
+      title: 'Prioridade e etiquetas',
+      priorityLabel: 'Prioridade',
+      noPriority: 'Nenhuma',
+      noPriorityA11y: 'Sem prioridade',
+      labelsLabel: 'Etiquetas',
+      empty: 'Este quadro ainda não tem etiquetas. Que tal criar a primeira?',
+      newLabel: 'Nova etiqueta',
+      nameLabel: 'Nome da etiqueta',
+      namePlaceholder: 'Ex.: Estudos',
+      colorLabel: 'Cor',
+      colorA11y: {
+        lavender: 'Lavanda',
+        mint: 'Menta',
+        peach: 'Pêssego',
+        babyBlue: 'Azul-bebê',
+        butter: 'Amarelo-manteiga',
+      },
+      create: 'Criar etiqueta',
+      loadError: 'Não conseguimos abrir as etiquetas agora. Tente de novo em instantes.',
     },
   },
   calendar: {

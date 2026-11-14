@@ -16,15 +16,15 @@ import { cardRepository } from '../model/cardRepository';
 
 const text = ptBR.card.detail;
 
-// A folha fecha pela recarga (o cartão sumiu), não pelo fim do apagar.
+// A tela fecha pela recarga (o cartão sumiu), não pelo fim do apagar.
 function noop() {}
 
-// Folha do detalhe do cartão: carrega e recarrega a cada mudança no banco. Cada edição grava na
+// Tela do cartão: carrega e recarrega a cada mudança no banco. Cada edição grava na
 // hora (sem botão "Salvar") e entra no histórico (decisão do autor, 2026-11-13).
 export function useCardDetailViewModel(cardId: string) {
   const [detail, setDetail] = useState<CardDetail | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
-  // A folha já está fechando (arquivou ou o cartão sumiu): a recarga não fecha de novo.
+  // A tela já está fechando (arquivou ou o cartão sumiu): a recarga não volta de novo.
   const isClosingRef = useRef(false);
   const notifyUndoable = useUndoNotice();
 
@@ -40,7 +40,7 @@ export function useCardDetailViewModel(cardId: string) {
       loadCardDetail(cardId)
         .then((result) => {
           if (!isActive) return;
-          // Apagado (aqui ou pelo desfazer em outra tela): a folha fecha.
+          // Apagado (aqui ou pelo desfazer em outra tela): a tela fecha.
           if (!result) {
             close();
             return;
@@ -97,11 +97,16 @@ export function useCardDetailViewModel(cardId: string) {
     [cardId, runEdit],
   );
 
+  // "+" e os chips de etiqueta e prioridade: abrem a folha "Prioridade e etiquetas".
+  const openLabels = useCallback(() => {
+    router.push({ pathname: '/card/[cardId]/labels', params: { cardId } });
+  }, [cardId]);
+
   const openMove = useCallback(() => {
     router.push({ pathname: '/card/[cardId]/move', params: { cardId } });
   }, [cardId]);
 
-  // Arquivar: some do quadro (com desfazer) e a folha fecha.
+  // Arquivar: some do quadro (com desfazer) e a tela fecha.
   const archive = useCallback(async () => {
     try {
       const undo = await archiveCards([cardId], cardRepository);
@@ -114,7 +119,7 @@ export function useCardDetailViewModel(cardId: string) {
     }
   }, [cardId, close, notifyUndoable, reportSaveError]);
 
-  // Apagar: alerta de confirmação; ao apagar, a recarga percebe e a folha fecha.
+  // Apagar: alerta de confirmação; ao apagar, a recarga percebe e a tela fecha.
   const cardTitle = detail?.card.title;
   const titleOf = useCallback(() => cardTitle, [cardTitle]);
   const cardDelete = useCardDelete({
@@ -146,9 +151,11 @@ export function useCardDetailViewModel(cardId: string) {
     statusA11y: detail ? text.statusA11y(detail.column.title) : '',
     renameTitle,
     changeDescription,
+    openLabels,
     openMove,
     archive,
     requestDelete,
+    goBack: router.back,
     deleteRequest: cardDelete.deleteRequest,
     confirmDelete: cardDelete.confirmDelete,
     cancelDelete: cardDelete.cancelDelete,

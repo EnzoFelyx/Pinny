@@ -16,7 +16,8 @@ interface ChipProps {
 
 const ICON_SIZE = 12;
 
-const toneClass: Record<LabelColor, string> = {
+// Fundo de cada acento (também usado pelo seletor de cor das etiquetas).
+export const labelToneClass: Record<LabelColor, string> = {
   lavender: 'bg-lavender',
   mint: 'bg-mint',
   peach: 'bg-peach',
@@ -46,7 +47,7 @@ export function Chip({
     <View
       accessible
       accessibilityLabel={accessibilityLabel ?? label}
-      className={`flex-row items-center gap-1 self-start rounded-[12px] px-[9px] py-[5px] ${toneClass[tone]}`}
+      className={`flex-row items-center gap-1 self-start rounded-[12px] px-[9px] py-[5px] ${labelToneClass[tone]}`}
     >
       {Icon ? <Icon size={ICON_SIZE} color={iconColor[emphasis]} /> : null}
       <Text className={`text-tag ${textClass[emphasis]}`}>{label}</Text>

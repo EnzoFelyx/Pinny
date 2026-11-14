@@ -5,7 +5,7 @@ import { SheetLayout } from '@/components/SheetLayout';
 import { ptBR } from '@/i18n/pt-BR';
 
 import { useMoveCardViewModel } from '../viewmodel/useMoveCardViewModel';
-import { OptionRow } from './components/OptionRow';
+import { OptionRow } from '@/components/OptionRow';
 
 const text = ptBR.board.moveSheet;
 

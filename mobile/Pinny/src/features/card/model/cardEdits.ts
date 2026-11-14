@@ -1,4 +1,8 @@
+import type { Label } from '@/features/board/model/board.schema';
 import type { LabelRepository } from '@/features/board/model/labelRepository';
+import { normalizeForSearch } from '@/utils/text';
+
+import type { LabelColor } from './card.types';
 import type { UndoOperation } from '@/features/history/model/actionHistory';
 
 import type { CardPatch, CardRepository } from './cardRepository';
@@ -33,6 +37,19 @@ export async function setCardLabels(
   const before = (await labels.listByCard(cardId)).map((label) => label.id);
   await labels.setForCard(cardId, labelIds);
   return { kind: 'setCardLabels', cardId, labelIds: before };
+}
+
+// Etiqueta nova do cartão: com o mesmo nome de uma do quadro (sem diferenciar acentos e
+// maiúsculas), devolve aquela em vez de criar outra igual.
+export async function findOrCreateLabel(
+  boardId: string,
+  input: { name: string; color: LabelColor },
+  boardLabels: readonly Label[],
+  labels: LabelRepository,
+): Promise<Label> {
+  const key = normalizeForSearch(input.name);
+  const existing = boardLabels.find((label) => normalizeForSearch(label.name) === key);
+  return existing ?? labels.create(boardId, input);
 }
 
 export async function addChecklistItem(
