@@ -1,5 +1,8 @@
 // Testes unitários e de componente (Jest + Testing Library). O preset do Expo cuida do Babel
 // (inclusive NativeWind e as migrações .sql como texto) e dos módulos do React Native.
+// Datas dos testes sempre no fuso do Brasil, na máquina local e no CI (que roda em UTC).
+process.env.TZ = 'America/Sao_Paulo';
+
 module.exports = {
   preset: 'jest-expo',
   // Os mocks dos módulos nativos ficam num lugar só; o setup limpa o estado global entre testes.
