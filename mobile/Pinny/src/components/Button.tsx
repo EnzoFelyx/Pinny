@@ -3,7 +3,8 @@ import { Pressable, Text } from 'react-native';
 
 import { colors } from '@/theme';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+// destructive = só texto, sem fundo, na cor de alerta (ex.: "Remover prazo").
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 
 interface ButtonProps {
   label: string;
@@ -20,18 +21,21 @@ const containerClass: Record<ButtonVariant, string> = {
   primary: 'bg-primary',
   secondary: 'bg-secondary',
   ghost: 'bg-transparent',
+  destructive: 'bg-transparent',
 };
 
 const labelClass: Record<ButtonVariant, string> = {
   primary: 'text-text-on-primary',
   secondary: 'text-on-secondary',
   ghost: 'text-on-secondary',
+  destructive: 'text-alert',
 };
 
 const iconColor: Record<ButtonVariant, string> = {
   primary: colors.textOnPrimary,
   secondary: colors.onSecondary,
   ghost: colors.onSecondary,
+  destructive: colors.alert,
 };
 
 export function Button({

@@ -443,10 +443,16 @@ export const ptBR = {
     // Folha "Data e horário" do cartão.
     dueDate: {
       title: 'Data e horário',
-      pickerLabel: 'Data e horário do prazo',
+      dateLabel: 'Dia do prazo',
+      timeLabel: 'Horário',
       save: 'Salvar',
       remove: 'Remover prazo',
       loadError: 'Não conseguimos abrir o prazo agora. Tente de novo em instantes.',
+      // Fechar a folha puxando com uma data nova ainda não salva.
+      discardTitle: 'Descartar alterações?',
+      discardMessage: 'A data escolhida ainda não foi salva.',
+      discardConfirm: 'Descartar',
+      discardCancel: 'Continuar editando',
     },
     // Folha "Etiquetas" do cartão.
     labels: {

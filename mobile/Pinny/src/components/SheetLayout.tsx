@@ -6,9 +6,34 @@ import { type SheetDetentPolicy, useSheetFitDetent } from '@/hooks/useSheetFitDe
 import { colors } from '@/theme';
 
 export type SheetBottomSpace = 'compact' | 'roomy';
+export type SheetTitleSize = 'regular' | 'compact';
+export type SheetTopSpace = 'regular' | 'roomy';
+
+// Espaço entre o topo da folha e o título (folha sem footer). roomy = 14 a mais (46), pedido do
+// autor para a folha "Data e horário" (2026-11-16).
+const topSpaceClass: Record<SheetTopSpace, string> = {
+  regular: 'pt-8',
+  roomy: 'pt-[46px]',
+};
+
+const titleClass: Record<SheetTitleSize, string> = {
+  regular: 'text-title',
+  compact: 'text-header-title',
+};
+
+// Centraliza o ícone (24) na altura da primeira linha do título (22 ou 20 × 1,35).
+const iconOffsetClass: Record<SheetTitleSize, string> = {
+  regular: 'mt-[3px]',
+  compact: 'mt-[1.5px]',
+};
 
 interface SheetLayoutProps {
   title: string;
+  // compact = título um pouco menor (text-header-title, 20), para folhas com muito conteúdo
+  // nativo (ex.: "Data e horário").
+  titleSize?: SheetTitleSize;
+  // Espaço acima do título (só na folha sem footer).
+  topSpace?: SheetTopSpace;
   // Ícone opcional antes do título (decorativo: o título já diz o que a folha faz).
   icon?: LucideIcon;
   children: ReactNode;
@@ -50,6 +75,8 @@ function measured(event: LayoutChangeEvent): number {
 // da tela, expandindo para a tela toda, e o conteúdo rola. O arraste e o puxador são do sistema.
 export function SheetLayout({
   title,
+  titleSize = 'regular',
+  topSpace = 'regular',
   icon: Icon,
   children,
   footer,
@@ -74,11 +101,14 @@ export function SheetLayout({
     // (24) na altura da linha do text-title (22 × 1,35 ≈ 30).
     <View className="flex-row items-start gap-2.5">
       {Icon ? (
-        <View className="mt-[3px]">
+        <View className={iconOffsetClass[titleSize]}>
           <Icon size={ICON_SIZE} color={colors.onSecondary} />
         </View>
       ) : null}
-      <Text accessibilityRole="header" className="flex-1 text-title text-text-primary">
+      <Text
+        accessibilityRole="header"
+        className={`flex-1 text-text-primary ${titleClass[titleSize]}`}
+      >
         {title}
       </Text>
     </View>
@@ -88,7 +118,7 @@ export function SheetLayout({
     return (
       <View
         onLayout={(event) => setFitHeight(measured(event))}
-        className={`gap-[18px] px-6 pt-8 ${bottomSpaceClass[bottomSpace]}`}
+        className={`gap-[18px] px-6 ${topSpaceClass[topSpace]} ${bottomSpaceClass[bottomSpace]}`}
       >
         {header}
         {children}
