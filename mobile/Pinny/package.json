@@ -34,14 +34,20 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^14.1.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/jest": "30.0.0",
     "@types/react": "~19.3.0",
     "babel-plugin-inline-import": "^3.0.0",
+    "better-sqlite3": "^13.2.0",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~58.0.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "eslint-plugin-react-native": "^5.0.0",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.14",
     "prettier": "^3.9.10",
     "tailwindcss": "^3.4.19",
     "typescript": "~6.0.3"
@@ -54,7 +60,9 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "compiler:check": "node scripts/reactCompilerCheck.js",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "private": true
 }
