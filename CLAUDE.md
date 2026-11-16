@@ -300,7 +300,16 @@ Em caso de conflito entre o Figma e este arquivo, pergunte ao autor antes de seg
 - **Fonte:** Nunito.
 - **Bibliotecas:** serão escolhidas e instaladas **conforme a necessidade de cada etapa**, não todas de uma vez. Não instale bibliotecas antecipadamente. Ao chegar numa etapa que precise de uma, proponha a opção e confirme com o autor antes de instalar.
 - **iOS first (2026-10-27):** o desenvolvimento e os testes manuais são feitos só no iOS por enquanto. O Android volta quando o autor pedir; até lá, não gere a pasta `android/` nem teste nele.
-- **Testes automatizados adiados (2026-10-27):** Jest, Testing Library e pre-commit com testes ficam para depois, quando o autor pedir. Não escreva testes nem instale ferramentas de teste até lá.
+- **Testes automatizados (2026-11-16, substitui o "adiados" de 2026-10-27):** Jest (`jest-expo`) + `@testing-library/react-native`, com `npm test` e `npm run test:coverage` em `mobile/Pinny`. Toda funcionalidade nova entra com teste do que for regra (Model), repositório, hook ou componente compartilhado.
+  - **Onde ficam:** cada teste ao lado do arquivo testado (`x.test.ts`). Helpers em `src/test/`: `factories.ts` (cartão, coluna, quadro e etiqueta de exemplo), `testDatabase.ts`, `testRepositories.ts` (`createTestRepositories`, `seedBoard`, `seedCards`), `nativeMocks.ts` e `contrast.ts`.
+  - **Banco com SQL de verdade:** os repositórios são testados num SQLite em memória (`better-sqlite3` + as migrações reais de `src/db/migrations`), passando o banco à fábrica (`createCardRepository(database)`). Sem mock do banco. O `@/db/client` é trocado por esse banco em memória no Jest.
+  - **Mocks nativos num lugar só** (`src/test/nativeMocks.ts`): `expo-crypto`, o banco, a área segura; o Reanimated roda em JavaScript (`jest.resolver.js`, que junta o resolver do preset do Expo com o do Reanimated). Módulo nativo novo que não rode no Jest ganha o mock ali.
+  - **Estado global limpo entre testes** (`jest.setup.ts`): `historyStore.clear()` e `snackbarStore.hide()`.
+  - **Contraste:** `src/theme/colors.test.ts` confere o WCAG AA de cada par texto/fundo (4,5:1) e ícone/borda (3:1). Token novo de texto entra na lista de pares.
+  - **Estilo:** Arrange-Act-Assert, nomes de teste em inglês dizendo o comportamento, busca por role, label ou texto (nunca `testID`), datas no fuso `America/Sao_Paulo` (fixado no `jest.config.js`).
+  - **Cobertura (referência, não meta rígida):** ~70% em domínio e dados; em 2026-11-16, os `model/` estão entre 91% e 100%. ViewModels (hooks de tela) e Views ainda não têm testes. Não escrever teste só para subir o número.
+  - **CI:** `.github/workflows/ci.yml` roda lint, typecheck e testes com cobertura em todo PR para a `main` e em push na `main` (Node do `.nvmrc`, `npm ci`, relatório de cobertura como artifact). O `tsconfig.json` carrega `expo/types`, `jest` e `node` em `types`, para o typecheck não depender do `expo-env.d.ts` (fora do git).
+  - **Pre-commit (Husky):** continua adiado.
 - **Componentes (etapa 3, 2026-10-27):** ícones com `lucide-react-native` + `react-native-svg` (os mesmos do Figma) e bottom sheet com `@gorhom/bottom-sheet` (trocado pela folha nativa em 2026-10-28, ver Navegação). Nenhum dos dois acessa dados do usuário. Os componentes compartilhados ficam em `mobile/Pinny/src/components/`.
 - **Ajustes de componentes pedidos pelo autor (2026-10-27):**
   - Coluna do quadro com **75% da largura da tela**, para a próxima aparecer pela borda; rolagem horizontal com encaixe por coluna.
