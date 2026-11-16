@@ -8,7 +8,7 @@ module.exports = defineConfig([
   expoConfig,
   {
     // src/db/migrations: gerado pelo drizzle-kit (npm run db:generate).
-    ignores: ['dist/*', 'ios/*', 'android/*', '.expo/*', 'src/db/migrations/*'],
+    ignores: ['dist/*', 'ios/*', 'android/*', '.expo/*', 'coverage/*', 'src/db/migrations/*'],
   },
   {
     plugins: { 'react-native': reactNative },
