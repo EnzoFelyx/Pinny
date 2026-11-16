@@ -363,9 +363,6 @@ export const ptBR = {
     moveSheet: {
       title: 'Mover cartão',
       columnLabel: 'Coluna',
-      positionLabel: 'Posição',
-      positionStart: 'No início',
-      positionEnd: 'No fim',
       currentColumn: (title: string) => `${title} (atual)`,
       submit: 'Mover',
       loadError: 'Não conseguimos abrir as colunas agora. Tente de novo em instantes.',
@@ -435,6 +432,21 @@ export const ptBR = {
       // "+" no fim da linha de etiquetas: abre a folha "Prioridade e etiquetas".
       add: 'Escolher a prioridade e as etiquetas',
       editTagsHint: 'Abre a prioridade e as etiquetas',
+      // Bloco do prazo (Figma: "Hoje, 18 mai · 10:00" com o lápis).
+      dueValue: (day: string, time: string) => `${day} · ${time}`,
+      dueA11y: (day: string, time: string, status: string) =>
+        [`Prazo ${day} às ${time}`, status].filter(Boolean).join(', '),
+      dueEditHint: 'Abre a data e o horário',
+      addDue: 'Adicionar data e horário',
+      relativeDays: { yesterday: 'Ontem', today: 'Hoje', tomorrow: 'Amanhã' },
+    },
+    // Folha "Data e horário" do cartão.
+    dueDate: {
+      title: 'Data e horário',
+      pickerLabel: 'Data e horário do prazo',
+      save: 'Salvar',
+      remove: 'Remover prazo',
+      loadError: 'Não conseguimos abrir o prazo agora. Tente de novo em instantes.',
     },
     // Folha "Etiquetas" do cartão.
     labels: {

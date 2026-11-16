@@ -25,6 +25,15 @@ export const labelToneClass: Record<LabelColor, string> = {
   butter: 'bg-butter',
 };
 
+// Cor escura de cada acento (ícones sobre o fundo pastel; todas ≥ 4,4:1).
+export const labelInkColor: Record<LabelColor, string> = {
+  lavender: colors.lavenderInk,
+  mint: colors.mintInk,
+  peach: colors.peachInk,
+  babyBlue: colors.babyBlueInk,
+  butter: colors.butterInk,
+};
+
 const textClass: Record<ChipEmphasis, string> = {
   default: 'text-text-primary',
   alert: 'text-alert',

@@ -10,8 +10,8 @@ import {
   Star,
 } from 'lucide-react-native';
 
+import { labelInkColor } from '@/components/Chip';
 import type { LabelColor } from '@/features/card/model/card.types';
-import { colors } from '@/theme';
 
 import type { FolderIcon } from '../model/folder.schema';
 
@@ -36,10 +36,4 @@ export const folderBackgroundClass: Record<LabelColor, string> = {
 };
 
 // Cor escura do acento: ícone da pasta e notas da miniatura dos quadros.
-export const folderInkColors: Record<LabelColor, string> = {
-  lavender: colors.lavenderInk,
-  mint: colors.mintInk,
-  peach: colors.peachInk,
-  babyBlue: colors.babyBlueInk,
-  butter: colors.butterInk,
-};
+export const folderInkColors = labelInkColor;

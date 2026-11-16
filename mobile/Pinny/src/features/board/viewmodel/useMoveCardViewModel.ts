@@ -13,27 +13,19 @@ import { edgePlacement } from '../model/reorder';
 
 const text = ptBR.board.moveSheet;
 
-export type MovePosition = 'start' | 'end';
-
 export interface MoveOption<T extends string> {
   value: T;
   label: string;
   isSelected: boolean;
 }
 
-const POSITIONS: readonly MovePosition[] = ['start', 'end'];
-const positionLabels: Record<MovePosition, string> = {
-  start: text.positionStart,
-  end: text.positionEnd,
-};
-
 // Folha "Mover para...": alternativa sem gesto ao arraste (CLAUDE.md, regra 15). Escolhe a
-// coluna do quadro e se o cartão vai para o início ou o fim dela.
+// coluna do quadro; o cartão entra no topo dela, como no "Mover para a próxima coluna" (a escolha
+// "No início"/"No fim" saiu, decisão do autor, 2026-11-14).
 export function useMoveCardViewModel(cardId: string) {
   const [card, setCard] = useState<Card | null>(null);
   const [columns, setColumns] = useState<Column[]>([]);
   const [columnId, setColumnId] = useState<string | null>(null);
-  const [position, setPosition] = useState<MovePosition>('start');
   const [errorText, setErrorText] = useState<string | null>(null);
   const notifyUndoable = useUndoNotice();
 
@@ -68,7 +60,7 @@ export function useMoveCardViewModel(cardId: string) {
         edgePlacement(
           siblings.map((item) => item.id),
           card.id,
-          position,
+          'start',
         ),
         { columnId: card.columnId, position: card.position },
         ptBR.history.actions.moveCard,
@@ -79,7 +71,7 @@ export function useMoveCardViewModel(cardId: string) {
       console.warn('Falha ao mover o cartão.', error);
       setErrorText(ptBR.common.saveError);
     }
-  }, [card, columnId, position, notifyUndoable]);
+  }, [card, columnId, notifyUndoable]);
 
   return {
     columnOptions: columns.map((column): MoveOption<string> => ({
@@ -87,15 +79,9 @@ export function useMoveCardViewModel(cardId: string) {
       label: column.id === card?.columnId ? text.currentColumn(column.title) : column.title,
       isSelected: column.id === columnId,
     })),
-    positionOptions: POSITIONS.map((value): MoveOption<MovePosition> => ({
-      value,
-      label: positionLabels[value],
-      isSelected: value === position,
-    })),
     errorText,
     canMove: card !== null && columnId !== null,
     selectColumn: setColumnId,
-    selectPosition: setPosition,
     move,
   };
 }

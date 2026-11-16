@@ -35,7 +35,8 @@ export function CardLabelsScreen({ cardId }: CardLabelsScreenProps) {
               {vm.errorText}
             </Text>
           ) : null}
-          <Button label={text.newLabel} icon={Plus} variant="secondary" onPress={vm.openNewLabel} />
+          {/* Primário: o secundário tinha o mesmo lavanda das etiquetas marcadas (pedido do autor). */}
+          <Button label={text.newLabel} icon={Plus} onPress={vm.openNewLabel} />
         </>
       }
     >

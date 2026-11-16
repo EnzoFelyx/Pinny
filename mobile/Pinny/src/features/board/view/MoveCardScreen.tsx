@@ -29,21 +29,6 @@ export function MoveCardScreen({ cardId }: MoveCardScreenProps) {
           />
         ))}
       </View>
-      <View
-        accessibilityRole="radiogroup"
-        accessibilityLabel={text.positionLabel}
-        className="gap-1"
-      >
-        <Text className="pb-1 text-label text-text-secondary">{text.positionLabel}</Text>
-        {vm.positionOptions.map((option) => (
-          <OptionRow
-            key={option.value}
-            label={option.label}
-            isSelected={option.isSelected}
-            onPress={() => vm.selectPosition(option.value)}
-          />
-        ))}
-      </View>
       {vm.errorText ? (
         <Text accessibilityLiveRegion="polite" className="text-body text-alert">
           {vm.errorText}

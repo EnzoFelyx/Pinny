@@ -9,8 +9,12 @@ import type { UndoOperation } from '@/features/history/model/actionHistory';
 import { historyStore } from '@/features/history/model/historyStore';
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
+import { formatClockTime, formatDayWithDate } from '@/utils/date';
 
+import type { DeadlineStatus } from '../model/card.types';
 import { type CardDetail, loadCardDetail } from '../model/cardDetail';
+import type { DueDateBlockValue } from '../view/components/DueDateBlock';
 import { updateCardFields } from '../model/cardEdits';
 import { cardRepository } from '../model/cardRepository';
 
@@ -18,6 +22,24 @@ const text = ptBR.card.detail;
 
 // A tela fecha pela recarga (o cartão sumiu), não pelo fim do apagar.
 function noop() {}
+
+// Bloco do prazo: "Hoje, 18 mai · 10:00" no tom do estado (null = sem prazo, "Adicionar data e
+// horário"). Concluído sem prazo também não tem bloco.
+function toDueDateBlock(
+  dueAt: string | null,
+  status: DeadlineStatus,
+  now: Date,
+): DueDateBlockValue | null {
+  const due = dueAt ? new Date(dueAt) : null;
+  if (!due || Number.isNaN(due.getTime())) return null;
+  const day = formatDayWithDate(due, now, text.relativeDays);
+  const time = formatClockTime(due);
+  return {
+    text: text.dueValue(day, time),
+    accessibilityLabel: text.dueA11y(day, time, ptBR.card.deadlineStatus[status]),
+    status,
+  };
+}
 
 // Tela do cartão: carrega e recarrega a cada mudança no banco. Cada edição grava na
 // hora (sem botão "Salvar") e entra no histórico (decisão do autor, 2026-11-13).
@@ -99,11 +121,15 @@ export function useCardDetailViewModel(cardId: string) {
 
   // "+" e os chips de etiqueta e prioridade: abrem a folha "Prioridade e etiquetas".
   const openLabels = useCallback(() => {
-    router.push({ pathname: '/card/[cardId]/labels', params: { cardId } });
+    openRoute({ pathname: '/card/[cardId]/labels', params: { cardId } });
+  }, [cardId]);
+
+  const openDueDate = useCallback(() => {
+    openRoute({ pathname: '/card/[cardId]/due-date', params: { cardId } });
   }, [cardId]);
 
   const openMove = useCallback(() => {
-    router.push({ pathname: '/card/[cardId]/move', params: { cardId } });
+    openRoute({ pathname: '/card/[cardId]/move', params: { cardId } });
   }, [cardId]);
 
   // Arquivar: some do quadro (com desfazer) e a tela fecha.
@@ -133,6 +159,7 @@ export function useCardDetailViewModel(cardId: string) {
 
   const now = new Date();
   const card = detail?.card;
+  const deadline = card ? toDeadline(card, now) : undefined;
 
   return {
     isLoading: detail === null && errorText === null,
@@ -146,7 +173,9 @@ export function useCardDetailViewModel(cardId: string) {
       color: label.color,
     })),
     priority: card?.priority ?? undefined,
-    deadline: card ? toDeadline(card, now) : undefined,
+    deadline,
+    dueDate: card && deadline ? toDueDateBlock(card.dueAt, deadline.status, now) : null,
+    openDueDate,
     statusText: detail?.column.title ?? '',
     statusA11y: detail ? text.statusA11y(detail.column.title) : '',
     renameTitle,

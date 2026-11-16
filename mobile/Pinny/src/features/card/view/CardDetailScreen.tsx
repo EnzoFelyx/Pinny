@@ -13,6 +13,7 @@ import { colors } from '@/theme';
 import { useCardDetailViewModel } from '../viewmodel/useCardDetailViewModel';
 import { CardDetailMenu } from './components/CardDetailMenu';
 import { CommitTextField } from './components/CommitTextField';
+import { DueDateBlock } from './components/DueDateBlock';
 
 const text = ptBR.card.detail;
 // O título do topo é fixo ("Seu cartão"): não renomeia (o nome do cartão é editado no campo).
@@ -107,6 +108,13 @@ export function CardDetailScreen({ cardId }: CardDetailScreenProps) {
               className="text-body text-text-secondary"
             />
           </View>
+
+          <DueDateBlock
+            value={vm.dueDate}
+            addLabel={text.addDue}
+            editHint={text.dueEditHint}
+            onPress={vm.openDueDate}
+          />
 
           <View className="flex-row items-center justify-between">
             <Text className="text-label text-text-primary">{text.statusLabel}</Text>

@@ -12,7 +12,7 @@ export interface CardDeadline {
 
 // Prazo visual (CLAUDE.md, seção 5.3): cor e ícone pelo estado, sempre com o texto escrito, para
 // não depender só da cor. Nada de vermelho agressivo: o atrasado usa o pêssego.
-const deadlineStyle: Record<
+export const deadlineStyle: Record<
   DeadlineStatus,
   { tone: LabelColor; icon: LucideIcon; emphasis: ChipEmphasis }
 > = {

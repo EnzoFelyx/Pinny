@@ -33,6 +33,40 @@ export function formatShortDate(date: Date): string {
   return `${date.getDate()} ${month}`;
 }
 
+// "10:00" (como no bloco de prazo do Figma).
+export function formatClockTime(date: Date): string {
+  return new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' }).format(date);
+}
+
+export interface RelativeDayLabels {
+  yesterday: string;
+  today: string;
+  tomorrow: string;
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+// "Hoje, 18 mai", "Amanhã, 19 mai" ou "Sex, 22 mai"; de outro ano, "Sex, 22 mai 2027".
+export function formatDayWithDate(date: Date, now: Date, labels: RelativeDayLabels): string {
+  const relative = isSameDay(date, now)
+    ? labels.today
+    : isSameDay(date, addDays(now, 1))
+      ? labels.tomorrow
+      : isSameDay(date, addDays(now, -1))
+        ? labels.yesterday
+        : null;
+  const weekday = new Intl.DateTimeFormat(LOCALE, { weekday: 'short' })
+    .format(date)
+    .replace('.', '');
+  const day = relative ?? weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  const year = date.getFullYear() === now.getFullYear() ? '' : ` ${date.getFullYear()}`;
+  return `${day}, ${formatShortDate(date)}${year}`;
+}
+
 // Prazo do cartão: no dia de hoje mostra o horário; nos outros dias, só a data.
 export function formatDueDate(due: Date, now: Date, todayLabel: (time: string) => string): string {
   return isSameDay(due, now) ? todayLabel(formatHour(due)) : formatShortDate(due);

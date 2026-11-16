@@ -1,6 +1,7 @@
 import '../global.css';
 
-import { Stack } from 'expo-router';
+import { Stack, useNavigationContainerRef } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -9,6 +10,7 @@ import { useDatabaseStatus } from '@/db/useDatabaseStatus';
 import { SnackbarHost } from '@/features/feedback/view/SnackbarHost';
 import { ShakeToUndoListener } from '@/features/history/view/ShakeToUndoListener';
 import { ptBR } from '@/i18n/pt-BR';
+import { registerCurrentRouteReader } from '@/navigation/openRoute';
 import { colors } from '@/theme';
 
 // Telas abertas por cima das abas: só o botão de voltar (o título fica na própria tela).
@@ -39,6 +41,13 @@ const scrollableSheetScreenOptions = {
 
 export default function RootLayout() {
   const databaseStatus = useDatabaseStatus();
+  // A trava de navegação (openRoute) lê daqui a rota que está na frente.
+  const navigationRef = useNavigationContainerRef();
+  useEffect(() => {
+    registerCurrentRouteReader(() =>
+      navigationRef.isReady() ? navigationRef.getCurrentRoute() : undefined,
+    );
+  }, [navigationRef]);
 
   return (
     <GestureHandlerRootView style={styles.root}>
@@ -66,6 +75,7 @@ export default function RootLayout() {
             <Stack.Screen name="card/[cardId]/move" options={sheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/labels" options={scrollableSheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/new-label" options={sheetScreenOptions} />
+            <Stack.Screen name="card/[cardId]/due-date" options={sheetScreenOptions} />
             <Stack.Screen name="column/new" options={sheetScreenOptions} />
           </Stack>
           {/* Chacoalhar para desfazer e o snackbar global valem para todas as telas. */}
