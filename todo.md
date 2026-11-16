@@ -297,7 +297,7 @@
 - [x] Parte 1 — Modelo: carregar o detalhe (cartão, coluna, quadro, pasta, etiquetas, checklist, anexos), repositório de anexos e as operações novas do histórico (checklist)
 - [x] Parte 2 — Tela do detalhe: tocar no cartão abre (fora do modo "Selecionar"); título e descrição editáveis, chips de etiquetas, prioridade e prazo, status (coluna, abre a folha "Mover para…") e o "…" (Mover, Arquivar, Apagar)
 - [x] Parte 3 — Prioridade (menu nativo) e etiquetas (escolher as do quadro e criar uma nova com nome e cor)
-- [ ] Parte 4 — Data e horário (DatePicker do `@expo/ui`) e remover o prazo
+- [x] Parte 4 — Data e horário (DatePicker do `@expo/ui`) e remover o prazo
 - [ ] Parte 5 — Checklist: adicionar, marcar, renomear e apagar itens, com a barra de progresso
 - [ ] Parte 6 — Fotos: instalar as bibliotecas, textos de permissão, tela curta explicando antes do pedido, câmera e galeria, sem EXIF de localização, miniatura, ver e apagar
 - [ ] Parte 7 — Prazo visual nos cartões do quadro (conferir com a seção 5.3 do CLAUDE.md)
@@ -308,7 +308,7 @@
 - [x] Título e descrição
 - [x] Etiquetas coloridas
 - [x] Prioridade
-- [ ] Data e horário
+- [x] Data e horário
 - [ ] Checklist de subtarefas com barra de progresso
 - [ ] Anexar foto pela câmera ou galeria (permissão just-in-time, sem EXIF de localização, miniatura)
 - [x] Trocar a coluna/status
