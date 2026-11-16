@@ -1,6 +1,13 @@
 // Um cartão entra em "prazo próximo" quando faltam até estas horas para vencer.
 export const DEADLINE_SOON_HOURS = 24;
 
+// Prazo novo de um cartão: amanhã, nesta hora (o usuário ajusta na folha "Data e horário").
+export const DEFAULT_DUE_HOUR = 9;
+
+// Trava de navegação (openRoute): depois de abrir uma tela ou folha, outro "abrir" nesse intervalo
+// é ignorado (cobre a animação de entrada; evita folhas empilhadas por toque duplo).
+export const NAVIGATION_LOCK_MS = 600;
+
 // Tempo que o snackbar de "Desfazer" fica na tela antes de sumir sozinho.
 export const SNACKBAR_DURATION_MS = 5000;
 

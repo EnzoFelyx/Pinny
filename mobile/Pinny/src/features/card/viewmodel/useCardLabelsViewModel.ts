@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
 import { labelRepository } from '@/features/board/model/labelRepository';
@@ -6,6 +5,7 @@ import { subscribeToDataChanges } from '@/db/changes';
 import { PRIORITIES } from '@/db/schema';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import { type CardDetail, loadCardDetail } from '../model/cardDetail';
 import type { Priority } from '../model/card.types';
@@ -81,7 +81,7 @@ export function useCardLabelsViewModel(cardId: string) {
   };
 
   const openNewLabel = () => {
-    router.push({ pathname: '/card/[cardId]/new-label', params: { cardId } });
+    openRoute({ pathname: '/card/[cardId]/new-label', params: { cardId } });
   };
 
   return {

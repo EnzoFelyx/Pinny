@@ -1,10 +1,10 @@
-import { router } from 'expo-router';
 import { useCallback } from 'react';
 
 import { createSampleCard } from '@/features/dev/model/devDataService';
 import { snackbarStore } from '@/features/feedback/model/snackbarStore';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import { type BoardData, withCardMoved } from '../model/boardData';
 import { moveCardWithHistory } from '../model/cardMove';
@@ -81,7 +81,7 @@ export function useCardActions({
   );
 
   const openMoveCard = useCallback((cardId: string) => {
-    router.push({ pathname: '/card/[cardId]/move', params: { cardId } });
+    openRoute({ pathname: '/card/[cardId]/move', params: { cardId } });
   }, []);
 
   // Provisório até a etapa 7: cria um cartão de exemplo no fim da coluna. Se o filtro o esconder,

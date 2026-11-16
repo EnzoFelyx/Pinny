@@ -1,8 +1,8 @@
-import { router } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 
 import { PINNED_FOLDERS_LIMIT } from '@/constants/limits';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 import { formatWeekdayAndDate } from '@/utils/date';
 
 import { toFolderItem, useFolderItems } from './useFolderItems';
@@ -17,14 +17,14 @@ export function useHomeViewModel() {
   // "+" depois dos quadros da pasta, "Criar o primeiro quadro" e "Novo quadro" do "⋮": folha
   // "Novo quadro".
   const createBoard = useCallback((folderId: string) => {
-    router.push({ pathname: '/folder/[folderId]/new-board', params: { folderId } });
+    openRoute({ pathname: '/folder/[folderId]/new-board', params: { folderId } });
   }, []);
   const togglePin = useTogglePin();
   const deleteFolder = useDeleteFolder();
   const folderActions = useMemo(
     () => ({
       customize: (folderId: string) => {
-        router.push({ pathname: '/folder/[folderId]/rename', params: { folderId } });
+        openRoute({ pathname: '/folder/[folderId]/rename', params: { folderId } });
       },
       createBoard,
       pin: togglePin,
@@ -48,7 +48,7 @@ export function useHomeViewModel() {
     emptyText: items.length === 0 ? text.empty : null,
     openBoard,
     // As folhas são rotas com apresentação nativa ("formSheet", ver app/_layout.tsx).
-    createFolder: useCallback(() => router.push('/folder/new'), []),
+    createFolder: useCallback(() => openRoute('/folder/new'), []),
     // "⋮" da pasta. Personalizar abre, por enquanto, a folha de renomear (cor e ícone chegam na
     // etapa 8); Fixar no topo / Desafixar e Apagar (alerta e desfazer).
     folderActions,
@@ -57,7 +57,7 @@ export function useHomeViewModel() {
     cancelDeleteFolder: deleteFolder.cancel,
     // "+N quadros": abre a tela da pasta, com todos os quadros.
     openFolder: useCallback((folderId: string) => {
-      router.push({ pathname: '/folder/[folderId]', params: { folderId } });
+      openRoute({ pathname: '/folder/[folderId]', params: { folderId } });
     }, []),
     createBoard,
   };

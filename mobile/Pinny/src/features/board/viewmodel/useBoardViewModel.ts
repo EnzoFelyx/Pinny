@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import { useBoardData } from './useBoardData';
 import { useBoardFilter } from './useBoardFilter';
@@ -73,13 +74,13 @@ export function useBoardViewModel(boardId: string) {
         toggle(cardId);
         return;
       }
-      router.push({ pathname: '/card/[cardId]', params: { cardId } });
+      openRoute({ pathname: '/card/[cardId]', params: { cardId } });
     },
     [isSelecting, toggle],
   );
 
   const openArchived = useCallback(() => {
-    router.push({ pathname: '/board/[boardId]/archived', params: { boardId } });
+    openRoute({ pathname: '/board/[boardId]/archived', params: { boardId } });
   }, [boardId]);
 
   return {

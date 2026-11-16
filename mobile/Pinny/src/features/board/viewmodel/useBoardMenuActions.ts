@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import type { Board } from '../model/board.schema';
 import { duplicateBoard } from '../model/boardCopy';
@@ -60,7 +61,7 @@ export function useBoardMenuActions({
     duplicateBoard: duplicate,
     // Mover quadro: folha nativa com as pastas.
     moveBoardToFolder: useCallback(() => {
-      if (board) router.push({ pathname: '/board/[boardId]/move', params: { boardId: board.id } });
+      if (board) openRoute({ pathname: '/board/[boardId]/move', params: { boardId: board.id } });
     }, [board]),
     requestDeleteBoard: useCallback(() => {
       if (board) requestDelete([board.id]);

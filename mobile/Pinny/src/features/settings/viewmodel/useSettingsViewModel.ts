@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 
 import { LARGE_FOLDER_SIZES, seedLargeFolder } from '@/features/dev/model/devFolderSeed';
@@ -8,6 +7,7 @@ import {
   type StressSize,
 } from '@/features/dev/model/devDataService';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 const text = ptBR.settings;
 const MS_PER_SECOND = 1000;
@@ -51,7 +51,7 @@ export function useSettingsViewModel() {
   return {
     // A galeria de componentes e os testes de performance só existem em desenvolvimento.
     showDeveloperTools: __DEV__,
-    openComponentGallery: useCallback(() => router.push('/dev/gallery'), []),
+    openComponentGallery: useCallback(() => openRoute('/dev/gallery'), []),
     devFeedback,
     isSeeding,
     createHeavyBoard: useCallback(() => createStressBoard(STRESS_SIZES.heavy), [createStressBoard]),

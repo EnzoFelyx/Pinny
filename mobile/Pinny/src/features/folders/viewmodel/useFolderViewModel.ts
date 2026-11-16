@@ -10,6 +10,7 @@ import { useDeleteBoard } from '@/features/board/viewmodel/useDeleteBoard';
 import { snackbarStore } from '@/features/feedback/model/snackbarStore';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 import { normalizeForSearch } from '@/utils/text';
 
 import type { Folder } from '../model/folder.schema';
@@ -131,12 +132,12 @@ export function useFolderViewModel(folderId: string) {
     noResultsText: noResults ? text.folderScreen.noResults(query) : null,
     createBoardAccessibilityLabel: text.createBoardA11y(data?.folder.title ?? ''),
     openBoard: useCallback((boardId: string) => {
-      router.push({ pathname: '/board/[boardId]', params: { boardId } });
+      openRoute({ pathname: '/board/[boardId]', params: { boardId } });
     }, []),
     // Busca sem resultado: o nome buscado já vem no campo da folha "Novo quadro" (sem criar).
     createBoard: () => {
       const title = noResults ? query.trim() : '';
-      router.push({
+      openRoute({
         pathname: '/folder/[folderId]/new-board',
         params: title ? { folderId, title } : { folderId },
       });
@@ -144,7 +145,7 @@ export function useFolderViewModel(folderId: string) {
     // Tocar no nome ou "Personalizar" no "…": por enquanto, a folha de renomear (cor e ícone
     // chegam na etapa 8).
     customizeFolder: useCallback(() => {
-      router.push({ pathname: '/folder/[folderId]/rename', params: { folderId } });
+      openRoute({ pathname: '/folder/[folderId]/rename', params: { folderId } });
     }, [folderId]),
     selection,
     // Segurar o quadro: fixar/desafixar e "Excluir quadro" (alerta de confirmação e desfazer).

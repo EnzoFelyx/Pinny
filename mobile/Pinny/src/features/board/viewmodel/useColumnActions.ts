@@ -1,9 +1,9 @@
-import { router } from 'expo-router';
 import { useCallback } from 'react';
 
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import { type BoardData, withColumnMoved, withColumnRenamed } from '../model/boardData';
 import { duplicateColumn } from '../model/columnCopy';
@@ -39,14 +39,14 @@ export function useColumnActions({
 
   // "+ Adicionar coluna": abre a folha "Nova coluna".
   const createColumn = useCallback(() => {
-    router.push({ pathname: '/column/new', params: { boardId } });
+    openRoute({ pathname: '/column/new', params: { boardId } });
   }, [boardId]);
 
   // Cartões soltos na coluna "Adicionar coluna" (um ou a pilha do arraste em lote): a mesma folha,
   // avisando que eles vão para a coluna, na ordem dada.
   const createColumnWithCards = useCallback(
     (cardIds: readonly string[]) => {
-      router.push({ pathname: '/column/new', params: { boardId, cardIds: cardIds.join(',') } });
+      openRoute({ pathname: '/column/new', params: { boardId, cardIds: cardIds.join(',') } });
     },
     [boardId],
   );
