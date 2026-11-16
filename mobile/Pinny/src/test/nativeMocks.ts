@@ -1,4 +1,9 @@
 // Mocks dos módulos nativos que não rodam no Jest (Node). Ficam todos aqui.
+import { setUpTests } from 'react-native-reanimated';
+
+// Animações: sem a UI thread nativa, o Reanimated roda em JavaScript (o resolver do
+// jest.config.js escolhe os arquivos certos) e setUpTests registra os matchers de estilo animado.
+setUpTests();
 
 // IDs: o mesmo formato (UUID v4), gerado pelo Node.
 jest.mock('expo-crypto', () => {
@@ -13,4 +18,11 @@ jest.mock('@/db/client', () => {
   const { createTestDatabase } =
     jest.requireActual<typeof import('./testDatabase')>('./testDatabase');
   return { DATABASE_NAME: 'pinny-test.db', db: createTestDatabase() };
+});
+
+// Área segura (entalhe e indicador de início): o mock publicado pela própria biblioteca, com
+// margens zeradas.
+jest.mock('react-native-safe-area-context', () => {
+  const mock = jest.requireActual<{ default: object }>('react-native-safe-area-context/jest/mock');
+  return mock.default;
 });
