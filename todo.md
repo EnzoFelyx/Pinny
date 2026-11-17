@@ -67,7 +67,9 @@
 - [x] Configurar ESLint e Prettier com as regras: `react-native/no-color-literals`, `react-native/no-inline-styles`, `@typescript-eslint/no-explicit-any`, `react-hooks/exhaustive-deps`
 - [x] Rodar o app vazio no iOS
 
-> **Adiado (decisão de 2026-10-27):** Android, tudo que envolve testes (Jest, Testing Library, pre-commit com testes) e o README inicial. O README fica para a etapa 14. Android e testes voltam quando o autor pedir.
+> **Adiado (decisão de 2026-10-27):** Android, tudo que envolve testes (Jest, Testing Library, pre-commit com testes) e o README inicial. O README fica para a etapa 14. Android volta quando o autor pedir.
+>
+> **Testes voltaram em 2026-11-16** (branch `chore/test-suite`): Jest + Testing Library, SQLite em memória para os repositórios, teste de contraste e CI a cada PR. Cobertos: funções puras, repositórios, regras do Model, hooks e componentes compartilhados. Faltam os ViewModels (hooks de tela) e o pre-commit. Detalhes no `CLAUDE.md`, seção 9.
 
 **Pronto quando:** o app abre no iOS, e lint e checagem de tipos passam.
 
@@ -436,7 +438,7 @@
 
 - [ ] Revisão de performance em build de release
 - [ ] Skeleton loading das telas da tab bar (Início, Modelos, Agenda, Ajustes e Busca), no padrão do quadro (pedido do autor, 2026-11-09)
-- [ ] Testes do ViewModel do quadro (vieram da etapa 6R; quando os testes automatizados voltarem)
+- [ ] Testes do ViewModel do quadro (vieram da etapa 6R; a base de testes já existe desde 2026-11-16)
 - [ ] Teste completo com VoiceOver e TalkBack
 - [ ] Teste com fonte grande do sistema e "Reduzir movimento"
 - [ ] Revisão do tom amigável em todos os textos

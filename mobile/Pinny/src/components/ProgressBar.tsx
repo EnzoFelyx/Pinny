@@ -15,6 +15,8 @@ export function ProgressBar({ progress, accessibilityLabel }: ProgressBarProps) 
 
   return (
     <View
+      // Sem "accessible", o VoiceOver não para na barra e o progresso não é lido.
+      accessible
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: PERCENT, now: percent }}
