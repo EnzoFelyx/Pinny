@@ -69,6 +69,13 @@ export const historyStore = {
     redoStack = [];
   },
 
+  // Esvazia o histórico (os testes começam sempre do zero; "Apagar todos os meus dados" também
+  // vai passar por aqui).
+  clear(): void {
+    undoStack = [];
+    redoStack = [];
+  },
+
   // Quadro novo fixado na pasta: a exclusão de um quadro fixado dela não pode mais ser desfeita
   // (ele voltaria fixado e a pasta passaria do limite de fixados).
   forgetPinnedBoardRestores(folderId: string): void {
