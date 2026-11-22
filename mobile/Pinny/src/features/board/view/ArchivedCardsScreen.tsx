@@ -118,7 +118,12 @@ export function ArchivedCardsScreen({ boardId }: ArchivedCardsScreenProps) {
                   onPress={() => selection.toggle(card.id)}
                 />
               ) : (
-                <ArchivedCardMenu key={card.id} card={card} onUnarchive={vm.unarchiveOne} />
+                <ArchivedCardMenu
+                  key={card.id}
+                  card={card}
+                  onUnarchive={vm.unarchiveOne}
+                  onOpen={vm.openCard}
+                />
               ),
             );
             // Sem nenhum arquivado: o bloco único com o estado vazio, sem abrir e fechar.

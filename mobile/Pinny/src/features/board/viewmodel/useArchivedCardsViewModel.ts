@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import {
   ARCHIVED_ORDERS,
@@ -98,6 +99,10 @@ export function useArchivedCardsViewModel(boardId: string) {
     [data],
   );
   const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
+  // Toque no cartão: a folha "Cartão arquivado" (só leitura).
+  const openCard = useCallback((cardId: string) => {
+    openRoute({ pathname: '/card/[cardId]/archived', params: { cardId } });
+  }, []);
   const actions = useArchivedActions({
     boardId,
     selectedIds,
@@ -131,6 +136,7 @@ export function useArchivedCardsViewModel(boardId: string) {
     selection,
     canAct: selectedIds.length > 0,
     ...actions,
+    openCard,
     goBack: router.back,
   };
 }

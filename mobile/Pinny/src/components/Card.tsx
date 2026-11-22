@@ -44,6 +44,8 @@ interface CardProps {
   thumbnail?: ImageSourcePropType;
   onPress?: () => void;
   onLongPress?: () => void;
+  // Tempo segurando até o onLongPress (padrão do React Native: 500 ms).
+  delayLongPress?: number;
   // O que o toque faz, para o leitor de tela (ex.: "Abre o cartão").
   accessibilityHint?: string;
   // Alternativas ao gesto para o leitor de tela (ex.: "Mover para cima" no quadro).
@@ -90,6 +92,7 @@ export const Card = memo(function Card({
   thumbnail,
   onPress,
   onLongPress,
+  delayLongPress,
   accessibilityHint,
   accessibilityActions,
   onAccessibilityAction,
@@ -117,6 +120,7 @@ export const Card = memo(function Card({
       onAccessibilityAction={isCheckable ? undefined : onAccessibilityAction}
       onPress={onPress}
       onLongPress={onLongPress}
+      delayLongPress={delayLongPress}
       className={`w-full gap-2 rounded-[18px] border-2 p-3 shadow-card ${surfaceClass[surface]}`}
     >
       {background}

@@ -217,6 +217,25 @@ export const ptBR = {
         yesterday: (time: string) => `Arquivado ontem, ${time}`,
         on: (date: string) => `Arquivado em ${date}`,
       },
+      // O mesmo momento como valor da linha "Arquivado" da folha do cartão.
+      archivedValue: {
+        today: (time: string) => `Hoje, ${time}`,
+        yesterday: (time: string) => `Ontem, ${time}`,
+        on: (date: string) => date,
+      },
+      // Tocar no cartão abre a folha "Cartão arquivado" (só leitura).
+      openHint: 'Abre o cartão arquivado',
+      sheet: {
+        title: 'Cartão arquivado',
+        columnRow: 'Coluna de origem',
+        archivedRow: 'Arquivado',
+        dueRow: 'Prazo',
+        checklistRow: 'Checklist',
+        rowA11y: (label: string, value: string) => `${label}: ${value}`,
+        unarchive: (column: string) => `Desarquivar em ${column}`,
+        delete: 'Apagar',
+        loadError: 'Não conseguimos abrir este cartão agora. Tente de novo em instantes.',
+      },
       // Segurar o cartão (menu de contexto) e a barra da seleção: cada um volta ao topo da coluna
       // de onde saiu.
       unarchive: 'Desarquivar',

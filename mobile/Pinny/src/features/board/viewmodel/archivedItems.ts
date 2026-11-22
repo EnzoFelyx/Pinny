@@ -30,13 +30,28 @@ export interface ArchivedGroupItem {
 
 const EMPTY_GROUP_KEY = 'all';
 
-// "Arquivado hoje, 10:20", "Arquivado ontem, 19:10" ou "Arquivado em 16 nov" (com o ano se for
-// outro).
-export function formatArchivedAt(archivedAt: Date, now: Date): string {
+interface ArchivedMomentLabels {
+  today: (time: string) => string;
+  yesterday: (time: string) => string;
+  on: (date: string) => string;
+}
+
+// Hoje e ontem com o horário; nos outros dias, só a data (com o ano se for outro).
+function formatArchivedMoment(archivedAt: Date, now: Date, labels: ArchivedMomentLabels): string {
   const relative = relativeDayOf(archivedAt, now);
-  if (relative === 'today') return text.archivedAt.today(formatClockTime(archivedAt));
-  if (relative === 'yesterday') return text.archivedAt.yesterday(formatClockTime(archivedAt));
-  return text.archivedAt.on(formatShortDateWithYear(archivedAt, now));
+  if (relative === 'today') return labels.today(formatClockTime(archivedAt));
+  if (relative === 'yesterday') return labels.yesterday(formatClockTime(archivedAt));
+  return labels.on(formatShortDateWithYear(archivedAt, now));
+}
+
+// Linha do cartão: "Arquivado hoje, 10:20", "Arquivado ontem, 19:10" ou "Arquivado em 16 nov".
+export function formatArchivedAt(archivedAt: Date, now: Date): string {
+  return formatArchivedMoment(archivedAt, now, text.archivedAt);
+}
+
+// Valor da linha "Arquivado" da folha: "Hoje, 10:20", "Ontem, 19:10" ou "16 nov".
+export function formatArchivedValue(archivedAt: Date, now: Date): string {
+  return formatArchivedMoment(archivedAt, now, text.archivedValue);
 }
 
 export function toArchivedCardItem(item: BoardCard, now: Date, term: string): ArchivedCardItem {

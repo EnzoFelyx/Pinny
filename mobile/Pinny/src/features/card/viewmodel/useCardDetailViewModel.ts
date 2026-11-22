@@ -10,13 +10,13 @@ import { historyStore } from '@/features/history/model/historyStore';
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
 import { openRoute } from '@/navigation/openRoute';
-import { formatClockTime, formatDayWithDate } from '@/utils/date';
 
 import type { DeadlineStatus } from '../model/card.types';
 import { type CardDetail, loadCardDetail } from '../model/cardDetail';
 import type { DueDateBlockValue } from '../view/components/DueDateBlock';
 import { updateCardFields } from '../model/cardEdits';
 import { cardRepository } from '../model/cardRepository';
+import { dueDateParts } from './dueDateText';
 import { useCardChecklist } from './useCardChecklist';
 import { useCardPhotos } from './useCardPhotos';
 
@@ -34,8 +34,7 @@ function toDueDateBlock(
 ): DueDateBlockValue | null {
   const due = dueAt ? new Date(dueAt) : null;
   if (!due || Number.isNaN(due.getTime())) return null;
-  const day = formatDayWithDate(due, now, text.relativeDays);
-  const time = formatClockTime(due);
+  const { day, time } = dueDateParts(due, now);
   return {
     text: text.dueValue(day, time),
     accessibilityLabel: text.dueA11y(day, time, ptBR.card.deadlineStatus[status]),

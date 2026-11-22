@@ -77,6 +77,7 @@ export default function RootLayout() {
             <Stack.Screen name="card/[cardId]/new-label" options={sheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/due-date" options={sheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/camera-permission" options={sheetScreenOptions} />
+            <Stack.Screen name="card/[cardId]/archived" options={scrollableSheetScreenOptions} />
             {/* Foto anexada: topo próprio (ScreenHeader), como a tela do cartão. */}
             <Stack.Screen name="card/[cardId]/photo/[attachmentId]" />
             <Stack.Screen name="column/new" options={sheetScreenOptions} />
