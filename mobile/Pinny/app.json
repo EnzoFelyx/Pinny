@@ -9,7 +9,12 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.enzofelyx.pinny",
-      "appleTeamId": "8T52SZS49C"
+      "appleTeamId": "8T52SZS49C",
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "pt-BR",
+        "CFBundleLocalizations": ["pt-BR"],
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
       "package": "com.enzofelyx.pinny",
@@ -48,7 +53,16 @@
         {
           "motionPermission": "O Pinny usa o movimento do celular só para perceber quando você chacoalha para desfazer uma ação. Nada sai do aparelho."
         }
-      ]
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "O Pinny usa a câmera só quando você quer tirar uma foto para anexar a um cartão. A foto fica no seu celular.",
+          "photosPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,

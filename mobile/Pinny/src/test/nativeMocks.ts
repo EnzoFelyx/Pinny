@@ -20,6 +20,20 @@ jest.mock('@/db/client', () => {
   return { DATABASE_NAME: 'pinny-test.db', db: createTestDatabase() };
 });
 
+// Arquivos: as fotos ficam na pasta de documentos do app; nos testes, um endereço de mentira.
+jest.mock('expo-file-system', () => {
+  const documentUri = 'file:///documents/';
+  return {
+    Paths: { document: { uri: documentUri } },
+    File: class {
+      uri: string;
+      constructor(directory: { uri: string }, path: string) {
+        this.uri = `${directory.uri}${path}`;
+      }
+    },
+  };
+});
+
 // Área segura (entalhe e indicador de início): o mock publicado pela própria biblioteca, com
 // margens zeradas.
 jest.mock('react-native-safe-area-context', () => {

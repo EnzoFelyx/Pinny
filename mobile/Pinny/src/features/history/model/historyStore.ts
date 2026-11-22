@@ -2,6 +2,7 @@ import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { labelRepository } from '@/features/board/model/labelRepository';
 import { cardRepository } from '@/features/card/model/cardRepository';
+import { attachmentRepository } from '@/features/card/model/attachmentRepository';
 import { checklistRepository } from '@/features/card/model/checklistRepository';
 import { folderRepository } from '@/features/folders/model/folderRepository';
 import { createId } from '@/utils/id';
@@ -30,6 +31,7 @@ const defaultRepositories: UndoRepositories = {
   labels: labelRepository,
   folders: folderRepository,
   checklist: checklistRepository,
+  attachments: attachmentRepository,
 };
 
 // Tira a última entrada de uma pilha, aplica e guarda a inversa na outra.

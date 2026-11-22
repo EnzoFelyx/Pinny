@@ -1,3 +1,4 @@
+import type { AttachmentRepository } from '@/features/card/model/attachmentRepository';
 import type { Card } from '@/features/card/model/card.schema';
 import type { CardPatch, CardRepository } from '@/features/card/model/cardRepository';
 import type { ChecklistRepository } from '@/features/card/model/checklistRepository';
@@ -32,6 +33,7 @@ export interface UndoRepositories {
   labels: LabelRepository;
   folders: FolderRepository;
   checklist: ChecklistRepository;
+  attachments: AttachmentRepository;
 }
 
 // Campos do patch com os valores atuais do cartão: o que é preciso para voltar uma edição.
@@ -165,6 +167,20 @@ export async function applyUndo(
       if (!before) return null;
       await repositories.checklist.rename(operation.itemId, operation.text);
       return { kind: 'renameChecklistItem', itemId: before.id, text: before.text };
+    }
+    case 'deleteAttachment': {
+      const attachment = await repositories.attachments.getById(operation.attachmentId);
+      if (!attachment) return null;
+      await repositories.attachments.remove(attachment.id);
+      return { kind: 'restoreAttachment', attachment };
+    }
+    case 'restoreAttachment':
+      await repositories.attachments.restore(operation.attachment);
+      return { kind: 'deleteAttachment', attachmentId: operation.attachment.id };
+    case 'setCardCover': {
+      const current = await repositories.attachments.coverIdOf(operation.cardId);
+      await repositories.attachments.setCover(operation.cardId, operation.attachmentId);
+      return { kind: 'setCardCover', cardId: operation.cardId, attachmentId: current };
     }
     case 'restoreFolder':
       await restoreFolderWithContent(operation.snapshot, repositories);

@@ -10,6 +10,14 @@ const now = new Date(2026, 4, 18, 9, 0);
 const at = (day: number, hour: number) => new Date(2026, 4, day, hour).toISOString();
 
 describe('toCardItem', () => {
+  test('shows the cover photo from the app folder', () => {
+    const withCover = toCardItem(makeBoardCard({}, { coverPath: 'attachments/a-thumb.jpg' }), now);
+    const withoutCover = toCardItem(makeBoardCard(), now);
+
+    expect(withCover.thumbnail).toEqual({ uri: 'file:///documents/attachments/a-thumb.jpg' });
+    expect(withoutCover.thumbnail).toBeUndefined();
+  });
+
   test('reads the whole card to the screen reader', () => {
     const item = toCardItem(
       makeBoardCard(

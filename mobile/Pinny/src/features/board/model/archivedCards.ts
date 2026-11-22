@@ -1,3 +1,7 @@
+import {
+  type AttachmentRepository,
+  attachmentRepository,
+} from '@/features/card/model/attachmentRepository';
 import { type CardRepository, cardRepository } from '@/features/card/model/cardRepository';
 import {
   type ChecklistRepository,
@@ -27,6 +31,7 @@ interface ArchivedRepositories {
   cards: CardRepository;
   labels: LabelRepository;
   checklist: ChecklistRepository;
+  attachments: AttachmentRepository;
 }
 
 const defaultRepositories: ArchivedRepositories = {
@@ -35,6 +40,7 @@ const defaultRepositories: ArchivedRepositories = {
   cards: cardRepository,
   labels: labelRepository,
   checklist: checklistRepository,
+  attachments: attachmentRepository,
 };
 
 export interface UnarchiveResult {
@@ -120,9 +126,10 @@ export async function loadArchivedCards(
   const columns = await repositories.columns.listByBoard(board.id);
   const cards = await repositories.cards.listArchivedByColumns(columns.map((column) => column.id));
   const cardIds = cards.map((card) => card.id);
-  const [labelsByCard, progressByCard] = await Promise.all([
+  const [labelsByCard, progressByCard, coverByCard] = await Promise.all([
     repositories.labels.listByCards(cardIds),
     repositories.checklist.progressByCards(cardIds),
+    repositories.attachments.coverThumbnailsByCards(cardIds),
   ]);
   return {
     board,
@@ -131,6 +138,7 @@ export async function loadArchivedCards(
       card,
       labels: labelsByCard[card.id] ?? [],
       checklist: progressByCard[card.id] ?? null,
+      coverPath: coverByCard[card.id],
     })),
   };
 }

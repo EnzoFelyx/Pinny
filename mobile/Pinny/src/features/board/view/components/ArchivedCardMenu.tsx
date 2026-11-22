@@ -40,6 +40,7 @@ export function ArchivedCardMenu({ card, onUnarchive }: ArchivedCardMenuProps) {
               priority={card.priority}
               deadline={card.deadline}
               checklistText={card.checklistText}
+              thumbnail={card.thumbnail}
               accessibilityActions={accessibilityActions}
               onAccessibilityAction={handleAccessibilityAction}
             />

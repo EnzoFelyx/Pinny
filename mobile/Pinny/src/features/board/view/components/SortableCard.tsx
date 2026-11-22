@@ -256,6 +256,7 @@ export const SortableCard = memo(function SortableCard({
           priority={card.priority}
           deadline={card.deadline}
           checklistText={card.checklistText}
+          thumbnail={card.thumbnail}
           accessibilityActions={accessibility.accessibilityActions}
           onAccessibilityAction={accessibility.onAccessibilityAction}
           accessibilitySelected={accessibilitySelected}

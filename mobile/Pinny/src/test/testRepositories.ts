@@ -2,6 +2,7 @@ import { createBoardRepository } from '@/features/board/model/boardRepository';
 import { createColumnRepository } from '@/features/board/model/columnRepository';
 import { createLabelRepository } from '@/features/board/model/labelRepository';
 import { createCardRepository } from '@/features/card/model/cardRepository';
+import { createAttachmentRepository } from '@/features/card/model/attachmentRepository';
 import { createChecklistRepository } from '@/features/card/model/checklistRepository';
 import { createFolderRepository } from '@/features/folders/model/folderRepository';
 import { createPreferencesRepository } from '@/features/settings/model/preferencesRepository';
@@ -19,6 +20,7 @@ export function createTestRepositories() {
     cards: createCardRepository(database),
     labels: createLabelRepository(database),
     checklist: createChecklistRepository(database),
+    attachments: createAttachmentRepository(database),
     preferences: createPreferencesRepository(database),
   };
 }

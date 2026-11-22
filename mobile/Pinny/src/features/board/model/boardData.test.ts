@@ -70,6 +70,24 @@ describe('loadBoard', () => {
     expect(loaded?.columns[0].cards[1]).toMatchObject({ labels: [], checklist: null });
   });
 
+  test('brings the cover thumbnail of the cards that have one', async () => {
+    const { board, todo } = await seedBoard(repositories);
+    const [withCover] = await seedCards(repositories, todo.id, ['Com capa', 'Sem capa']);
+    const photo = await repositories.attachments.add({
+      cardId: withCover,
+      uri: 'attachments/a.jpg',
+      thumbnailUri: 'attachments/a-thumb.jpg',
+    });
+    await repositories.attachments.setCover(withCover, photo.id);
+
+    const loaded = await loadBoard(board.id, repositories);
+
+    expect(loaded?.columns[0].cards.map((item) => item.coverPath)).toEqual([
+      'attachments/a-thumb.jpg',
+      undefined,
+    ]);
+  });
+
   test('returns null for a board that does not exist', async () => {
     expect(await loadBoard('missing', repositories)).toBeNull();
   });

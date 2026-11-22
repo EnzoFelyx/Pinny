@@ -12,8 +12,10 @@ import { colors } from '@/theme';
 
 import { useCardDetailViewModel } from '../viewmodel/useCardDetailViewModel';
 import { CardDetailMenu } from './components/CardDetailMenu';
+import { ChecklistSection } from './components/ChecklistSection';
 import { CommitTextField } from './components/CommitTextField';
 import { DueDateBlock } from './components/DueDateBlock';
+import { PhotoSection } from './components/PhotoSection';
 
 const text = ptBR.card.detail;
 // O título do topo é fixo ("Seu cartão"): não renomeia (o nome do cartão é editado no campo).
@@ -27,13 +29,22 @@ interface CardDetailScreenProps {
 }
 
 // Tela do cartão (Figma "Cartão · Proposta para a Marina"): o topo "Seu cartão" com o caminho
-// (pasta / coluna), o voltar e o "…"; título, etiquetas, prioridade e prazo, descrição e status.
+// (pasta / coluna), o voltar e o "…"; título, etiquetas, prioridade e prazo, descrição, status,
+// checklist e fotos.
 // Tudo grava na hora. Escolher opções (prioridade, etiquetas, coluna) abre folhas por cima.
 export function CardDetailScreen({ cardId }: CardDetailScreenProps) {
   const vm = useCardDetailViewModel(cardId);
   useDestructiveConfirm(vm.deleteRequest, {
     onConfirm: vm.confirmDelete,
     onCancel: vm.cancelDelete,
+  });
+  useDestructiveConfirm(vm.photos.deleteRequest, {
+    onConfirm: vm.photos.confirmDelete,
+    onCancel: vm.photos.cancelDelete,
+  });
+  useDestructiveConfirm(vm.photos.cameraDeniedRequest, {
+    onConfirm: vm.photos.openSettings,
+    onCancel: vm.photos.dismissCameraDenied,
   });
 
   return (
@@ -128,6 +139,9 @@ export function CardDetailScreen({ cardId }: CardDetailScreenProps) {
               <Text className="text-tag text-text-primary">{vm.statusText}</Text>
             </Pressable>
           </View>
+
+          <ChecklistSection checklist={vm.checklist} />
+          <PhotoSection photos={vm.photos} />
         </ScrollView>
       )}
     </SafeAreaView>

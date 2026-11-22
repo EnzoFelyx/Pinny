@@ -49,3 +49,13 @@ export function splitByMatch(value: string, term: string): TextPart[] | null {
   if (cursor < value.length) parts.push({ text: value.slice(cursor), isMatch: false });
   return parts;
 }
+
+const BYTES_PER_KB = 1024;
+const BYTES_PER_MB = BYTES_PER_KB * BYTES_PER_KB;
+const sizeFormat = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
+
+// "1,8 MB" ou "640 KB" (como no Figma, "Foto · 1,8 MB").
+export function formatFileSize(bytes: number): string {
+  if (bytes >= BYTES_PER_MB) return `${sizeFormat.format(bytes / BYTES_PER_MB)} MB`;
+  return `${Math.max(1, Math.round(bytes / BYTES_PER_KB))} KB`;
+}

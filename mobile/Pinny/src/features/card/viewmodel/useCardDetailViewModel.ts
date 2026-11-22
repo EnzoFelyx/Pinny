@@ -17,6 +17,8 @@ import { type CardDetail, loadCardDetail } from '../model/cardDetail';
 import type { DueDateBlockValue } from '../view/components/DueDateBlock';
 import { updateCardFields } from '../model/cardEdits';
 import { cardRepository } from '../model/cardRepository';
+import { useCardChecklist } from './useCardChecklist';
+import { useCardPhotos } from './useCardPhotos';
 
 const text = ptBR.card.detail;
 
@@ -84,6 +86,7 @@ export function useCardDetailViewModel(cardId: string) {
   }, [cardId, close]);
 
   const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
+  const reportPhotoError = useCallback(() => setErrorText(ptBR.card.photos.saveError), []);
 
   // Grava uma edição e registra o desfazer (null = nada mudou).
   const runEdit = useCallback(
@@ -157,6 +160,14 @@ export function useCardDetailViewModel(cardId: string) {
   const { request: requestCardDelete } = cardDelete;
   const requestDelete = useCallback(() => requestCardDelete([cardId]), [requestCardDelete, cardId]);
 
+  const checklist = useCardChecklist({ cardId, items: detail?.checklist ?? [], runEdit });
+  const photos = useCardPhotos({
+    cardId,
+    attachments: detail?.attachments ?? [],
+    notifyUndoable,
+    onError: reportPhotoError,
+  });
+
   const now = new Date();
   const card = detail?.card;
   const deadline = card ? toDeadline(card, now) : undefined;
@@ -176,6 +187,8 @@ export function useCardDetailViewModel(cardId: string) {
     deadline,
     dueDate: card && deadline ? toDueDateBlock(card.dueAt, deadline.status, now) : null,
     openDueDate,
+    checklist,
+    photos,
     statusText: detail?.column.title ?? '',
     statusA11y: detail ? text.statusA11y(detail.column.title) : '',
     renameTitle,

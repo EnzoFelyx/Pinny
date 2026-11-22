@@ -76,6 +76,9 @@ export default function RootLayout() {
             <Stack.Screen name="card/[cardId]/labels" options={scrollableSheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/new-label" options={sheetScreenOptions} />
             <Stack.Screen name="card/[cardId]/due-date" options={sheetScreenOptions} />
+            <Stack.Screen name="card/[cardId]/camera-permission" options={sheetScreenOptions} />
+            {/* Foto anexada: topo próprio (ScreenHeader), como a tela do cartão. */}
+            <Stack.Screen name="card/[cardId]/photo/[attachmentId]" />
             <Stack.Screen name="column/new" options={sheetScreenOptions} />
           </Stack>
           {/* Chacoalhar para desfazer e o snackbar global valem para todas as telas. */}

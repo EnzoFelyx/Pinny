@@ -1,4 +1,5 @@
 import type { CardDeadline, CardLabel } from '@/components/Card';
+import { photoUri } from '@/features/card/model/photoFiles';
 import type { Card } from '@/features/card/model/card.schema';
 import type { Priority } from '@/features/card/model/card.types';
 import type { ChecklistProgress } from '@/features/card/model/checklistRepository';
@@ -24,6 +25,8 @@ export interface BoardCardItem {
   priority?: Priority;
   deadline?: CardDeadline;
   checklistText?: string;
+  // Foto de capa do post-it (miniatura).
+  thumbnail?: { uri: string };
 }
 
 export interface BoardColumnItem {
@@ -71,7 +74,7 @@ function toAccessibilityLabel(
 }
 
 export function toCardItem(item: BoardCard, now: Date): BoardCardItem {
-  const { card, labels, checklist } = item;
+  const { card, labels, checklist, coverPath } = item;
   const deadline = toDeadline(card, now);
   return {
     id: card.id,
@@ -81,6 +84,7 @@ export function toCardItem(item: BoardCard, now: Date): BoardCardItem {
     priority: card.priority ?? undefined,
     deadline,
     checklistText: checklist ? text.checklist(checklist.done, checklist.total) : undefined,
+    thumbnail: coverPath ? { uri: photoUri(coverPath) } : undefined,
   };
 }
 
@@ -106,6 +110,7 @@ function isSameCardItem(a: BoardCardItem, b: BoardCardItem): boolean {
     a.accessibilityLabel === b.accessibilityLabel &&
     a.priority === b.priority &&
     a.checklistText === b.checklistText &&
+    a.thumbnail?.uri === b.thumbnail?.uri &&
     a.deadline?.text === b.deadline?.text &&
     a.deadline?.status === b.deadline?.status &&
     a.labels.length === b.labels.length &&

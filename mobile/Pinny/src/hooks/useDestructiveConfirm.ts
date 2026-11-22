@@ -7,6 +7,8 @@ export interface DestructiveConfirmRequest {
   message?: string;
   confirmLabel: string;
   cancelLabel: string;
+  // default = botão comum (ex.: "Abrir Ajustes"); sem ele, o botão de confirmar é vermelho.
+  confirmStyle?: 'default' | 'destructive';
 }
 
 interface DestructiveConfirmHandlers {
@@ -15,7 +17,7 @@ interface DestructiveConfirmHandlers {
   onCancel: () => void;
 }
 
-// Alerta nativo de confirmação de uma ação destrutiva (ex.: excluir coluna ou quadro). Abre
+// Alerta nativo de confirmação (ex.: apagar coluna ou quadro, ou abrir os Ajustes). Abre
 // sempre que chega um pedido; null = nada a confirmar.
 export function useDestructiveConfirm(
   request: DestructiveConfirmRequest | null,
@@ -28,7 +30,11 @@ export function useDestructiveConfirm(
       request.message,
       [
         { text: request.cancelLabel, style: 'cancel', onPress: onCancel },
-        { text: request.confirmLabel, style: 'destructive', onPress: onConfirm },
+        {
+          text: request.confirmLabel,
+          style: request.confirmStyle ?? 'destructive',
+          onPress: onConfirm,
+        },
       ],
       { cancelable: true, onDismiss: onCancel },
     );

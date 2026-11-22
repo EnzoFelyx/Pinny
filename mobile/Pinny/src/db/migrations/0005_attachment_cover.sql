@@ -1,0 +1,1 @@
+ALTER TABLE `attachments` ADD `is_cover` integer DEFAULT false NOT NULL;

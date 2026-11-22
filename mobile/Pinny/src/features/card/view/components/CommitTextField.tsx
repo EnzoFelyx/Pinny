@@ -5,7 +5,13 @@ import { colors } from '@/theme';
 
 interface CommitTextFieldProps extends Pick<
   TextInputProps,
-  'placeholder' | 'accessibilityLabel' | 'className' | 'multiline'
+  | 'placeholder'
+  | 'accessibilityLabel'
+  | 'accessibilityHint'
+  | 'accessibilityActions'
+  | 'onAccessibilityAction'
+  | 'className'
+  | 'multiline'
 > {
   // Valor gravado (vem do banco).
   value: string;

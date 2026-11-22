@@ -68,6 +68,7 @@ export function ColumnDragOverlay({ columnDrag, column, isReducedMotion }: Colum
                 priority={card.priority}
                 deadline={card.deadline}
                 checklistText={card.checklistText}
+                thumbnail={card.thumbnail}
               />
             ))}
           </View>

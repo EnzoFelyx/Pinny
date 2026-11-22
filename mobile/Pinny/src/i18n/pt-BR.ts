@@ -138,6 +138,9 @@ export const ptBR = {
       deleteCard: 'Apagar Cartão',
       editCard: 'Edição de Cartão',
       editChecklist: 'Edição do Checklist',
+      addPhoto: 'Foto Anexada',
+      deletePhoto: 'Apagar Foto',
+      setCover: 'Troca de Capa',
       unarchiveCards: 'Desarquivar Cartões',
       deleteCards: 'Apagar Cartões',
       moveCards: 'Movimento de Cartões',
@@ -439,6 +442,64 @@ export const ptBR = {
       dueEditHint: 'Abre a data e o horário',
       addDue: 'Adicionar data e horário',
       relativeDays: { yesterday: 'Ontem', today: 'Hoje', tomorrow: 'Amanhã' },
+    },
+    // Checklist do cartão (Figma: "Um passo de cada vez", com "2 de 3" e a barra).
+    steps: {
+      title: 'Um passo de cada vez',
+      progress: (done: number, total: number) => `${done} de ${total}`,
+      progressA11y: (done: number, total: number) =>
+        `${done} de ${total} ${total === 1 ? 'passo concluído' : 'passos concluídos'}`,
+      itemLabel: (text: string) => `Passo ${text}`,
+      itemTextLabel: 'Texto do passo',
+      // Apagar o texto e sair do campo apaga o passo (como no app Lembretes).
+      itemHint: 'Apague o texto para remover o passo.',
+      deleteItem: 'Apagar passo',
+      addPlaceholder: 'Adicionar um passo',
+      addLabel: 'Novo passo',
+      empty: 'Divida a tarefa em passos pequenos, se quiser.',
+    },
+    // Fotos anexadas (Figma: "Anexos" com "+ Adicionar").
+    photos: {
+      title: 'Anexos',
+      add: 'Adicionar',
+      addA11y: 'Adicionar foto',
+      empty: 'Nenhuma foto ainda. Que tal anexar uma?',
+      // Menu do "+ Adicionar" (folha de ações do iOS).
+      takePhoto: 'Tirar foto',
+      chooseFromLibrary: 'Escolher da galeria',
+      cancel: 'Cancelar',
+      itemTitle: (date: string) => `Foto de ${date}`,
+      itemDetail: (size: string) => `Foto · ${size}`,
+      itemA11y: (date: string) => `Foto de ${date}. Toque para ver.`,
+      options: 'Opções da foto',
+      // Capa: a foto que aparece no post-it do quadro (uma por cartão).
+      setCover: 'Usar como capa',
+      removeCover: 'Tirar da capa',
+      coverBadge: 'Capa',
+      coverA11y: 'Foto de capa',
+      view: 'Ver foto',
+      delete: 'Apagar',
+      deleteTitle: 'Apagar a foto?',
+      deleteMessage: 'Ela sai deste cartão.',
+      deleteConfirm: 'Apagar',
+      deleted: 'Foto apagada',
+      added: (count: number) => (count === 1 ? 'Foto anexada' : `${count} fotos anexadas`),
+      saveError: 'Não conseguimos salvar a foto agora. Tente de novo, por favor.',
+      // Câmera negada antes: o iOS não pergunta de novo, só nos Ajustes.
+      cameraDeniedTitle: 'Câmera desligada para o Pinny',
+      cameraDeniedMessage:
+        'Para tirar fotos, libere a câmera em Ajustes → Pinny → Câmera. Você ainda pode escolher fotos da galeria.',
+      openSettings: 'Abrir Ajustes',
+      notNow: 'Agora não',
+      viewerTitle: 'Foto',
+      viewerA11y: (date: string) => `Foto anexada em ${date}`,
+    },
+    // Explicação antes do pedido de permissão da câmera (CLAUDE.md, seção 12, regra 6).
+    cameraPermission: {
+      title: 'Usar a câmera',
+      message: 'Para tirar fotos para os seus cartões. Elas ficam só no seu celular.',
+      continue: 'Continuar',
+      notNow: 'Agora não',
     },
     // Folha "Data e horário" do cartão.
     dueDate: {

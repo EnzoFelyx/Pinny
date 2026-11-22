@@ -5,6 +5,7 @@ import { normalizeForSearch } from '@/utils/text';
 import type { LabelColor } from './card.types';
 import type { UndoOperation } from '@/features/history/model/actionHistory';
 
+import type { AttachmentRepository, NewAttachmentInput } from './attachmentRepository';
 import type { CardPatch, CardRepository } from './cardRepository';
 import type { ChecklistRepository } from './checklistRepository';
 
@@ -91,4 +92,39 @@ export async function removeChecklistItem(
   if (!item) return null;
   await checklist.remove(itemId);
   return { kind: 'restoreChecklistItem', item };
+}
+
+// Foto nova no cartão: a primeira foto do cartão já vira a capa (como no Trello; se o cartão já tem
+// fotos, a capa fica como o usuário deixou). Desfazer tira a foto do cartão (o arquivo fica, para
+// refazer) e, com ela, a capa.
+export async function addAttachment(
+  input: NewAttachmentInput,
+  attachments: AttachmentRepository,
+): Promise<UndoOperation> {
+  const isFirst = (await attachments.listByCard(input.cardId)).length === 0;
+  const attachment = await attachments.add({ ...input, isCover: isFirst });
+  return { kind: 'deleteAttachment', attachmentId: attachment.id };
+}
+
+// Trocar a capa do cartão (null = tirar a capa): desfazer volta à capa de antes. null = nada mudou.
+export async function setCardCover(
+  cardId: string,
+  attachmentId: string | null,
+  attachments: AttachmentRepository,
+): Promise<UndoOperation | null> {
+  const previous = await attachments.coverIdOf(cardId);
+  if (previous === attachmentId) return null;
+  await attachments.setCover(cardId, attachmentId);
+  return { kind: 'setCardCover', cardId, attachmentId: previous };
+}
+
+// Apagar uma foto: desfazer a traz de volta igual. null = a foto já não existe.
+export async function removeAttachment(
+  attachmentId: string,
+  attachments: AttachmentRepository,
+): Promise<UndoOperation | null> {
+  const attachment = await attachments.getById(attachmentId);
+  if (!attachment) return null;
+  await attachments.remove(attachmentId);
+  return { kind: 'restoreAttachment', attachment };
 }
