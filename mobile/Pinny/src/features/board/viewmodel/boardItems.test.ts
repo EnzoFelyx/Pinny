@@ -1,7 +1,13 @@
 import { makeBoard, makeBoardCard, makeColumn, makeLabel } from '@/test/factories';
 
 import type { BoardData } from '../model/boardData';
-import { findCardItems, toCardItem, toColumnItem, toColumnItems } from './boardItems';
+import {
+  findCardItems,
+  refreshColumnItems,
+  toCardItem,
+  toColumnItem,
+  toColumnItems,
+} from './boardItems';
 
 // Segunda, 18 de maio de 2026, 9h (horário do Brasil).
 const now = new Date(2026, 4, 18, 9, 0);
@@ -135,5 +141,34 @@ describe('findCardItems', () => {
       'b',
       'a',
     ]);
+  });
+});
+
+describe('refreshColumnItems', () => {
+  // Cartão para as 20h de hoje: normal às 9h do dia anterior, "Em breve" no dia.
+  const dueTonight = makeBoardCard({ id: 'due', dueAt: at(18, 20) });
+  const data: BoardData = {
+    board: makeBoard(),
+    folderTitle: 'Pessoal',
+    columns: [
+      { column: makeColumn({ id: 'todo' }), cards: [dueTonight] },
+      { column: makeColumn({ id: 'done' }), cards: [makeBoardCard({ id: 'x' })] },
+    ],
+  };
+
+  test('keeps the same columns when no deadline changed', () => {
+    const columns = toColumnItems(data, {}, [], now);
+
+    expect(refreshColumnItems(data, {}, columns, new Date(2026, 4, 18, 9, 1))).toBe(columns);
+  });
+
+  test('redraws only the card whose deadline state changed', () => {
+    const columns = toColumnItems(data, {}, [], new Date(2026, 4, 16, 9, 0));
+
+    const refreshed = refreshColumnItems(data, {}, columns, now);
+
+    expect(refreshed).not.toBe(columns);
+    expect(refreshed[0].cards[0].deadline?.status).toBe('soon');
+    expect(refreshed[1]).toBe(columns[1]);
   });
 });

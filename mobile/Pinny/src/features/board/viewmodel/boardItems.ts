@@ -161,6 +161,20 @@ export function toColumnItems(
   });
 }
 
+// Recalcula as colunas com um novo "agora" (o estado do prazo muda com o tempo). Sem nenhum
+// cartão mudando, devolve as mesmas colunas (nada é redesenhado).
+export function refreshColumnItems(
+  data: BoardData | null,
+  emptyVariants: EmptyVariantMap,
+  previous: BoardColumnItem[],
+  now: Date,
+): BoardColumnItem[] {
+  const next = toColumnItems(data, emptyVariants, previous, now);
+  const isSame =
+    next.length === previous.length && next.every((column, index) => column === previous[index]);
+  return isSame ? previous : next;
+}
+
 // Cartões pelos ids, na ordem dada (os que não estão mais no quadro ficam de fora). Usado pela
 // camada de arraste: o cartão segurado e os da pilha.
 export function findCardItems(

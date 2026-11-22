@@ -8,6 +8,8 @@ import { subscribeToDataChanges } from '@/db/changes';
 import type { UndoOperation } from '@/features/history/model/actionHistory';
 import { historyStore } from '@/features/history/model/historyStore';
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
+import { DEADLINE_REFRESH_MS } from '@/constants/limits';
+import { useNow } from '@/hooks/useNow';
 import { ptBR } from '@/i18n/pt-BR';
 import { openRoute } from '@/navigation/openRoute';
 
@@ -50,6 +52,8 @@ export function useCardDetailViewModel(cardId: string) {
   // A tela já está fechando (arquivou ou o cartão sumiu): a recarga não volta de novo.
   const isClosingRef = useRef(false);
   const notifyUndoable = useUndoNotice();
+  // O estado do prazo muda com o tempo: recalculado a cada minuto e ao voltar do segundo plano.
+  const now = useNow(DEADLINE_REFRESH_MS);
 
   const close = useCallback(() => {
     if (isClosingRef.current) return;
@@ -167,7 +171,6 @@ export function useCardDetailViewModel(cardId: string) {
     onError: reportPhotoError,
   });
 
-  const now = new Date();
   const card = detail?.card;
   const deadline = card ? toDeadline(card, now) : undefined;
 

@@ -70,4 +70,8 @@ describe('formatDueDate', () => {
   test('shows only the date on other days', () => {
     expect(formatDueDate(new Date(2026, 4, 19, 14, 30), now, todayLabel)).toBe('19 mai');
   });
+
+  test('adds the year when the deadline is in another one', () => {
+    expect(formatDueDate(new Date(2027, 4, 20, 9, 0), now, todayLabel)).toBe('20 mai 2027');
+  });
 });

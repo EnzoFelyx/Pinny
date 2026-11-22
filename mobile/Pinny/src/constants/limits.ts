@@ -1,6 +1,10 @@
 // Um cartão entra em "prazo próximo" quando faltam até estas horas para vencer.
 export const DEADLINE_SOON_HOURS = 24;
 
+// De quanto em quanto tempo as telas abertas recalculam o estado do prazo (normal, em breve,
+// atrasado), que muda só com o passar do tempo.
+export const DEADLINE_REFRESH_MS = 60 * 1000;
+
 // Prazo novo de um cartão: amanhã, nesta hora (o usuário ajusta na folha "Data e horário").
 export const DEFAULT_DUE_HOUR = 9;
 

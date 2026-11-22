@@ -76,7 +76,8 @@ export function formatDayWithDate(date: Date, now: Date, labels: RelativeDayLabe
   return `${day}, ${formatShortDateWithYear(date, now)}`;
 }
 
-// Prazo do cartão: no dia de hoje mostra o horário; nos outros dias, só a data.
+// Prazo do cartão: no dia de hoje mostra o horário; nos outros dias, só a data (com o ano se for
+// outro).
 export function formatDueDate(due: Date, now: Date, todayLabel: (time: string) => string): string {
-  return isSameDay(due, now) ? todayLabel(formatHour(due)) : formatShortDate(due);
+  return isSameDay(due, now) ? todayLabel(formatHour(due)) : formatShortDateWithYear(due, now);
 }
