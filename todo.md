@@ -261,7 +261,7 @@
 - [x] Arraste em lote, Parte 8 — decisões da pilha registradas no CLAUDE.md. Sem anúncio do VoiceOver nem dica no topo (decisão do autor, 2026-11-11): a pilha é só gesto, e a alternativa acessível é o botão "Mover" da barra de ações em lote
 - [x] Tela "Arquivados" (2026-11-11, pedido do autor): busca, desarquivar ao segurar e o "…" com Buscar, Selecionar (Desarquivar/Apagar em lote), Filtrar, Ordenar e Apagar todos
 - [x] Arquivados, Variação B, etapa 1 (2026-11-21): seções recolhíveis por coluna de origem e a linha "Arquivado …" no cartão
-- [ ] Arquivados, Variação B, etapa 2: folha "Cartão arquivado" (só leitura, "Desarquivar em <coluna>" e "Apagar")
+- [x] Arquivados, Variação B, etapa 2 (2026-11-22): folha "Cartão arquivado" (só leitura, "Desarquivar em <coluna>" e "Apagar")
 - [x] Conferir todas as ações do quadro pelo VoiceOver (conferido pelo autor em 2026-11-13; o TalkBack fica para quando o Android voltar)
 - Testes do ViewModel do quadro: passaram para a etapa 14 (os testes automatizados continuam adiados)
 
