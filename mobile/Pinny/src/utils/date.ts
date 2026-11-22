@@ -33,7 +33,51 @@ export function formatShortDate(date: Date): string {
   return `${date.getDate()} ${month}`;
 }
 
-// Prazo do cartão: no dia de hoje mostra o horário; nos outros dias, só a data.
+// "10:00" (como no bloco de prazo do Figma).
+export function formatClockTime(date: Date): string {
+  return new Intl.DateTimeFormat(LOCALE, { hour: '2-digit', minute: '2-digit' }).format(date);
+}
+
+export interface RelativeDayLabels {
+  yesterday: string;
+  today: string;
+  tomorrow: string;
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+export type RelativeDay = keyof RelativeDayLabels;
+
+// Ontem, hoje ou amanhã em relação a now; null nos outros dias.
+export function relativeDayOf(date: Date, now: Date): RelativeDay | null {
+  if (isSameDay(date, now)) return 'today';
+  if (isSameDay(date, addDays(now, 1))) return 'tomorrow';
+  if (isSameDay(date, addDays(now, -1))) return 'yesterday';
+  return null;
+}
+
+// "17 mai"; de outro ano, "17 mai 2025".
+export function formatShortDateWithYear(date: Date, now: Date): string {
+  const year = date.getFullYear() === now.getFullYear() ? '' : ` ${date.getFullYear()}`;
+  return `${formatShortDate(date)}${year}`;
+}
+
+// "Hoje, 18 mai", "Amanhã, 19 mai" ou "Sex, 22 mai"; de outro ano, "Sex, 22 mai 2027".
+export function formatDayWithDate(date: Date, now: Date, labels: RelativeDayLabels): string {
+  const relative = relativeDayOf(date, now);
+  const weekday = new Intl.DateTimeFormat(LOCALE, { weekday: 'short' })
+    .format(date)
+    .replace('.', '');
+  const day = relative ? labels[relative] : weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  return `${day}, ${formatShortDateWithYear(date, now)}`;
+}
+
+// Prazo do cartão: no dia de hoje mostra o horário; nos outros dias, só a data (com o ano se for
+// outro).
 export function formatDueDate(due: Date, now: Date, todayLabel: (time: string) => string): string {
-  return isSameDay(due, now) ? todayLabel(formatHour(due)) : formatShortDate(due);
+  return isSameDay(due, now) ? todayLabel(formatHour(due)) : formatShortDateWithYear(due, now);
 }

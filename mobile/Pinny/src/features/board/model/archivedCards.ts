@@ -1,3 +1,7 @@
+import {
+  type AttachmentRepository,
+  attachmentRepository,
+} from '@/features/card/model/attachmentRepository';
 import { type CardRepository, cardRepository } from '@/features/card/model/cardRepository';
 import {
   type ChecklistRepository,
@@ -15,7 +19,7 @@ import { type LabelRepository, labelRepository } from './labelRepository';
 
 export interface ArchivedCardsData {
   board: Board;
-  // Colunas do quadro, em ordem ("Ordenar por coluna" e a primeira coluna do desarquivar).
+  // Colunas do quadro, em ordem (uma seção da tela por coluna de origem).
   columns: Column[];
   // Do arquivado mais recente para o mais antigo.
   cards: BoardCard[];
@@ -27,6 +31,7 @@ interface ArchivedRepositories {
   cards: CardRepository;
   labels: LabelRepository;
   checklist: ChecklistRepository;
+  attachments: AttachmentRepository;
 }
 
 const defaultRepositories: ArchivedRepositories = {
@@ -35,6 +40,7 @@ const defaultRepositories: ArchivedRepositories = {
   cards: cardRepository,
   labels: labelRepository,
   checklist: checklistRepository,
+  attachments: attachmentRepository,
 };
 
 export interface UnarchiveResult {
@@ -83,28 +89,27 @@ export async function unarchiveCards(
   };
 }
 
-export type ArchivedOrder = 'recent' | 'oldest' | 'byColumn';
+// "Ordenar" da tela: a ordem dos cartões dentro de cada seção.
+export type ArchivedOrder = 'recent' | 'oldest';
 
-export const ARCHIVED_ORDERS: readonly ArchivedOrder[] = ['recent', 'oldest', 'byColumn'];
+export const ARCHIVED_ORDERS: readonly ArchivedOrder[] = ['recent', 'oldest'];
 
 export interface ArchivedGroup {
-  // null = um grupo só com todos os cartões.
-  column: Column | null;
+  column: Column;
   cards: BoardCard[];
 }
 
-// "Ordenar" da tela: os mais recentes ou os mais antigos primeiro (um grupo só), ou um grupo por
-// coluna de origem, na ordem do quadro (recentes primeiro; coluna sem arquivados não aparece).
-// cards chega do arquivado mais recente para o mais antigo.
+// Uma seção por coluna de origem, na ordem do quadro (coluna sem arquivados não aparece). Dentro
+// da seção, os mais recentes ou os mais antigos primeiro. cards chega do arquivado mais recente
+// para o mais antigo.
 export function groupArchived(
   cards: readonly BoardCard[],
   columns: readonly Column[],
   order: ArchivedOrder,
 ): ArchivedGroup[] {
-  if (order === 'recent') return [{ column: null, cards: [...cards] }];
-  if (order === 'oldest') return [{ column: null, cards: [...cards].reverse() }];
+  const ordered = order === 'oldest' ? [...cards].reverse() : cards;
   return columns.flatMap((column) => {
-    const inColumn = cards.filter((item) => item.card.columnId === column.id);
+    const inColumn = ordered.filter((item) => item.card.columnId === column.id);
     return inColumn.length > 0 ? [{ column, cards: inColumn }] : [];
   });
 }
@@ -120,9 +125,10 @@ export async function loadArchivedCards(
   const columns = await repositories.columns.listByBoard(board.id);
   const cards = await repositories.cards.listArchivedByColumns(columns.map((column) => column.id));
   const cardIds = cards.map((card) => card.id);
-  const [labelsByCard, progressByCard] = await Promise.all([
+  const [labelsByCard, progressByCard, coverByCard] = await Promise.all([
     repositories.labels.listByCards(cardIds),
     repositories.checklist.progressByCards(cardIds),
+    repositories.attachments.coverThumbnailsByCards(cardIds),
   ]);
   return {
     board,
@@ -131,6 +137,7 @@ export async function loadArchivedCards(
       card,
       labels: labelsByCard[card.id] ?? [],
       checklist: progressByCard[card.id] ?? null,
+      coverPath: coverByCard[card.id],
     })),
   };
 }

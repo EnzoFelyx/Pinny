@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import { useBoardData } from './useBoardData';
 import { useBoardFilter } from './useBoardFilter';
@@ -65,8 +66,21 @@ export function useBoardViewModel(boardId: string) {
     onSaveError: reportSaveError,
   });
 
+  // Toque no cartão: no modo "Selecionar", marca ou desmarca; fora dele, abre a folha do detalhe.
+  const { isSelecting, toggle } = selection.selection;
+  const pressCard = useCallback(
+    (cardId: string) => {
+      if (isSelecting) {
+        toggle(cardId);
+        return;
+      }
+      openRoute({ pathname: '/card/[cardId]', params: { cardId } });
+    },
+    [isSelecting, toggle],
+  );
+
   const openArchived = useCallback(() => {
-    router.push({ pathname: '/board/[boardId]/archived', params: { boardId } });
+    openRoute({ pathname: '/board/[boardId]/archived', params: { boardId } });
   }, [boardId]);
 
   return {
@@ -81,6 +95,7 @@ export function useBoardViewModel(boardId: string) {
     // Por último entre as ações de cartão: o soltar do arraste passa pela seleção (com a pilha,
     // leva todos os marcados), e substitui o moveCard simples.
     ...selection,
+    pressCard,
     openArchived,
     renameBoard,
     ...boardMenuActions,

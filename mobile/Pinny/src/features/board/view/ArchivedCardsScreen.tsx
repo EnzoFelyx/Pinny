@@ -4,7 +4,7 @@ import { AccessibilityInfo, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/Card';
-import { Column } from '@/components/Column';
+import { Column, ColumnFooter } from '@/components/Column';
 import { GlassSearchField } from '@/components/GlassSearchField';
 import { GlassTextButton } from '@/components/GlassTextButton';
 import { GlassToolbar } from '@/components/GlassToolbar';
@@ -16,6 +16,7 @@ import { colors } from '@/theme';
 import { useArchivedCardsViewModel } from '../viewmodel/useArchivedCardsViewModel';
 import { ArchivedCardMenu } from './components/ArchivedCardMenu';
 import { ArchivedMenu } from './components/ArchivedMenu';
+import { ArchivedSection } from './components/ArchivedSection';
 import { BoardFilterModal } from './components/BoardFilterModal';
 import { boardRenameLabels } from './components/BoardMenu';
 import { BoardToolbar } from './components/BoardToolbar';
@@ -33,9 +34,9 @@ const listClass = {
   selecting: 'gap-4 px-6 pb-28',
 } as const;
 
-// Tela "Arquivados" do quadro: os cartões arquivados em colunas só de leitura (uma só ou uma por
-// coluna de origem, pelo "Ordenar"). O "…" tem Buscar, Selecionar, Filtrar, Ordenar e Apagar
-// todos; segurar um cartão desarquiva.
+// Tela "Arquivados" do quadro: os cartões arquivados em seções recolhíveis, uma por coluna de
+// origem (o "Ordenar" muda a ordem dentro de cada seção). O "…" tem Buscar, Selecionar, Filtrar,
+// Ordenar e Apagar todos; segurar um cartão desarquiva.
 export function ArchivedCardsScreen({ boardId }: ArchivedCardsScreenProps) {
   const vm = useArchivedCardsViewModel(boardId);
   const { search, selection, searchResultText } = vm;
@@ -100,44 +101,70 @@ export function ArchivedCardsScreen({ boardId }: ArchivedCardsScreenProps) {
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
         >
-          {vm.groups.map((group) => (
-            <Column
-              key={group.key}
-              title={group.title}
-              cardCount={group.cards.length}
-              isReadOnly
-              emptyMessage={group.emptyMessage}
-              accessory={
-                selection.isSelecting && group.cards.length > 0 ? (
-                  <ColumnSelectionToggle
-                    columnTitle={group.title}
-                    hasSelected={group.hasSelected}
-                    onSelectAll={group.selectAll}
-                    onClear={group.clear}
-                  />
-                ) : undefined
-              }
-            >
-              {group.cards.map((card) =>
-                marked ? (
-                  <Card
-                    key={card.id}
-                    title={card.title}
-                    titleParts={card.titleParts}
-                    accessibilityLabel={card.accessibilityLabel}
-                    labels={card.labels}
-                    priority={card.priority}
-                    deadline={card.deadline}
-                    checklistText={card.checklistText}
-                    isSelected={marked.has(card.id)}
-                    onPress={() => selection.toggle(card.id)}
-                  />
+          {vm.groups.map((group) => {
+            const cards = group.cards.map((card) =>
+              marked ? (
+                <Card
+                  key={card.id}
+                  title={card.title}
+                  titleParts={card.titleParts}
+                  accessibilityLabel={card.accessibilityLabel}
+                  labels={card.labels}
+                  priority={card.priority}
+                  checklistText={card.checklistText}
+                  thumbnail={card.thumbnail}
+                  footnote={card.archivedText}
+                  isSelected={marked.has(card.id)}
+                  onPress={() => selection.toggle(card.id)}
+                />
+              ) : (
+                <ArchivedCardMenu
+                  key={card.id}
+                  card={card}
+                  onUnarchive={vm.unarchiveOne}
+                  onOpen={vm.openCard}
+                />
+              ),
+            );
+            // Sem nenhum arquivado: o bloco único com o estado vazio, sem abrir e fechar.
+            if (!group.isCollapsible) {
+              return (
+                <Column
+                  key={group.key}
+                  title={group.title}
+                  cardCount={0}
+                  isReadOnly
+                  emptyMessage={group.emptyMessage}
+                />
+              );
+            }
+            return (
+              <ArchivedSection
+                key={group.key}
+                title={group.title}
+                count={group.cards.length}
+                accessibilityLabel={group.headerA11y}
+                isExpanded={group.isExpanded}
+                onToggle={group.toggle}
+                accessory={
+                  selection.isSelecting && group.cards.length > 0 ? (
+                    <ColumnSelectionToggle
+                      columnTitle={group.title}
+                      hasSelected={group.hasSelected}
+                      onSelectAll={group.selectAll}
+                      onClear={group.clear}
+                    />
+                  ) : undefined
+                }
+              >
+                {group.cards.length > 0 ? (
+                  cards
                 ) : (
-                  <ArchivedCardMenu key={card.id} card={card} onUnarchive={vm.unarchiveOne} />
-                ),
-              )}
-            </Column>
-          ))}
+                  <ColumnFooter isEmpty emptyMessage={group.emptyMessage} />
+                )}
+              </ArchivedSection>
+            );
+          })}
         </ScrollView>
       )}
 

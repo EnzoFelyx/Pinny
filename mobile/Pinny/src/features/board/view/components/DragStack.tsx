@@ -93,6 +93,7 @@ function StackCard({ card, depth, drag, isReducedMotion }: StackCardProps) {
         priority={card.priority}
         deadline={card.deadline}
         checklistText={card.checklistText}
+        thumbnail={card.thumbnail}
         // Todos da pilha estão marcados: mesmo visual da coluna, sem a bolinha.
         isSelected
         isCheckHidden

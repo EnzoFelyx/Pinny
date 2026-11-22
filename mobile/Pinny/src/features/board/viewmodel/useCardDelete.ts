@@ -54,7 +54,8 @@ export function useCardDelete({ titleOf, onDone, notifyUndoable, onSaveError }: 
     if (!ids) return;
     try {
       const undo = await removeCards(ids, cardRepository);
-      historyStore.record(ptBR.history.actions.deleteCards, undo);
+      const { deleteCard, deleteCards } = ptBR.history.actions;
+      historyStore.record(ids.length === 1 ? deleteCard : deleteCards, undo);
       onDone();
       await notifyUndoable(text.cardsDeleted(ids.length));
     } catch (error: unknown) {

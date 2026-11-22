@@ -7,7 +7,7 @@ import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
 import { useMoveCardsViewModel } from '../viewmodel/useMoveCardsViewModel';
-import { OptionRow } from './components/OptionRow';
+import { OptionRow } from '@/components/OptionRow';
 
 const text = ptBR.board.moveCardsSheet;
 const CHEVRON_SIZE = 16;

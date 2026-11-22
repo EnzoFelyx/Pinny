@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Card } from '@/components/Card';
+import { ptBR } from '@/i18n/pt-BR';
 import { colors, DRAG_ACTIVATION_MS, duration, shadows } from '@/theme';
 
 import type { BoardCardItem } from '../../viewmodel/boardItems';
@@ -24,6 +25,7 @@ import type { SortableColumn } from './sortableColumn.types';
 import type { SelectionValues } from './useSelectionValues';
 
 const CARD_RADIUS = 18;
+const openHint = ptBR.card.openHint;
 
 interface SortableCardProps {
   card: BoardCardItem;
@@ -218,8 +220,8 @@ export const SortableCard = memo(function SortableCard({
     reportHeight(id, event.nativeEvent.layout.height);
   };
 
-  const { toggleSelect } = actions;
-  const toggleHere = useCallback(() => toggleSelect(id), [toggleSelect, id]);
+  const { press } = actions;
+  const pressHere = useCallback(() => press(id), [press, id]);
   const selectionBackground = useMemo(
     () => <CardSelectionBackground id={id} selection={selection} />,
     [id, selection],
@@ -254,12 +256,14 @@ export const SortableCard = memo(function SortableCard({
           priority={card.priority}
           deadline={card.deadline}
           checklistText={card.checklistText}
+          thumbnail={card.thumbnail}
           accessibilityActions={accessibility.accessibilityActions}
           onAccessibilityAction={accessibility.onAccessibilityAction}
           accessibilitySelected={accessibilitySelected}
           background={selectionBackground}
           overlay={selectionCheck}
-          onPress={toggleHere}
+          onPress={pressHere}
+          accessibilityHint={accessibilitySelected === undefined ? openHint : undefined}
         />
       </Animated.View>
     </GestureDetector>

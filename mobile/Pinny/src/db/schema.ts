@@ -142,6 +142,8 @@ export const attachments = sqliteTable(
     uri: text('uri').notNull(),
     thumbnailUri: text('thumbnail_uri').notNull(),
     caption: text('caption'),
+    // Foto de capa do cartão (aparece no post-it do quadro). No máximo uma por cartão.
+    isCover: integer('is_cover', { mode: 'boolean' }).notNull().default(false),
     createdAt: text('created_at').notNull(),
   },
   (table) => [index('attachments_card_idx').on(table.cardId)],

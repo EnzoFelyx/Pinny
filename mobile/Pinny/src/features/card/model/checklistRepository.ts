@@ -17,6 +17,7 @@ export interface ChecklistProgress {
 
 export interface ChecklistRepository {
   listByCard(cardId: string): Promise<ChecklistItem[]>;
+  getById(id: string): Promise<ChecklistItem | null>;
   // Progresso de vários cartões numa consulta só (tela do quadro). Cartão sem checklist não aparece.
   progressByCards(cardIds: readonly string[]): Promise<Record<string, ChecklistProgress>>;
   add(cardId: string, text: string): Promise<ChecklistItem>;
@@ -26,6 +27,8 @@ export interface ChecklistRepository {
   setAllDone(cardId: string, isDone: boolean): Promise<void>;
   move(id: string, placement: Placement): Promise<void>;
   remove(id: string): Promise<void>;
+  // Recria o item com os mesmos dados (desfazer a exclusão).
+  restore(item: ChecklistItem): Promise<void>;
 }
 
 export function createChecklistRepository(database: Database = db): ChecklistRepository {
@@ -92,6 +95,15 @@ export function createChecklistRepository(database: Database = db): ChecklistRep
         .returning()
         .get();
       return parseRow(checklistItemSchema, row, 'checklist_items');
+    },
+
+    async getById(id) {
+      const row = database.select().from(checklistItems).where(eq(checklistItems.id, id)).get();
+      return row ? parseRow(checklistItemSchema, row, 'checklist_items') : null;
+    },
+
+    async restore(item) {
+      database.insert(checklistItems).values(item).run();
     },
 
     async rename(id, text) {

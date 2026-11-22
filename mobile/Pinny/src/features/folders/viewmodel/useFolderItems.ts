@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
@@ -7,6 +6,7 @@ import type { Board } from '@/features/board/model/board.schema';
 import { orderForPreview } from '@/features/board/model/boardPinning';
 import { HOME_PREVIEW_BOARDS } from '@/constants/limits';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import type { FolderIcon } from '../model/folder.schema';
 import { type FolderWithBoards, loadFoldersWithBoards } from '../model/homeData';
@@ -125,7 +125,7 @@ export function useFolderItems() {
   }, []);
 
   const openBoard = useCallback((boardId: string) => {
-    router.push({ pathname: '/board/[boardId]', params: { boardId } });
+    openRoute({ pathname: '/board/[boardId]', params: { boardId } });
   }, []);
 
   return { items, loadErrorText, openBoard };

@@ -5,6 +5,7 @@ import { createBoardWithColumns } from '@/features/board/model/boardCreation';
 import { boardRepository } from '@/features/board/model/boardRepository';
 import { columnRepository } from '@/features/board/model/columnRepository';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import { folderRepository } from '../model/folderRepository';
 
@@ -48,7 +49,7 @@ export function useNewBoardViewModel(folderId: string, initialTitle = '') {
         repositories,
       );
       router.back();
-      router.push({ pathname: '/board/[boardId]', params: { boardId: board.id } });
+      openRoute({ pathname: '/board/[boardId]', params: { boardId: board.id } });
     } catch (error: unknown) {
       console.warn('Falha ao criar o quadro.', error);
       setErrorText(ptBR.common.saveError);

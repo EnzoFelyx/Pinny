@@ -1,5 +1,5 @@
 import { HISTORY_LIMIT } from '@/constants/limits';
-import type { CardSnapshot } from '@/features/card/model/card.schema';
+import type { Attachment, CardSnapshot, ChecklistItem } from '@/features/card/model/card.schema';
 import type { CardPatch } from '@/features/card/model/cardRepository';
 import type { ColumnSnapshot } from '@/features/board/model/columnRemoval';
 import type { BoardSnapshot } from '@/features/board/model/boardRemoval';
@@ -44,6 +44,18 @@ export type UndoOperation =
   | { kind: 'deleteFolder'; folderId: string }
   // Desfaz uma exclusão de pasta: recria a pasta e todos os quadros dela.
   | { kind: 'restoreFolder'; snapshot: FolderSnapshot }
+  // Desfaz a criação de um item do checklist (apaga) e a exclusão (recria igual).
+  | { kind: 'deleteChecklistItem'; itemId: string }
+  | { kind: 'restoreChecklistItem'; item: ChecklistItem }
+  // Desfaz marcar/desmarcar e renomear um item: volta ao valor de antes.
+  | { kind: 'setChecklistItemDone'; itemId: string; isDone: boolean }
+  | { kind: 'renameChecklistItem'; itemId: string; text: string }
+  // Desfaz anexar uma foto (apaga o registro) e apagar uma foto (recria o registro igual). Os
+  // arquivos ficam no aparelho enquanto o "Desfazer" puder trazer a foto de volta.
+  | { kind: 'deleteAttachment'; attachmentId: string }
+  | { kind: 'restoreAttachment'; attachment: Attachment }
+  // Desfaz trocar a capa: volta à foto de capa de antes (null = sem capa).
+  | { kind: 'setCardCover'; cardId: string; attachmentId: string | null }
   // Várias operações como uma ação só (ex.: criar a coluna e levar o cartão para ela). Desfaz na
   // ordem dada; a inversa refaz na ordem contrária.
   | { kind: 'sequence'; operations: UndoOperation[] };

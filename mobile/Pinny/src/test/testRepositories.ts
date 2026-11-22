@@ -2,15 +2,19 @@ import { createBoardRepository } from '@/features/board/model/boardRepository';
 import { createColumnRepository } from '@/features/board/model/columnRepository';
 import { createLabelRepository } from '@/features/board/model/labelRepository';
 import { createCardRepository } from '@/features/card/model/cardRepository';
+import { createAttachmentRepository } from '@/features/card/model/attachmentRepository';
 import { createChecklistRepository } from '@/features/card/model/checklistRepository';
 import { createFolderRepository } from '@/features/folders/model/folderRepository';
 import { createPreferencesRepository } from '@/features/settings/model/preferencesRepository';
 
+import type { Database } from '@/db/client';
+
 import { createTestDatabase } from './testDatabase';
 
-// Todos os repositórios sobre o mesmo banco em memória, novo e vazio a cada chamada.
-export function createTestRepositories() {
-  const database = createTestDatabase();
+// Todos os repositórios sobre o mesmo banco em memória, novo e vazio a cada chamada. Testes de
+// ViewModel passam o banco do app (o `db` de '@/db/client', também em memória no Jest), para
+// semear os dados que a tela vai ler.
+export function createTestRepositories(database: Database = createTestDatabase()) {
   return {
     database,
     folders: createFolderRepository(database),
@@ -19,6 +23,7 @@ export function createTestRepositories() {
     cards: createCardRepository(database),
     labels: createLabelRepository(database),
     checklist: createChecklistRepository(database),
+    attachments: createAttachmentRepository(database),
     preferences: createPreferencesRepository(database),
   };
 }

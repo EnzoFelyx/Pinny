@@ -1,25 +1,73 @@
+import { ptBR } from '@/i18n/pt-BR';
+import { formatClockTime, formatShortDateWithYear, relativeDayOf } from '@/utils/date';
 import { splitByMatch } from '@/utils/text';
 
 import { type ArchivedCardsData, type ArchivedOrder, groupArchived } from '../model/archivedCards';
+import type { BoardCard } from '../model/boardData';
 import { type CardFilter, matchesCardFilter, matchesSearch } from '../model/cardFilter';
-import { type BoardCardItem, toCardItem } from './boardItems';
+import { type BoardCardItem, toAccessibilityLabel, toCardItem } from './boardItems';
 
-// Um bloco da tela "Arquivados": uma coluna só (mais recentes/antigos) ou uma por coluna de origem.
+const text = ptBR.board.archived;
+
+// Cartão da tela "Arquivados": sem o prazo (fica na folha do cartão) e com a linha "Arquivado …".
+// A coluna de origem não aparece: a seção já diz de onde ele saiu.
+export interface ArchivedCardItem extends BoardCardItem {
+  archivedText?: string;
+}
+
+// Uma seção da tela "Arquivados": uma por coluna de origem. Sem nenhum arquivado, um bloco único
+// (não recolhível) com o estado vazio.
 export interface ArchivedGroupItem {
   key: string;
   title: string;
   // Só os que passam na busca e no filtro, já com o marca-texto da busca no título.
-  cards: BoardCardItem[];
-  // Todos os do bloco, inclusive os escondidos ("Limpar" desmarca todos).
+  cards: ArchivedCardItem[];
+  // Todos os da seção, inclusive os escondidos ("Limpar" desmarca todos).
   allIds: string[];
   emptyMessage: string;
+  isCollapsible: boolean;
 }
 
-const SINGLE_GROUP_KEY = 'all';
+const EMPTY_GROUP_KEY = 'all';
 
-function withTitleHighlight(card: BoardCardItem, term: string): BoardCardItem {
-  const titleParts = splitByMatch(card.title, term);
-  return titleParts ? { ...card, titleParts } : card;
+interface ArchivedMomentLabels {
+  today: (time: string) => string;
+  yesterday: (time: string) => string;
+  on: (date: string) => string;
+}
+
+// Hoje e ontem com o horário; nos outros dias, só a data (com o ano se for outro).
+function formatArchivedMoment(archivedAt: Date, now: Date, labels: ArchivedMomentLabels): string {
+  const relative = relativeDayOf(archivedAt, now);
+  if (relative === 'today') return labels.today(formatClockTime(archivedAt));
+  if (relative === 'yesterday') return labels.yesterday(formatClockTime(archivedAt));
+  return labels.on(formatShortDateWithYear(archivedAt, now));
+}
+
+// Linha do cartão: "Arquivado hoje, 10:20", "Arquivado ontem, 19:10" ou "Arquivado em 16 nov".
+export function formatArchivedAt(archivedAt: Date, now: Date): string {
+  return formatArchivedMoment(archivedAt, now, text.archivedAt);
+}
+
+// Valor da linha "Arquivado" da folha: "Hoje, 10:20", "Ontem, 19:10" ou "16 nov".
+export function formatArchivedValue(archivedAt: Date, now: Date): string {
+  return formatArchivedMoment(archivedAt, now, text.archivedValue);
+}
+
+export function toArchivedCardItem(item: BoardCard, now: Date, term: string): ArchivedCardItem {
+  const archivedText = item.card.archivedAt
+    ? formatArchivedAt(new Date(item.card.archivedAt), now)
+    : undefined;
+  const titleParts = splitByMatch(item.card.title, term) ?? undefined;
+  return {
+    ...toCardItem(item, now),
+    deadline: undefined,
+    titleParts,
+    archivedText,
+    accessibilityLabel: [toAccessibilityLabel(item, undefined, item.checklist), archivedText]
+      .filter(Boolean)
+      .join(', '),
+  };
 }
 
 interface ArchivedGroupsInput {
@@ -28,32 +76,45 @@ interface ArchivedGroupsInput {
   filter: CardFilter;
   // Termo da busca já normalizado ('' = sem busca).
   term: string;
-  // Título do bloco único e frase do bloco vazio.
-  singleTitle: string;
+  // Título do bloco vazio (sem nenhum arquivado) e frase das seções vazias.
+  emptyTitle: string;
   emptyMessage: string;
   now: Date;
 }
 
-// Blocos prontos para a tela: ordem escolhida, busca e filtro juntos. Sem nenhum arquivado, o
-// "Por coluna" mostra o bloco único vazio (a tela nunca fica sem coluna).
+// Seções prontas para a tela: uma por coluna de origem, na ordem do quadro, com a ordem escolhida
+// dentro de cada uma e a busca e o filtro juntos. Sem nenhum arquivado, o bloco único vazio (a tela
+// nunca fica sem coluna).
 export function toArchivedGroups({
   data,
   order,
   filter,
   term,
-  singleTitle,
+  emptyTitle,
   emptyMessage,
   now,
 }: ArchivedGroupsInput): ArchivedGroupItem[] {
   const groups = groupArchived(data.cards, data.columns, order);
-  const blocks = groups.length > 0 ? groups : [{ column: null, cards: [] }];
-  return blocks.map(({ column, cards }) => ({
-    key: column?.id ?? SINGLE_GROUP_KEY,
-    title: column?.title ?? singleTitle,
+  if (groups.length === 0) {
+    return [
+      {
+        key: EMPTY_GROUP_KEY,
+        title: emptyTitle,
+        cards: [],
+        allIds: [],
+        emptyMessage,
+        isCollapsible: false,
+      },
+    ];
+  }
+  return groups.map(({ column, cards }) => ({
+    key: column.id,
+    title: column.title,
     cards: cards
       .filter((item) => matchesSearch(item, term) && matchesCardFilter(item, filter, now))
-      .map((item) => withTitleHighlight(toCardItem(item, now), term)),
+      .map((item) => toArchivedCardItem(item, now, term)),
     allIds: cards.map((item) => item.card.id),
     emptyMessage,
+    isCollapsible: true,
   }));
 }

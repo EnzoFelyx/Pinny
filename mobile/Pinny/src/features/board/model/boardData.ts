@@ -1,4 +1,8 @@
 import type { Card } from '@/features/card/model/card.schema';
+import {
+  type AttachmentRepository,
+  attachmentRepository,
+} from '@/features/card/model/attachmentRepository';
 import { type CardRepository, cardRepository } from '@/features/card/model/cardRepository';
 import {
   type ChecklistProgress,
@@ -17,6 +21,8 @@ export interface BoardCard {
   card: Card;
   labels: Label[];
   checklist: ChecklistProgress | null;
+  // Miniatura da foto de capa (caminho relativo à pasta do app). Sem ela, o post-it não tem foto.
+  coverPath?: string;
 }
 
 export interface BoardColumn {
@@ -37,6 +43,7 @@ interface BoardRepositories {
   cards: CardRepository;
   labels: LabelRepository;
   checklist: ChecklistRepository;
+  attachments: AttachmentRepository;
 }
 
 const defaultRepositories: BoardRepositories = {
@@ -46,6 +53,7 @@ const defaultRepositories: BoardRepositories = {
   cards: cardRepository,
   labels: labelRepository,
   checklist: checklistRepository,
+  attachments: attachmentRepository,
 };
 
 // Tudo o que a tela do quadro mostra. Etiquetas e checklist vêm numa consulta só para todos
@@ -66,9 +74,10 @@ export async function loadBoard(
   );
 
   const cardIds = cardsByColumn.flat().map((card) => card.id);
-  const [labelsByCard, progressByCard] = await Promise.all([
+  const [labelsByCard, progressByCard, coverByCard] = await Promise.all([
     repositories.labels.listByCards(cardIds),
     repositories.checklist.progressByCards(cardIds),
+    repositories.attachments.coverThumbnailsByCards(cardIds),
   ]);
 
   return {
@@ -80,6 +89,7 @@ export async function loadBoard(
         card,
         labels: labelsByCard[card.id] ?? [],
         checklist: progressByCard[card.id] ?? null,
+        coverPath: coverByCard[card.id],
       })),
     })),
   };

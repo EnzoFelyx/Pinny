@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { subscribeToDataChanges } from '@/db/changes';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import {
   ARCHIVED_ORDERS,
@@ -12,15 +13,17 @@ import {
 } from '../model/archivedCards';
 import { toArchivedGroups } from './archivedItems';
 import { useArchivedActions } from './useArchivedActions';
+import { useArchivedSections } from './useArchivedSections';
 import { useBoardFilter } from './useBoardFilter';
 import { useBoardSearch } from './useBoardSearch';
 import { useCardSelection } from './useCardSelection';
 
 const text = ptBR.board.archived;
 
-// Tela "Arquivados" (… do quadro): os cartões arquivados, com o "…" do topo (Buscar, Selecionar,
-// Filtrar, Ordenar e Apagar todos) e o "Desarquivar" do toque longo. Busca, filtro e ordem valem
-// só enquanto a tela está aberta.
+// Tela "Arquivados" (… do quadro): os cartões arquivados em seções recolhíveis, uma por coluna de
+// origem, com o "…" do topo (Buscar, Selecionar, Filtrar, Ordenar e Apagar todos) e o
+// "Desarquivar" do toque longo. Busca, filtro, ordem e seções fechadas valem só enquanto a tela
+// está aberta.
 export function useArchivedCardsViewModel(boardId: string) {
   const [data, setData] = useState<ArchivedCardsData | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -70,7 +73,7 @@ export function useArchivedCardsViewModel(boardId: string) {
             order,
             filter: filter.applied,
             term: search.term,
-            singleTitle: text.columnTitle,
+            emptyTitle: text.columnTitle,
             emptyMessage,
             now: new Date(),
           })
@@ -78,6 +81,11 @@ export function useArchivedCardsViewModel(boardId: string) {
     [data, order, filter.applied, search.term, emptyMessage],
   );
   const shownCount = groups.reduce((sum, group) => sum + group.cards.length, 0);
+  const sections = useArchivedSections(groups, {
+    term: search.term,
+    filter: filter.applied,
+    hasActiveFilter: filter.hasActiveFilter,
+  });
 
   const allIds = useMemo(() => (data ? data.cards.map((item) => item.card.id) : []), [data]);
   const marked = selection.selectedIds;
@@ -91,6 +99,10 @@ export function useArchivedCardsViewModel(boardId: string) {
     [data],
   );
   const reportSaveError = useCallback(() => setErrorText(ptBR.common.saveError), []);
+  // Toque no cartão: a folha "Cartão arquivado" (só leitura).
+  const openCard = useCallback((cardId: string) => {
+    openRoute({ pathname: '/card/[cardId]/archived', params: { cardId } });
+  }, []);
   const actions = useArchivedActions({
     boardId,
     selectedIds,
@@ -107,6 +119,9 @@ export function useArchivedCardsViewModel(boardId: string) {
     errorText,
     groups: groups.map((group) => ({
       ...group,
+      headerA11y: text.sectionA11y(group.title, group.cards.length),
+      isExpanded: sections.isExpanded(group.key),
+      toggle: () => sections.toggle(group.key),
       hasSelected: marked ? group.allIds.some((id) => marked.has(id)) : false,
       selectAll: () => selection.selectMany(group.cards.map((card) => card.id)),
       clear: () => selection.deselectMany(group.allIds),
@@ -121,6 +136,7 @@ export function useArchivedCardsViewModel(boardId: string) {
     selection,
     canAct: selectedIds.length > 0,
     ...actions,
+    openCard,
     goBack: router.back,
   };
 }

@@ -134,6 +134,13 @@ export const ptBR = {
       deleteBoards: 'Apagar Quadros',
       deleteFolder: 'Apagar Pasta',
       archiveCards: 'Arquivar Cartões',
+      archiveCard: 'Arquivar Cartão',
+      deleteCard: 'Apagar Cartão',
+      editCard: 'Edição de Cartão',
+      editChecklist: 'Edição do Checklist',
+      addPhoto: 'Foto Anexada',
+      deletePhoto: 'Apagar Foto',
+      setCover: 'Troca de Capa',
       unarchiveCards: 'Desarquivar Cartões',
       deleteCards: 'Apagar Cartões',
       moveCards: 'Movimento de Cartões',
@@ -187,7 +194,8 @@ export const ptBR = {
     archived: {
       title: 'Arquivados',
       options: 'Opções dos arquivados',
-      // "…" do topo. O "Ordenar" abre um submenu; o item em uso leva o check.
+      // "…" do topo. O "Ordenar" abre um submenu (a ordem dentro de cada seção); o item em uso
+      // leva o check.
       menu: {
         search: 'Buscar',
         select: 'Selecionar',
@@ -196,9 +204,37 @@ export const ptBR = {
         sortOptions: {
           recent: 'Mais recentes',
           oldest: 'Mais antigos',
-          byColumn: 'Por coluna de origem',
         },
         deleteAll: 'Apagar todos',
+      },
+      // Cabeçalho de cada seção (coluna de origem), lido como botão de abrir/fechar.
+      sectionA11y: (column: string, count: number) =>
+        `${column}, ${count === 1 ? '1 cartão arquivado' : `${count} cartões arquivados`}`,
+      // Linha de baixo do cartão: "Arquivado hoje, 10:20", "Arquivado ontem, 19:10" ou
+      // "Arquivado em 16 nov".
+      archivedAt: {
+        today: (time: string) => `Arquivado hoje, ${time}`,
+        yesterday: (time: string) => `Arquivado ontem, ${time}`,
+        on: (date: string) => `Arquivado em ${date}`,
+      },
+      // O mesmo momento como valor da linha "Arquivado" da folha do cartão.
+      archivedValue: {
+        today: (time: string) => `Hoje, ${time}`,
+        yesterday: (time: string) => `Ontem, ${time}`,
+        on: (date: string) => date,
+      },
+      // Tocar no cartão abre a folha "Cartão arquivado" (só leitura).
+      openHint: 'Abre o cartão arquivado',
+      sheet: {
+        title: 'Cartão arquivado',
+        columnRow: 'Coluna de origem',
+        archivedRow: 'Arquivado',
+        dueRow: 'Prazo',
+        checklistRow: 'Checklist',
+        rowA11y: (label: string, value: string) => `${label}: ${value}`,
+        unarchive: (column: string) => `Desarquivar em ${column}`,
+        delete: 'Apagar',
+        loadError: 'Não conseguimos abrir este cartão agora. Tente de novo em instantes.',
       },
       // Segurar o cartão (menu de contexto) e a barra da seleção: cada um volta ao topo da coluna
       // de onde saiu.
@@ -359,9 +395,6 @@ export const ptBR = {
     moveSheet: {
       title: 'Mover cartão',
       columnLabel: 'Coluna',
-      positionLabel: 'Posição',
-      positionStart: 'No início',
-      positionEnd: 'No fim',
       currentColumn: (title: string) => `${title} (atual)`,
       submit: 'Mover',
       loadError: 'Não conseguimos abrir as colunas agora. Tente de novo em instantes.',
@@ -408,6 +441,131 @@ export const ptBR = {
     summaryDeadline: (text: string) => `prazo ${text}`,
     summaryChecklist: (done: number, total: number) =>
       `${done} de ${total} ${total === 1 ? 'subtarefa concluída' : 'subtarefas concluídas'}`,
+    // Tocar no cartão do quadro.
+    openHint: 'Abre o cartão',
+    // Folha do detalhe (Figma "Cartão · Proposta para a Marina").
+    detail: {
+      screenTitle: 'Seu cartão',
+      breadcrumb: (folder: string, column: string) => `${folder} / ${column}`,
+      titleLabel: 'Título do cartão',
+      titlePlaceholder: 'Dê um título ao seu cartão',
+      descriptionLabel: 'Descrição',
+      descriptionPlaceholder: 'Escreva os detalhes, se quiser.',
+      statusLabel: 'Status',
+      statusA11y: (column: string) => `Status ${column}. Toque para mudar de coluna.`,
+      options: 'Opções do cartão',
+      menu: {
+        move: 'Mover para…',
+        archive: 'Arquivar',
+        delete: 'Apagar',
+      },
+      archived: 'Cartão arquivado',
+      loadError: 'Não conseguimos abrir o cartão agora. Tente de novo em instantes.',
+      // "+" no fim da linha de etiquetas: abre a folha "Prioridade e etiquetas".
+      add: 'Escolher a prioridade e as etiquetas',
+      editTagsHint: 'Abre a prioridade e as etiquetas',
+      // Bloco do prazo (Figma: "Hoje, 18 mai · 10:00" com o lápis).
+      dueValue: (day: string, time: string) => `${day} · ${time}`,
+      dueA11y: (day: string, time: string, status: string) =>
+        [`Prazo ${day} às ${time}`, status].filter(Boolean).join(', '),
+      dueEditHint: 'Abre a data e o horário',
+      addDue: 'Adicionar data e horário',
+      relativeDays: { yesterday: 'Ontem', today: 'Hoje', tomorrow: 'Amanhã' },
+    },
+    // Checklist do cartão (Figma: "Um passo de cada vez", com "2 de 3" e a barra).
+    steps: {
+      title: 'Um passo de cada vez',
+      progress: (done: number, total: number) => `${done} de ${total}`,
+      progressA11y: (done: number, total: number) =>
+        `${done} de ${total} ${total === 1 ? 'passo concluído' : 'passos concluídos'}`,
+      itemLabel: (text: string) => `Passo ${text}`,
+      itemTextLabel: 'Texto do passo',
+      // Apagar o texto e sair do campo apaga o passo (como no app Lembretes).
+      itemHint: 'Apague o texto para remover o passo.',
+      deleteItem: 'Apagar passo',
+      addPlaceholder: 'Adicionar um passo',
+      addLabel: 'Novo passo',
+      empty: 'Divida a tarefa em passos pequenos, se quiser.',
+    },
+    // Fotos anexadas (Figma: "Anexos" com "+ Adicionar").
+    photos: {
+      title: 'Anexos',
+      add: 'Adicionar',
+      addA11y: 'Adicionar foto',
+      empty: 'Nenhuma foto ainda. Que tal anexar uma?',
+      // Menu do "+ Adicionar" (folha de ações do iOS).
+      takePhoto: 'Tirar foto',
+      chooseFromLibrary: 'Escolher da galeria',
+      cancel: 'Cancelar',
+      itemTitle: (date: string) => `Foto de ${date}`,
+      itemDetail: (size: string) => `Foto · ${size}`,
+      itemA11y: (date: string) => `Foto de ${date}. Toque para ver.`,
+      options: 'Opções da foto',
+      // Capa: a foto que aparece no post-it do quadro (uma por cartão).
+      setCover: 'Usar como capa',
+      removeCover: 'Tirar da capa',
+      coverBadge: 'Capa',
+      coverA11y: 'Foto de capa',
+      view: 'Ver foto',
+      delete: 'Apagar',
+      deleteTitle: 'Apagar a foto?',
+      deleteMessage: 'Ela sai deste cartão.',
+      deleteConfirm: 'Apagar',
+      deleted: 'Foto apagada',
+      added: (count: number) => (count === 1 ? 'Foto anexada' : `${count} fotos anexadas`),
+      saveError: 'Não conseguimos salvar a foto agora. Tente de novo, por favor.',
+      // Câmera negada antes: o iOS não pergunta de novo, só nos Ajustes.
+      cameraDeniedTitle: 'Câmera desligada para o Pinny',
+      cameraDeniedMessage:
+        'Para tirar fotos, libere a câmera em Ajustes → Pinny → Câmera. Você ainda pode escolher fotos da galeria.',
+      openSettings: 'Abrir Ajustes',
+      notNow: 'Agora não',
+      viewerTitle: 'Foto',
+      viewerA11y: (date: string) => `Foto anexada em ${date}`,
+    },
+    // Explicação antes do pedido de permissão da câmera (CLAUDE.md, seção 12, regra 6).
+    cameraPermission: {
+      title: 'Usar a câmera',
+      message: 'Para tirar fotos para os seus cartões. Elas ficam só no seu celular.',
+      continue: 'Continuar',
+      notNow: 'Agora não',
+    },
+    // Folha "Data e horário" do cartão.
+    dueDate: {
+      title: 'Data e horário',
+      dateLabel: 'Dia do prazo',
+      timeLabel: 'Horário',
+      save: 'Salvar',
+      remove: 'Remover prazo',
+      loadError: 'Não conseguimos abrir o prazo agora. Tente de novo em instantes.',
+      // Fechar a folha puxando com uma data nova ainda não salva.
+      discardTitle: 'Descartar alterações?',
+      discardMessage: 'A data escolhida ainda não foi salva.',
+      discardConfirm: 'Descartar',
+      discardCancel: 'Continuar editando',
+    },
+    // Folha "Etiquetas" do cartão.
+    labels: {
+      title: 'Prioridade e etiquetas',
+      priorityLabel: 'Prioridade',
+      noPriority: 'Nenhuma',
+      noPriorityA11y: 'Sem prioridade',
+      labelsLabel: 'Etiquetas',
+      empty: 'Este quadro ainda não tem etiquetas. Que tal criar a primeira?',
+      newLabel: 'Nova etiqueta',
+      nameLabel: 'Nome da etiqueta',
+      namePlaceholder: 'Ex.: Estudos',
+      colorLabel: 'Cor',
+      colorA11y: {
+        lavender: 'Lavanda',
+        mint: 'Menta',
+        peach: 'Pêssego',
+        babyBlue: 'Azul-bebê',
+        butter: 'Amarelo-manteiga',
+      },
+      create: 'Criar etiqueta',
+      loadError: 'Não conseguimos abrir as etiquetas agora. Tente de novo em instantes.',
+    },
   },
   calendar: {
     title: 'Agenda',

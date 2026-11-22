@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
+import { DEADLINE_REFRESH_MS } from '@/constants/limits';
 import { subscribeToDataChanges } from '@/db/changes';
+import { usePeriodicRefresh } from '@/hooks/usePeriodicRefresh';
 import { ptBR } from '@/i18n/pt-BR';
 
 import { type BoardData, emptyColumnIdsOf, loadBoard } from '../model/boardData';
 import { assignEmptyVariants, type EmptyVariantMap } from '../model/emptyVariants';
-import { type BoardColumnItem, toColumnItems } from './boardItems';
+import { type BoardColumnItem, refreshColumnItems, toColumnItems } from './boardItems';
 
 const text = ptBR.board;
 
@@ -32,6 +34,20 @@ export function useBoardData(boardId: string) {
       };
     });
   }, []);
+  // O estado do prazo (normal, em breve, atrasado) muda só com o tempo: a cada minuto e ao voltar
+  // do segundo plano, só os cartões que mudaram são redesenhados.
+  const refreshDeadlines = useCallback(() => {
+    setBoard((current) => {
+      const columns = refreshColumnItems(
+        current.data,
+        current.emptyVariants,
+        current.columns,
+        new Date(),
+      );
+      return columns === current.columns ? current : { ...current, columns };
+    });
+  }, []);
+  usePeriodicRefresh(refreshDeadlines, DEADLINE_REFRESH_MS);
   const [errorText, setErrorText] = useState<string | null>(null);
   // Coluna que acabou de aparecer: o quadro rola até ela. Um objeto novo a cada pedido, para a
   // mesma coluna poder ser focada de novo (desfazer e refazer).

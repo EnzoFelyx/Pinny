@@ -1,4 +1,4 @@
-import { normalizeForSearch, splitByMatch } from './text';
+import { formatFileSize, normalizeForSearch, splitByMatch } from './text';
 
 describe('normalizeForSearch', () => {
   test('removes accents, case and the spaces around', () => {
@@ -41,5 +41,17 @@ describe('splitByMatch', () => {
   test('returns null when the term is empty or does not appear', () => {
     expect(splitByMatch('Estúdio', '')).toBeNull();
     expect(splitByMatch('Estúdio', 'mercado')).toBeNull();
+  });
+});
+
+describe('formatFileSize', () => {
+  test('shows megabytes with one decimal, in Brazilian format', () => {
+    expect(formatFileSize(1.8 * 1024 * 1024)).toBe('1,8 MB');
+    expect(formatFileSize(3 * 1024 * 1024)).toBe('3 MB');
+  });
+
+  test('shows kilobytes below one megabyte, never zero', () => {
+    expect(formatFileSize(640 * 1024)).toBe('640 KB');
+    expect(formatFileSize(10)).toBe('1 KB');
   });
 });

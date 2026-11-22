@@ -1,9 +1,9 @@
-import { router } from 'expo-router';
 import { useCallback, useEffect } from 'react';
 
 import { cardRepository } from '@/features/card/model/cardRepository';
 import { historyStore } from '@/features/history/model/historyStore';
 import { ptBR } from '@/i18n/pt-BR';
+import { openRoute } from '@/navigation/openRoute';
 
 import { archiveCards } from '../model/cardBatch';
 import { cardsMovedSignal } from './cardsMovedSignal';
@@ -41,7 +41,7 @@ export function useCardBatchActions({
 
   const openMove = useCallback(() => {
     if (!hasSelection) return;
-    router.push({
+    openRoute({
       pathname: '/board/[boardId]/move-cards',
       params: { boardId, cardIds: selectedIds.join(',') },
     });

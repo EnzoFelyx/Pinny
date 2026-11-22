@@ -99,6 +99,7 @@ export function DragOverlay({
             priority={card.priority}
             deadline={card.deadline}
             checklistText={card.checklistText}
+            thumbnail={card.thumbnail}
             isSelected={isCardSelected ? true : undefined}
             isCheckHidden
           />

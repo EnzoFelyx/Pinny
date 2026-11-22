@@ -5,7 +5,7 @@ import { SheetLayout } from '@/components/SheetLayout';
 import { ptBR } from '@/i18n/pt-BR';
 
 import { useMoveCardViewModel } from '../viewmodel/useMoveCardViewModel';
-import { OptionRow } from './components/OptionRow';
+import { OptionRow } from '@/components/OptionRow';
 
 const text = ptBR.board.moveSheet;
 
@@ -26,21 +26,6 @@ export function MoveCardScreen({ cardId }: MoveCardScreenProps) {
             label={option.label}
             isSelected={option.isSelected}
             onPress={() => vm.selectColumn(option.value)}
-          />
-        ))}
-      </View>
-      <View
-        accessibilityRole="radiogroup"
-        accessibilityLabel={text.positionLabel}
-        className="gap-1"
-      >
-        <Text className="pb-1 text-label text-text-secondary">{text.positionLabel}</Text>
-        {vm.positionOptions.map((option) => (
-          <OptionRow
-            key={option.value}
-            label={option.label}
-            isSelected={option.isSelected}
-            onPress={() => vm.selectPosition(option.value)}
           />
         ))}
       </View>

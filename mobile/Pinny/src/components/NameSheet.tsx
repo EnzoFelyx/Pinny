@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 import { Text } from 'react-native';
 
 import { Button } from './Button';
@@ -20,10 +21,12 @@ interface NameSheetProps {
   errorText: string | null;
   onChangeName: (name: string) => void;
   onSubmit: () => void;
+  // Campos extras logo abaixo do nome (ex.: a cor da etiqueta nova).
+  children?: ReactNode;
 }
 
 // Folha com um campo de nome e o botão de confirmar (Figma "Bottom sheet / Nova pasta"). Usada
-// para criar e renomear pastas e colunas.
+// para criar e renomear pastas e colunas, e criar etiquetas (com a cor nos campos extras).
 export function NameSheet({
   title,
   description,
@@ -37,6 +40,7 @@ export function NameSheet({
   errorText,
   onChangeName,
   onSubmit,
+  children,
 }: NameSheetProps) {
   return (
     // ~100px (32pt) entre o último item (botão ou nota) e a borda de baixo (decisão do autor).
@@ -52,6 +56,7 @@ export function NameSheet({
         onSubmitEditing={onSubmit}
         autoFocus
       />
+      {children}
       {errorText ? (
         <Text accessibilityLiveRegion="polite" className="text-body text-alert">
           {errorText}

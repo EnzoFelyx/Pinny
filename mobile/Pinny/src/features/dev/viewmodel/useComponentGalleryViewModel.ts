@@ -1,7 +1,7 @@
-import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 
 import { useBoardColumnLayout } from '@/hooks/useBoardColumnLayout';
+import { openRoute } from '@/navigation/openRoute';
 
 import { galleryCards } from '../model/gallerySamples';
 
@@ -24,7 +24,7 @@ export function useComponentGalleryViewModel() {
     toggleChecked: useCallback(() => setIsChecked((value) => !value), []),
     changeFolderName: setFolderName,
     // A folha da galeria é a "Nova pasta" de verdade (folha nativa do iOS).
-    openSheet: useCallback(() => router.push('/folder/new'), []),
+    openSheet: useCallback(() => openRoute('/folder/new'), []),
     showSnackbar: useCallback(() => setIsSnackbarVisible(true), []),
     hideSnackbar: useCallback(() => setIsSnackbarVisible(false), []),
     noop: useCallback(() => undefined, []),

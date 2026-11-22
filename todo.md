@@ -19,10 +19,10 @@
 | 5 | Navegação e estrutura das telas | ✅ |
 | 6 | Quadro kanban (o diferencial) | ✅ |
 | 6R | Refac / Perform (branch própria) | ✅ |
-| 7 | Card completo | ⬜ |
+| 7 | Card completo | ✅ |
 | 8 | Pastas e templates | ⬜ |
 | 9 | Notificações e calendário | ⬜ |
-| 10 | Agendamento por voz com IA | ⬜ |
+| 10 | Criar cartão e agendamento por voz com IA | ⬜ |
 | 11 | Automações e desfazer | ⬜ |
 | 12 | Configurações e privacidade | ⬜ |
 | 13 | Widgets e Live Activities | ⬜ |
@@ -174,7 +174,7 @@
 - [x] Rolagem automática da coluna perto das bordas
 - [x] Gravar a nova ordem (só o cartão movido) e registrar no histórico
 - [x] Chacoalhar para desfazer (antecipado da etapa 11)
-- [x] "Adicionar cartão" provisório cria um cartão de exemplo (até o formulário da etapa 7)
+- [x] "Adicionar cartão" provisório cria um cartão de exemplo (até a folha "Criar cartão" da etapa 10)
 - [x] Alternativa acessível: ações "Mover para cima/baixo" com anúncio da posição
 - [x] Respeitar "Reduzir movimento"
 - [x] Conferir no iPhone
@@ -260,6 +260,8 @@
 - [x] Arraste em lote, Parte 7 — casos de borda: filtro e busca (conferidos pelo autor em 2026-11-10), recarga do banco no meio do arraste e gesto interrompido pelo sistema (os cartões voltam às colunas e a seleção continua; conferidos pelo autor em 2026-11-11)
 - [x] Arraste em lote, Parte 8 — decisões da pilha registradas no CLAUDE.md. Sem anúncio do VoiceOver nem dica no topo (decisão do autor, 2026-11-11): a pilha é só gesto, e a alternativa acessível é o botão "Mover" da barra de ações em lote
 - [x] Tela "Arquivados" (2026-11-11, pedido do autor): busca, desarquivar ao segurar e o "…" com Buscar, Selecionar (Desarquivar/Apagar em lote), Filtrar, Ordenar e Apagar todos
+- [x] Arquivados, Variação B, etapa 1 (2026-11-21): seções recolhíveis por coluna de origem e a linha "Arquivado …" no cartão
+- [x] Arquivados, Variação B, etapa 2 (2026-11-22): folha "Cartão arquivado" (só leitura, "Desarquivar em <coluna>" e "Apagar")
 - [x] Conferir todas as ações do quadro pelo VoiceOver (conferido pelo autor em 2026-11-13; o TalkBack fica para quando o Android voltar)
 - Testes do ViewModel do quadro: passaram para a etapa 14 (os testes automatizados continuam adiados)
 
@@ -293,17 +295,30 @@
 
 **Objetivo:** o detalhe do card com todos os campos.
 
-- [ ] Tela/bottom sheet de detalhe do card
-- [ ] Título e descrição
-- [ ] Etiquetas coloridas
-- [ ] Prioridade
-- [ ] Data e horário
-- [ ] Checklist de subtarefas com barra de progresso
-- [ ] Anexar foto pela câmera ou galeria (permissão just-in-time, sem EXIF de localização, miniatura)
-- [ ] Trocar a coluna/status
-- [ ] Indicador visual de prazo nos cards (normal, próximo, vencido)
-- [ ] Tela Criar card
-- [ ] Testes do ViewModel
+> **Decisões do autor (2026-11-13):** o detalhe é uma **tela cheia**, como no Figma ("Cartão · Proposta para a Marina", node `3:45511`; começou como folha e virou tela no mesmo dia). Tudo de "Criar cartão" foi para a etapa 10 (decisão do autor, 2026-11-22). Salva **na hora**, sem botão "Salvar", e cada edição entra no histórico. Sem skeleton. Fotos com `expo-image-picker` e `expo-image-manipulator`. O lembrete ("Lembrete às 9:45", do Figma) fica para a etapa 9.
+
+**Partes (ordem de construção):**
+- [x] Parte 1 — Modelo: carregar o detalhe (cartão, coluna, quadro, pasta, etiquetas, checklist, anexos), repositório de anexos e as operações novas do histórico (checklist)
+- [x] Parte 2 — Tela do detalhe: tocar no cartão abre (fora do modo "Selecionar"); título e descrição editáveis, chips de etiquetas, prioridade e prazo, status (coluna, abre a folha "Mover para…") e o "…" (Mover, Arquivar, Apagar)
+- [x] Parte 3 — Prioridade (menu nativo) e etiquetas (escolher as do quadro e criar uma nova com nome e cor)
+- [x] Parte 4 — Data e horário (DatePicker do `@expo/ui`) e remover o prazo
+- [x] Parte 5 — Checklist: adicionar, marcar, renomear e apagar itens, com a barra de progresso
+- [x] Parte 6 — Fotos: instalar as bibliotecas, textos de permissão, tela curta explicando antes do pedido, câmera e galeria, sem EXIF de localização, miniatura, ver e apagar
+- [x] Foto de capa no post-it do quadro (2026-11-21): a primeira foto vira capa, "Usar como capa"/"Tirar da capa" no "…" da foto
+- [x] Barra de progresso do checklist animada (2026-11-21)
+- [x] Parte 7 — Prazo visual nos cartões do quadro (2026-11-22): só o chip, como no Figma; ano no chip quando é outro; o estado se atualiza a cada minuto e ao voltar do segundo plano. "Marcar como concluído" fica para a etapa 11
+
+**Tarefas (marcadas conforme as partes terminam):**
+- [x] Tela/bottom sheet de detalhe do card
+- [x] Título e descrição
+- [x] Etiquetas coloridas
+- [x] Prioridade
+- [x] Data e horário
+- [x] Checklist de subtarefas com barra de progresso
+- [x] Anexar foto pela câmera ou galeria (permissão just-in-time, sem EXIF de localização, miniatura)
+- [x] Trocar a coluna/status
+- [x] Indicador visual de prazo nos cards (normal, próximo, vencido)
+- [x] Testes do ViewModel (2026-11-22): detalhe, etiquetas, nova etiqueta, data e horário, fotos, foto e câmera, e a folha "Cartão arquivado"
 
 **Pronto quando:** todos os campos da seção 5.2 do `CLAUDE.md` funcionarem e forem salvos, e o app continuar funcionando se a permissão de câmera for negada.
 
@@ -348,10 +363,15 @@
 
 ---
 
-## Etapa 10 — Agendamento por voz com IA
+## Etapa 10 — Criar cartão e agendamento por voz com IA
 
-**Objetivo:** criar um card falando, sempre com confirmação do usuário.
+**Objetivo:** criar um card escrevendo ou falando, sempre com confirmação do usuário.
 
+> **Movido da etapa 7 (decisão do autor, 2026-11-22):** tudo que envolve criar o cartão fica nesta etapa, junto com a voz. Decisão anterior (2026-11-13): "Criar cartão" em **folha nativa** (o Figma a desenha em tela cheia: "Criar cartão · Texto ou voz", node `3:45582`); perguntar ao autor se continua assim antes de começar.
+
+- [ ] Folha "Criar cartão": formulário simples (título e o que mais o autor decidir), com o botão de microfone em destaque; substitui o cartão de exemplo do "Adicionar cartão" (coluna, estado vazio, menu da coluna e atalho do "…" do quadro)
+- [ ] Cartão criado entra no histórico ("Criação") e respeita filtro e busca ligados (aviso "Cartão criado, mas escondido pelos filtros")
+- [ ] Testes do ViewModel e do Model da criação
 - [ ] Decidir o serviço de reconhecimento de voz, o serviço de IA e onde roda o backend, e registrar na seção 9 do `CLAUDE.md`
 - [ ] Backend para a chamada à IA (chave fora do app)
 - [ ] Interface do serviço de voz/IA no Model, com mock para testes

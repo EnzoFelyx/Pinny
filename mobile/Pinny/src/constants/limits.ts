@@ -1,6 +1,25 @@
 // Um cartão entra em "prazo próximo" quando faltam até estas horas para vencer.
 export const DEADLINE_SOON_HOURS = 24;
 
+// De quanto em quanto tempo as telas abertas recalculam o estado do prazo (normal, em breve,
+// atrasado), que muda só com o passar do tempo.
+export const DEADLINE_REFRESH_MS = 60 * 1000;
+
+// Prazo novo de um cartão: amanhã, nesta hora (o usuário ajusta na folha "Data e horário").
+export const DEFAULT_DUE_HOUR = 9;
+
+// Fotos anexadas: o lado maior da foto guardada (bem acima da tela do iPhone, sem ocupar o espaço
+// de uma foto da câmera inteira), a largura da miniatura (a lista do cartão mostra 72pt a 3x) e a
+// qualidade do JPEG. Na galeria, até PHOTO_PICK_LIMIT fotos de uma vez.
+export const PHOTO_MAX_EDGE = 2048;
+export const PHOTO_THUMBNAIL_WIDTH = 320;
+export const PHOTO_JPEG_QUALITY = 0.85;
+export const PHOTO_PICK_LIMIT = 10;
+
+// Trava de navegação (openRoute): depois de abrir uma tela ou folha, outro "abrir" nesse intervalo
+// é ignorado (cobre a animação de entrada; evita folhas empilhadas por toque duplo).
+export const NAVIGATION_LOCK_MS = 600;
+
 // Tempo que o snackbar de "Desfazer" fica na tela antes de sumir sozinho.
 export const SNACKBAR_DURATION_MS = 5000;
 

@@ -1,11 +1,10 @@
 import { useCallback } from 'react';
 
-import { historyStore } from '@/features/history/model/historyStore';
 import { useUndoNotice } from '@/features/history/viewmodel/useUndoNotice';
 import { ptBR } from '@/i18n/pt-BR';
 
-import { unarchiveCards } from '../model/archivedCards';
 import { useCardDelete } from './useCardDelete';
+import { useUnarchiveCards } from './useUnarchiveCards';
 
 const text = ptBR.board.archived;
 
@@ -33,22 +32,7 @@ export function useArchivedActions({
 }: ArchivedActionsOptions) {
   const notifyUndoable = useUndoNotice();
 
-  const unarchive = useCallback(
-    async (cardIds: readonly string[]) => {
-      if (cardIds.length === 0) return;
-      try {
-        const result = await unarchiveCards(boardId, cardIds);
-        if (!result) return;
-        historyStore.record(ptBR.history.actions.unarchiveCards, result.undo);
-        onDone();
-        await notifyUndoable(text.unarchived(cardIds.length, result.columnTitle));
-      } catch (error: unknown) {
-        console.warn('Falha ao desarquivar os cartões.', error);
-        onSaveError();
-      }
-    },
-    [boardId, onDone, notifyUndoable, onSaveError],
-  );
+  const unarchive = useUnarchiveCards({ boardId, onDone, notifyUndoable, onSaveError });
 
   const { request, deleteRequest, confirmDelete, cancelDelete } = useCardDelete({
     titleOf,

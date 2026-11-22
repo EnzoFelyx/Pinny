@@ -1,7 +1,8 @@
 import { Pin } from 'lucide-react-native';
 import { memo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { HairlineDivider } from '@/components/HairlineDivider';
 import { colors } from '@/theme';
 
 import type { HomeFolderItem } from '../../viewmodel/useFolderItems';
@@ -82,7 +83,7 @@ export const FolderCard = memo(function FolderCard({
       </View>
 
       {/* Linha fina entre o cabeçalho e os quadros (decorativa): 8 do título e 12 dos quadros. */}
-      <View style={styles.divider} className="mx-2 mb-3 mt-2" />
+      <HairlineDivider className="mx-2 mb-3 mt-2" />
 
       {folder.createFirstBoardText && add ? (
         <AddBoardTile
@@ -104,9 +105,4 @@ export const FolderCard = memo(function FolderCard({
       )}
     </View>
   );
-});
-
-// Espessura de um pixel físico: valor do sistema, fora do className (REGRAS.md, regra 5).
-const styles = StyleSheet.create({
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
 });

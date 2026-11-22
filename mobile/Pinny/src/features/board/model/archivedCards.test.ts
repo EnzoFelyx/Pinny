@@ -98,24 +98,19 @@ describe('groupArchived', () => {
     makeBoardCard({ id: 'oldest', columnId: 'done' }),
   ];
   const ids = (groups: ReturnType<typeof groupArchived>) =>
-    groups.map((group) => [group.column?.id ?? null, group.cards.map((item) => item.card.id)]);
-
-  test('keeps a single group with the most recent first', () => {
-    expect(ids(groupArchived(cards, columns, 'recent'))).toEqual([
-      [null, ['newest', 'middle', 'oldest']],
-    ]);
-  });
-
-  test('keeps a single group with the oldest first', () => {
-    expect(ids(groupArchived(cards, columns, 'oldest'))).toEqual([
-      [null, ['oldest', 'middle', 'newest']],
-    ]);
-  });
+    groups.map((group) => [group.column.id, group.cards.map((item) => item.card.id)]);
 
   test('groups by origin column in board order, skipping columns without archived cards', () => {
-    expect(ids(groupArchived(cards, columns, 'byColumn'))).toEqual([
+    expect(ids(groupArchived(cards, columns, 'recent'))).toEqual([
       ['todo', ['middle']],
       ['done', ['newest', 'oldest']],
+    ]);
+  });
+
+  test('puts the oldest first inside each section when asked', () => {
+    expect(ids(groupArchived(cards, columns, 'oldest'))).toEqual([
+      ['todo', ['middle']],
+      ['done', ['oldest', 'newest']],
     ]);
   });
 });
