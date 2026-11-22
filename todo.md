@@ -260,6 +260,8 @@
 - [x] Arraste em lote, Parte 7 — casos de borda: filtro e busca (conferidos pelo autor em 2026-11-10), recarga do banco no meio do arraste e gesto interrompido pelo sistema (os cartões voltam às colunas e a seleção continua; conferidos pelo autor em 2026-11-11)
 - [x] Arraste em lote, Parte 8 — decisões da pilha registradas no CLAUDE.md. Sem anúncio do VoiceOver nem dica no topo (decisão do autor, 2026-11-11): a pilha é só gesto, e a alternativa acessível é o botão "Mover" da barra de ações em lote
 - [x] Tela "Arquivados" (2026-11-11, pedido do autor): busca, desarquivar ao segurar e o "…" com Buscar, Selecionar (Desarquivar/Apagar em lote), Filtrar, Ordenar e Apagar todos
+- [x] Arquivados, Variação B, etapa 1 (2026-11-21): seções recolhíveis por coluna de origem e a linha "Arquivado …" no cartão
+- [ ] Arquivados, Variação B, etapa 2: folha "Cartão arquivado" (só leitura, "Desarquivar em <coluna>" e "Apagar")
 - [x] Conferir todas as ações do quadro pelo VoiceOver (conferido pelo autor em 2026-11-13; o TalkBack fica para quando o Android voltar)
 - Testes do ViewModel do quadro: passaram para a etapa 14 (os testes automatizados continuam adiados)
 
@@ -300,19 +302,21 @@
 - [x] Parte 2 — Tela do detalhe: tocar no cartão abre (fora do modo "Selecionar"); título e descrição editáveis, chips de etiquetas, prioridade e prazo, status (coluna, abre a folha "Mover para…") e o "…" (Mover, Arquivar, Apagar)
 - [x] Parte 3 — Prioridade (menu nativo) e etiquetas (escolher as do quadro e criar uma nova com nome e cor)
 - [x] Parte 4 — Data e horário (DatePicker do `@expo/ui`) e remover o prazo
-- [ ] Parte 5 — Checklist: adicionar, marcar, renomear e apagar itens, com a barra de progresso
-- [ ] Parte 6 — Fotos: instalar as bibliotecas, textos de permissão, tela curta explicando antes do pedido, câmera e galeria, sem EXIF de localização, miniatura, ver e apagar
+- [x] Parte 5 — Checklist: adicionar, marcar, renomear e apagar itens, com a barra de progresso
+- [x] Parte 6 — Fotos: instalar as bibliotecas, textos de permissão, tela curta explicando antes do pedido, câmera e galeria, sem EXIF de localização, miniatura, ver e apagar
+- [x] Foto de capa no post-it do quadro (2026-11-21): a primeira foto vira capa, "Usar como capa"/"Tirar da capa" no "…" da foto
+- [x] Barra de progresso do checklist animada (2026-11-21)
 - [ ] Parte 7 — Prazo visual nos cartões do quadro (conferir com a seção 5.3 do CLAUDE.md)
 - [ ] Parte 8 — Folha "Criar cartão" (substitui o cartão de exemplo do "Adicionar cartão"); o microfone fica para a etapa 10
 
 **Tarefas (marcadas conforme as partes terminam):**
-- [ ] Tela/bottom sheet de detalhe do card
+- [x] Tela/bottom sheet de detalhe do card
 - [x] Título e descrição
 - [x] Etiquetas coloridas
 - [x] Prioridade
 - [x] Data e horário
-- [ ] Checklist de subtarefas com barra de progresso
-- [ ] Anexar foto pela câmera ou galeria (permissão just-in-time, sem EXIF de localização, miniatura)
+- [x] Checklist de subtarefas com barra de progresso
+- [x] Anexar foto pela câmera ou galeria (permissão just-in-time, sem EXIF de localização, miniatura)
 - [x] Trocar a coluna/status
 - [ ] Indicador visual de prazo nos cards (normal, próximo, vencido)
 - [ ] Tela Criar card
