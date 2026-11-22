@@ -306,7 +306,7 @@
 - [x] Parte 6 — Fotos: instalar as bibliotecas, textos de permissão, tela curta explicando antes do pedido, câmera e galeria, sem EXIF de localização, miniatura, ver e apagar
 - [x] Foto de capa no post-it do quadro (2026-11-21): a primeira foto vira capa, "Usar como capa"/"Tirar da capa" no "…" da foto
 - [x] Barra de progresso do checklist animada (2026-11-21)
-- [ ] Parte 7 — Prazo visual nos cartões do quadro (conferir com a seção 5.3 do CLAUDE.md)
+- [x] Parte 7 — Prazo visual nos cartões do quadro (2026-11-22): só o chip, como no Figma; ano no chip quando é outro; o estado se atualiza a cada minuto e ao voltar do segundo plano. "Marcar como concluído" fica para a etapa 11
 - [ ] Parte 8 — Folha "Criar cartão" (substitui o cartão de exemplo do "Adicionar cartão"); o microfone fica para a etapa 10
 
 **Tarefas (marcadas conforme as partes terminam):**
@@ -318,7 +318,7 @@
 - [x] Checklist de subtarefas com barra de progresso
 - [x] Anexar foto pela câmera ou galeria (permissão just-in-time, sem EXIF de localização, miniatura)
 - [x] Trocar a coluna/status
-- [ ] Indicador visual de prazo nos cards (normal, próximo, vencido)
+- [x] Indicador visual de prazo nos cards (normal, próximo, vencido)
 - [ ] Tela Criar card
 - [ ] Testes do ViewModel
 
