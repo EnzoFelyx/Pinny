@@ -7,11 +7,14 @@ import { createChecklistRepository } from '@/features/card/model/checklistReposi
 import { createFolderRepository } from '@/features/folders/model/folderRepository';
 import { createPreferencesRepository } from '@/features/settings/model/preferencesRepository';
 
+import type { Database } from '@/db/client';
+
 import { createTestDatabase } from './testDatabase';
 
-// Todos os repositórios sobre o mesmo banco em memória, novo e vazio a cada chamada.
-export function createTestRepositories() {
-  const database = createTestDatabase();
+// Todos os repositórios sobre o mesmo banco em memória, novo e vazio a cada chamada. Testes de
+// ViewModel passam o banco do app (o `db` de '@/db/client', também em memória no Jest), para
+// semear os dados que a tela vai ler.
+export function createTestRepositories(database: Database = createTestDatabase()) {
   return {
     database,
     folders: createFolderRepository(database),
