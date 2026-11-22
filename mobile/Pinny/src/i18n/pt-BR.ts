@@ -194,7 +194,8 @@ export const ptBR = {
     archived: {
       title: 'Arquivados',
       options: 'Opções dos arquivados',
-      // "…" do topo. O "Ordenar" abre um submenu; o item em uso leva o check.
+      // "…" do topo. O "Ordenar" abre um submenu (a ordem dentro de cada seção); o item em uso
+      // leva o check.
       menu: {
         search: 'Buscar',
         select: 'Selecionar',
@@ -203,9 +204,18 @@ export const ptBR = {
         sortOptions: {
           recent: 'Mais recentes',
           oldest: 'Mais antigos',
-          byColumn: 'Por coluna de origem',
         },
         deleteAll: 'Apagar todos',
+      },
+      // Cabeçalho de cada seção (coluna de origem), lido como botão de abrir/fechar.
+      sectionA11y: (column: string, count: number) =>
+        `${column}, ${count === 1 ? '1 cartão arquivado' : `${count} cartões arquivados`}`,
+      // Linha de baixo do cartão: "Arquivado hoje, 10:20", "Arquivado ontem, 19:10" ou
+      // "Arquivado em 16 nov".
+      archivedAt: {
+        today: (time: string) => `Arquivado hoje, ${time}`,
+        yesterday: (time: string) => `Arquivado ontem, ${time}`,
+        on: (date: string) => `Arquivado em ${date}`,
       },
       // Segurar o cartão (menu de contexto) e a barra da seleção: cada um volta ao topo da coluna
       // de onde saiu.

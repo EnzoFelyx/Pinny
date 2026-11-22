@@ -4,14 +4,14 @@ import type { AccessibilityActionEvent } from 'react-native';
 import { Card } from '@/components/Card';
 import { ptBR } from '@/i18n/pt-BR';
 
-import type { BoardCardItem } from '../../viewmodel/boardItems';
+import type { ArchivedCardItem } from '../../viewmodel/archivedItems';
 
 const text = ptBR.board.archived;
 const UNARCHIVE_ACTION = 'unarchive';
 const accessibilityActions = [{ name: UNARCHIVE_ACTION, label: text.unarchive }] as const;
 
 interface ArchivedCardMenuProps {
-  card: BoardCardItem;
+  card: ArchivedCardItem;
   onUnarchive: (cardId: string) => void;
 }
 
@@ -41,6 +41,7 @@ export function ArchivedCardMenu({ card, onUnarchive }: ArchivedCardMenuProps) {
               deadline={card.deadline}
               checklistText={card.checklistText}
               thumbnail={card.thumbnail}
+              footnote={card.archivedText}
               accessibilityActions={accessibilityActions}
               onAccessibilityAction={handleAccessibilityAction}
             />

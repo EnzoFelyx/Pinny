@@ -56,7 +56,7 @@ export function toDeadline(card: Card, now: Date): CardDeadline | undefined {
 
 // Ex.: "Cartão Estudar para a prova, Etiqueta Estudos, Prioridade alta, prazo Hoje, 14h · Em breve,
 // 2 de 5 subtarefas concluídas".
-function toAccessibilityLabel(
+export function toAccessibilityLabel(
   item: BoardCard,
   deadline: CardDeadline | undefined,
   checklist: ChecklistProgress | null,

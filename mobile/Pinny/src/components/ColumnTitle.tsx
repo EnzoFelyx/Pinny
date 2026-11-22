@@ -5,6 +5,8 @@ import { useInlineRename } from '@/hooks/useInlineRename';
 import { ptBR } from '@/i18n/pt-BR';
 import { colors } from '@/theme';
 
+import { CountBadge } from './CountBadge';
+
 interface ColumnTitleProps {
   title: string;
   cardCount: number;
@@ -37,12 +39,7 @@ export function ColumnTitle({
     if (event.nativeEvent.actionName === 'activate') startEditing();
   };
 
-  const countBadge = (
-    // Selo da contagem (Figma "Contagem"): cresce para os lados com 2 ou mais dígitos.
-    <View className="h-[25px] min-w-[25px] items-center justify-center rounded-[9px] bg-surface px-1.5">
-      <Text className="text-tag text-text-primary">{cardCount}</Text>
-    </View>
-  );
+  const countBadge = <CountBadge count={cardCount} />;
 
   if (draft !== null) {
     return (

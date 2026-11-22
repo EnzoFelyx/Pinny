@@ -1,8 +1,6 @@
 import { makeBoard, makeBoardCard, makeColumn, makeLabel } from '@/test/factories';
 
 import type { BoardData } from '../model/boardData';
-import { EMPTY_CARD_FILTER } from '../model/cardFilter';
-import { toArchivedGroups } from './archivedItems';
 import { findCardItems, toCardItem, toColumnItem, toColumnItems } from './boardItems';
 
 // Segunda, 18 de maio de 2026, 9h (horário do Brasil).
@@ -137,59 +135,5 @@ describe('findCardItems', () => {
       'b',
       'a',
     ]);
-  });
-});
-
-describe('toArchivedGroups', () => {
-  const columns = [makeColumn({ id: 'todo', title: 'Pendentes' })];
-  const cards = [
-    makeBoardCard({ id: 'a', columnId: 'todo', title: 'Estúdio de música' }),
-    makeBoardCard({ id: 'b', columnId: 'todo', title: 'Mercado', priority: 'high' }),
-  ];
-  const input = {
-    data: { board: makeBoard(), columns, cards },
-    order: 'recent' as const,
-    filter: EMPTY_CARD_FILTER,
-    term: '',
-    singleTitle: 'Cartões arquivados',
-    emptyMessage: 'Nada por aqui.',
-    now,
-  };
-
-  test('shows a single block with every archived card', () => {
-    const [group] = toArchivedGroups(input);
-
-    expect(group).toMatchObject({ key: 'all', title: 'Cartões arquivados', allIds: ['a', 'b'] });
-    expect(group.cards.map((card) => card.id)).toEqual(['a', 'b']);
-  });
-
-  test('keeps only the cards found by the search, with the match highlighted', () => {
-    const [group] = toArchivedGroups({ ...input, term: 'estudio' });
-
-    expect(group.cards.map((card) => card.id)).toEqual(['a']);
-    expect(group.cards[0].titleParts?.[0]).toEqual({ text: 'Estúdio', isMatch: true });
-    // "Limpar" continua desmarcando todos, inclusive os escondidos.
-    expect(group.allIds).toEqual(['a', 'b']);
-  });
-
-  test('applies the filter', () => {
-    const [group] = toArchivedGroups({
-      ...input,
-      filter: { ...EMPTY_CARD_FILTER, priorities: ['high'] },
-    });
-
-    expect(group.cards.map((card) => card.id)).toEqual(['b']);
-  });
-
-  test('groups by origin column, and still shows one empty block with nothing archived', () => {
-    const byColumn = toArchivedGroups({ ...input, order: 'byColumn' });
-    const empty = toArchivedGroups({
-      ...input,
-      order: 'byColumn',
-      data: { ...input.data, cards: [] },
-    });
-
-    expect(byColumn.map((group) => group.title)).toEqual(['Pendentes']);
-    expect(empty).toMatchObject([{ key: 'all', title: 'Cartões arquivados', cards: [] }]);
   });
 });

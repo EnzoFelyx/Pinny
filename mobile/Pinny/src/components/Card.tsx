@@ -38,6 +38,8 @@ interface CardProps {
   priority?: Priority;
   deadline?: CardDeadline;
   checklistText?: string;
+  // Linha discreta no lugar do prazo (ex.: "Arquivado hoje, 10:20" nos Arquivados).
+  footnote?: string;
   // Foto opcional (anexo do cartão). Aceita arquivo local ou { uri }.
   thumbnail?: ImageSourcePropType;
   onPress?: () => void;
@@ -84,6 +86,7 @@ export const Card = memo(function Card({
   priority,
   deadline,
   checklistText,
+  footnote,
   thumbnail,
   onPress,
   onLongPress,
@@ -101,7 +104,7 @@ export const Card = memo(function Card({
   const isCheckable = checked !== undefined;
   const surface: CardSurface = isSelecting ? (isSelected ? 'selected' : 'unselected') : 'default';
   const hasTags = labels.length > 0 || priority !== undefined;
-  const hasMeta = deadline !== undefined || checklistText !== undefined;
+  const hasMeta = deadline !== undefined || checklistText !== undefined || footnote !== undefined;
 
   return (
     <Pressable
@@ -147,7 +150,13 @@ export const Card = memo(function Card({
 
       {hasMeta ? (
         <View className="flex-row items-center justify-between">
-          {deadline ? <DeadlineChip deadline={deadline} /> : <View />}
+          {deadline ? (
+            <DeadlineChip deadline={deadline} />
+          ) : footnote ? (
+            <Text className="text-meta text-text-secondary">{footnote}</Text>
+          ) : (
+            <View />
+          )}
           {checklistText ? (
             <View className="flex-row items-center gap-1">
               <ListChecks size={META_ICON_SIZE} color={colors.textSecondary} />
